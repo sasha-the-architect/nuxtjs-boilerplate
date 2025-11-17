@@ -1,0 +1,8 @@
+# Ignore Vue files since they contain template syntax that stylelint can't parse properly
+*.vue
+
+# Other files to ignore
+node_modules/
+dist/
+build/
+.nuxt/
