@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  glob: ^11.1.0
+  glob: ^12.0.0
 
 importers:
 
@@ -2513,11 +2513,6 @@ packages:
 
   glob-to-regexp@0.4.1:
     resolution: {integrity: sha512-lkX1HJXwyMcprw/5YUZc2s7DrpAiHB21/V+E1rHUrVNokkvB6bqMzT0VfV6/86ZNabt1k14YOIaT7nDvOX3Iiw==}
-
-  glob@11.1.0:
-    resolution: {integrity: sha512-vuNwKSaKiqm7g0THUBu2x7ckSs3XJLXE+2ssL7/MfTGPLLcrJQ/4Uq1CjPTtO5cCIiRxqvN6Twy1qOwhL0Xjcw==}
-    engines: {node: 20 || >=22}
-    hasBin: true
 
   glob@12.0.0:
     resolution: {integrity: sha512-5Qcll1z7IKgHr5g485ePDdHcNQY0k2dtv/bjYy0iuyGxQw2qSOiiXUXJ+AYQpg3HNoUMHqAruX478Jeev7UULw==}
@@ -6147,7 +6142,7 @@ snapshots:
       async-sema: 3.1.1
       bindings: 1.5.0
       estree-walker: 2.0.2
-      glob: 11.1.0
+      glob: 12.0.0
       graceful-fs: 4.2.11
       node-gyp-build: 4.8.4
       picomatch: 4.0.3
@@ -6465,7 +6460,7 @@ snapshots:
 
   archiver-utils@5.0.2:
     dependencies:
-      glob: 11.1.0
+      glob: 12.0.0
       graceful-fs: 4.2.11
       is-stream: 2.0.1
       lazystream: 1.0.1
@@ -7634,15 +7629,6 @@ snapshots:
       is-glob: 4.0.3
 
   glob-to-regexp@0.4.1: {}
-
-  glob@11.1.0:
-    dependencies:
-      foreground-child: 3.3.1
-      jackspeak: 4.1.1
-      minimatch: 10.1.1
-      minipass: 7.1.2
-      package-json-from-dist: 1.0.1
-      path-scurry: 2.0.1
 
   glob@12.0.0:
     dependencies:
@@ -9250,7 +9236,7 @@ snapshots:
   replace-in-file@6.3.5:
     dependencies:
       chalk: 4.1.2
-      glob: 11.1.0
+      glob: 12.0.0
       yargs: 17.7.2
 
   require-directory@2.1.1: {}
@@ -9278,7 +9264,7 @@ snapshots:
 
   rimraf@3.0.2:
     dependencies:
-      glob: 11.1.0
+      glob: 12.0.0
 
   rollup-plugin-visualizer@6.0.5(rollup@4.53.2):
     dependencies:
@@ -9708,7 +9694,7 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.13
       commander: 4.1.1
-      glob: 11.1.0
+      glob: 12.0.0
       lines-and-columns: 1.2.4
       mz: 2.7.0
       pirates: 4.0.7
