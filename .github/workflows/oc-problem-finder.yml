@@ -42,10 +42,6 @@ jobs:
       IFLOW_API_KEY: ${{ secrets.IFLOW_API_KEY }}
       
     steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@v2
-        with:
-          egress-policy: audit
       - name: Checkout
         uses: actions/checkout@v5
         with:
