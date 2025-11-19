@@ -2,10 +2,7 @@
 export default defineNuxtConfig({
   devtools: { enabled: false }, // Disable in production for performance
   css: ['~/assets/css/main.css'],
-  modules: [
-    '@nuxtjs/tailwindcss',
-    '@nuxt/image', // Add image optimization module
-  ],
+  modules: ['@nuxtjs/tailwindcss'],
   // Performance optimizations
   experimental: {
     payloadExtraction: true,
@@ -15,19 +12,7 @@ export default defineNuxtConfig({
     // Optimize server-side rendering
     minify: true,
   },
-  // Image optimization configuration
-  image: {
-    // Use the 'static' provider which serves images from the static directory
-    provider: 'static',
-    // Set up image optimization
-    quality: 80,
-    format: ['webp', 'jpeg', 'png'],
-    // Add external domains for image optimization
-    domains: [],
-    alias: {
-      // Define any aliases for image paths
-    },
-  },
+
   // Route-level caching and prerendering
   routeRules: {
     // Prerender all static routes by default

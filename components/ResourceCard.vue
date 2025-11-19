@@ -5,14 +5,12 @@
     <div class="flex items-start">
       <!-- Using Nuxt Image for optimization -->
       <div v-if="icon" class="flex-shrink-0 mr-4">
-        <NuxtImg
+        <img
           :src="icon"
           :alt="title"
           width="48"
           height="48"
           class="w-12 h-12 rounded object-contain"
-          placeholder="L4G5G5D%00ayR*ayj[WBj[j[Rjay"
-          :preload="false"
           loading="lazy"
         />
       </div>
