@@ -31,7 +31,6 @@ jobs:
           gh run list --limit 100 --json number,workflowName,conclusion,createdAt,startedAt,updatedAt,status > intel/gha_runs.json
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          IFLOW_API_KEY: ${{ secrets.IFLOW_API_KEY }}
 
       - name: Fetch recent open issues
         run: |
@@ -72,7 +71,12 @@ jobs:
 
       - name: Run OpenCode1
         id: run_devin
-        timeout-minutes: 20
+        with:
+          api_key: ${{ secrets.IFLOW_API_KEY }}
+          timeout: "7200"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          IFLOW_API_KEY: ${{ secrets.IFLOW_API_KEY }}
         run: |
           opencode run "$(cat <<'PROMPT'
             ## ROLE  
@@ -109,9 +113,6 @@ jobs:
           )" \
             --model iflowcn/qwen3-coder-plus \
             --share false \
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          IFLOW_API_KEY: ${{ secrets.IFLOW_API_KEY }}
 
       - name: Save self-improvement plan as artifact
         run: |
