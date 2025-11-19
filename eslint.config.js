@@ -1,19 +1,17 @@
 import js from '@eslint/js'
 import pluginVue from 'eslint-plugin-vue'
-import * as parserVue from 'vue-eslint-parser'
 import configPrettier from 'eslint-config-prettier'
 import pluginPrettier from 'eslint-plugin-prettier'
 
 export default [
   js.configs.recommended,
-  ...pluginVue.configs['flat/essential'],
+  ...pluginVue.configs['flat/essential'], // Using essential instead of recommended to reduce dependencies
   configPrettier,
   {
     plugins: {
       prettier: pluginPrettier,
     },
     languageOptions: {
-      parser: parserVue,
       ecmaVersion: 'latest',
       sourceType: 'module',
       globals: {
@@ -34,5 +32,6 @@ export default [
       'no-console': 'warn',
       'no-debugger': 'warn',
     },
+    files: ['**/*.vue', '**/*.js', '**/*.cjs', '**/*.mjs'],
   },
 ]
