@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@nuxt/devtools": "^1.0.3",
+    "@nuxt/image": "^2.0.0",
     "@nuxtjs/eslint-config": "^12.0.0",
     "@nuxtjs/stylelint-module": "^5.1.0",
     "@nuxtjs/tailwindcss": "^6.10.0",
@@ -29,5 +30,8 @@
     "stylelint-config-standard": "^36.0.0",
     "vue": "^3.3.8",
     "vue-router": "^4.2.5"
+  },
+  "dependencies": {
+    "web-vitals": "^5.1.0"
   }
 }
