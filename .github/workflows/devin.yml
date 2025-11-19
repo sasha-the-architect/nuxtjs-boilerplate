@@ -65,13 +65,11 @@ jobs:
           path: ./intel
 
       - name: Install OpenCode CLI
-        if: steps.check_issues.outputs.no_issues == 'false'
         run: |
           curl -fsSL https://opencode.ai/install | bash
           echo "$HOME/.opencode/bin" >> $GITHUB_PATH
 
       - name: Run OpenCode1
-        if: steps.check_issues.outputs.no_issues == 'false'
         id: run_devin
         timeout-minutes: 20
         run: |
