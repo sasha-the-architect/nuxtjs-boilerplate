@@ -31,6 +31,7 @@ jobs:
           gh run list --limit 100 --json number,workflowName,conclusion,createdAt,startedAt,updatedAt,status > intel/gha_runs.json
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          IFLOW_API_KEY: ${{ secrets.IFLOW_API_KEY }}
 
       - name: Fetch recent open issues
         run: |
@@ -110,6 +111,7 @@ jobs:
             --share false \
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          IFLOW_API_KEY: ${{ secrets.IFLOW_API_KEY }}
 
       - name: Save self-improvement plan as artifact
         run: |
