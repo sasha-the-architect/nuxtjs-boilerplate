@@ -5,7 +5,7 @@ import pluginPrettier from 'eslint-plugin-prettier'
 
 export default [
   js.configs.recommended,
-  ...pluginVue.configs['flat/essential'], // Using essential instead of recommended to reduce dependencies
+  ...pluginVue.configs['flat/essential'], // Using essential instead of recommended to reduce dependencies - Updated to fix ESLint 9 compatibility
   configPrettier,
   {
     plugins: {
