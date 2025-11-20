@@ -47,7 +47,7 @@ jobs:
         uses: iflow-ai/iflow-cli-action@v2.0.0
         id: 'iflow_cli_issue_triage'
         env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          GH_TOKEN: '${{ secrets.GH_TOKEN }}'
           ISSUE_TITLE: '${{ github.event.issue.title }}'
           ISSUE_BODY: '${{ github.event.issue.body }}'
           ISSUE_NUMBER: '${{ github.event.issue.number }}'
@@ -90,7 +90,7 @@ jobs:
           ${{ failure() && steps.iflow_cli_issue_triage.outcome == 'failure' }}
         uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
         with:
-          github-token: '${{ secrets.GITHUB_TOKEN }}'
+          github-token: '${{ secrets.GH_TOKEN }}'
           script: |-
             github.rest.issues.createComment({
               owner: '${{ github.repository }}'.split('/')[0],
@@ -98,3 +98,25 @@ jobs:
               issue_number: '${{ github.event.issue.number }}',
               body: 'There is a problem with the iFlow CLI issue triaging. Please check the [action logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
             })
+- name: iFlow CLI with MCP Server
+  uses: iflow-ai/iflow-cli-action@v2.0.0
+  with:
+    prompt: "use @deepwiki to search how to use Skynet to build a game"
+    api_key: ${{ secrets.IFLOW_API_KEY }}
+    settings_json: |
+      {
+        "selectedAuthType": "iflow",
+        "apiKey": "${{ secrets.IFLOW_API_KEY }}",
+        "baseUrl": "https://apis.iflow.cn/v1",
+        "modelName": "Qwen3-Coder",
+        "searchApiKey": "${{ secrets.IFLOW_API_KEY }}",
+        "mcpServers": {
+          "deepwiki": {
+            "command": "npx",
+            "args": ["-y", "mcp-deepwiki@latest"]
+          }
+        }
+      }
+    model: "Qwen3-Coder"
+    timeout: "1800"
+    debug: "true"
