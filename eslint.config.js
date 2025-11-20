@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // ESLint flat config for Nuxt 3 project
 import js from '@eslint/js'
 import pluginPrettier from 'eslint-plugin-prettier'
@@ -46,6 +47,27 @@ export default [
         ...globals.browser,
         ...globals.node,
         // Nuxt.js specific globals
+=======
+import js from '@eslint/js'
+import pluginVue from 'eslint-plugin-vue'
+import * as parserVue from 'vue-eslint-parser'
+import configPrettier from 'eslint-config-prettier'
+import pluginPrettier from 'eslint-plugin-prettier'
+
+export default [
+  js.configs.recommended,
+  ...pluginVue.configs['flat/essential'],
+  configPrettier,
+  {
+    plugins: {
+      prettier: pluginPrettier,
+    },
+    languageOptions: {
+      parser: parserVue,
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+>>>>>>> a79774e ([maintenance] fix ESLint configuration and update documentation)
         definePageMeta: 'readonly',
         defineNuxtConfig: 'readonly',
         defineNuxtRouteMiddleware: 'readonly',
@@ -55,6 +77,7 @@ export default [
         useAsyncData: 'readonly',
         navigateTo: 'readonly',
         $fetch: 'readonly',
+<<<<<<< HEAD
         defineNuxtPlugin: 'readonly',
       },
     },
@@ -384,3 +407,15 @@ export default [
   },
 ]
 >>>>>>> 673cec2 (fix: migrate ESLint to flat config format and resolve linting issues)
+=======
+      },
+    },
+    rules: {
+      'prettier/prettier': 'error',
+      'vue/multi-word-component-names': 'off',
+      'no-console': 'warn',
+      'no-debugger': 'warn',
+    },
+  },
+]
+>>>>>>> a79774e ([maintenance] fix ESLint configuration and update documentation)
