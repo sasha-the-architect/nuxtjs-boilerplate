@@ -5,6 +5,7 @@ import pluginVue from 'eslint-plugin-vue'
 import tsParser from '@typescript-eslint/parser'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import vueParser from 'vue-eslint-parser'
+import globals from 'globals'
 
 export default [
   // Ignore generated and dependency directories
@@ -15,7 +16,8 @@ export default [
       '**/dist/**',
       '**/node_modules/**',
       '**/coverage/**',
-      '**/public/**',
+      'pnpm-lock.yaml',
+      'package-lock.json',
     ],
   },
 
@@ -33,23 +35,24 @@ export default [
 
   // JS files configuration
   {
-    files: ['**/*.js'],
+    files: ['**/*.js', '**/*.mjs'],
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 2021,
       sourceType: 'module',
       globals: {
-        browser: true,
-        node: true,
-        process: 'readonly',
-        Buffer: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        global: 'readonly',
-        console: 'readonly',
-        setTimeout: 'readonly',
-        clearTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearInterval: 'readonly',
+        // Environment globals
+        ...globals.browser,
+        ...globals.node,
+        // Nuxt.js specific globals
+        definePageMeta: 'readonly',
+        defineNuxtConfig: 'readonly',
+        defineNuxtRouteMiddleware: 'readonly',
+        useRuntimeConfig: 'readonly',
+        useState: 'readonly',
+        useFetch: 'readonly',
+        useAsyncData: 'readonly',
+        navigateTo: 'readonly',
+        $fetch: 'readonly',
         defineNuxtPlugin: 'readonly',
       },
     },
