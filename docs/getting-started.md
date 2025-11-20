@@ -1,6 +1,6 @@
 # Getting Started
 
-This guide will help you set up the "Nuxt.js Boilerplate" project for development and deployment. This is a modern, production-ready Nuxt.js 3 boilerplate with best practices, security scanning, and comprehensive documentation.
+This guide will help you set up the "Free Stuff on the Internet" project for development and deployment. This is a comprehensive directory of free resources for developers, students, and tech enthusiasts.
 
 ## 📋 Prerequisites
 
@@ -52,7 +52,7 @@ Create a `.env` file in the root directory:
 ```env
 # Development
 NUXT_PUBLIC_SITE_URL=http://localhost:3000
-NUXT_PUBLIC_SITE_NAME="Nuxt.js Boilerplate"
+NUXT_PUBLIC_SITE_NAME="Free Stuff Website"
 
 # Optional: Analytics and monitoring
 NUXT_PUBLIC_GA_ID=""
@@ -99,15 +99,21 @@ nuxtjs-boilerplate/
 ├── assets/            # Static assets (CSS, images)
 │   └── css/           # Global stylesheets
 ├── components/        # Vue components
-│   └── ResourceCard.vue  # Reusable resource card component
+│   ├── ResourceCard.vue     # Display individual resources
+│   ├── SearchBar.vue        # Search functionality
+│   └── ResourceFilters.vue  # Resource filtering
 ├── layouts/           # Nuxt layouts
 │   └── default.vue   # Main layout with header and footer
 ├── pages/             # Vue pages (auto-routing)
-│   ├── index.vue     # Home page with resource grid
-│   ├── ai-keys.vue   # AI resources page
-│   └── about.vue     # About page
+│   ├── index.vue     # Home page with resource grid and search
+│   ├── ai-keys.vue   # AI tools and resources page
+│   ├── about.vue     # About page
+│   ├── search.vue    # Search results page
+│   └── submit.vue    # Resource submission page
+├── composables/       # Vue composables (useResources, useUrlSync)
 ├── plugins/           # Nuxt plugins
 │   └── performance.client.ts  # Performance monitoring
+├── data/              # Resource data files (JSON)
 ├── server/            # Server-side code
 ├── docs/              # Project documentation
 ├── public/            # Public static files

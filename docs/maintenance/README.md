@@ -1,6 +1,6 @@
 # Maintenance Documentation
 
-This section contains guides and procedures for maintaining the Nuxt.js Boilerplate project.
+This section contains guides and procedures for maintaining the Free Stuff on the Internet project.
 
 ## 📚 Available Documentation
 

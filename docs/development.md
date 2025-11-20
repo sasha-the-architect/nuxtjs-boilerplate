@@ -1,6 +1,6 @@
 # Development Guidelines
 
-This document outlines the standards, conventions, and best practices for contributing to the "Nuxt.js Boilerplate" project.
+This document outlines the standards, conventions, and best practices for contributing to the "Free Stuff on the Internet" project.
 
 ## 📋 Table of Contents
 
