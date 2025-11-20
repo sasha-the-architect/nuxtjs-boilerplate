@@ -15,7 +15,7 @@
   "devDependencies": {
     "@babel/eslint-parser": "^7.28.5",
     "@eslint/js": "^9.39.1",
-    "@nuxt/devtools": "^1.0.3",
+    "@nuxt/devtools": "^2.6.4",
     "@nuxt/image": "^2.0.0",
     "@nuxtjs/stylelint-module": "^5.1.0",
     "@nuxtjs/tailwindcss": "^6.10.0",
