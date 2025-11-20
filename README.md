@@ -31,13 +31,11 @@ Look at the [Nuxt 3 documentation](https://nuxt.com/docs) to learn more.
 ### Installation
 
 1. **Clone the repository**
->>>>>>> main
 
 ```bash
 git clone https://github.com/cpa02cmz/nuxtjs-boilerplate.git
 cd nuxtjs-boilerplate
 ```
-
 2. **Install dependencies**
 
 ```bash
@@ -49,6 +47,7 @@ npm install
 ```
 
 > **Note**: The project uses `pnpm-lock.yaml`, so pnpm is the recommended package manager.
+
 3. **Start development server**
 
 ```bash
@@ -60,16 +59,14 @@ The application will be available at <http://localhost:3000>
 ## 📋 Available Scripts
 
 ```bash
-# Development
-pnpm dev              # Start development server
-pnpm build            # Build for production
-pnpm preview          # Preview production build
+# Using pnpm
+pnpm dev
 
-# Code Quality
-pnpm lint             # Run linting checks
-pnpm lint:fix         # Fix linting issues automatically
-pnpm format           # Format code with Prettier
+# Using npm
+npm run dev
 ```
+
+The application will be available at <http://localhost:3000>
 
 ## 📁 Project Structure
 
@@ -97,22 +94,7 @@ nuxtjs-boilerplate/
 - **[Deployment](./docs/deployment/README.md)** - Platform-specific deployment instructions
 - **[Roadmap](./docs/roadmap.md)** - Project development roadmap and milestones
 
-=======
-**Using npm:**
 
-```bash
-npm install
-```
-
-> **Note**: The project uses `pnpm-lock.yaml`, so pnpm is the recommended package manager.
-
-3. **Start development server**
-
-```bash
-pnpm dev
-```
-
-The development server will start at `http://localhost:3000`.
 
 The application will be available at <http://localhost:3000>
 
@@ -266,7 +248,7 @@ rm -rf .nuxt .output
 pnpm build
 ```
 
-For common issues and solutions, check our [Troubleshooting Guide](./docs/maintenance/troubleshooting.md).
+For more troubleshooting, see our [Troubleshooting Guide](./docs/maintenance/troubleshooting.md).
 
 ## 🐛 Troubleshooting
 
