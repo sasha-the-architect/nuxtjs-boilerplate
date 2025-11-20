@@ -38,6 +38,7 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          IFLOW_API_KEY: ${{ secrets.IFLOW_API_KEY }}
 
       - name: Upload PR intel
         if: env.skip_jobs == 'false'
@@ -113,6 +114,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          IFLOW_API_KEY: ${{ secrets.IFLOW_API_KEY }}
 
       - name: Upload summary
         if: success()
@@ -137,3 +139,4 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          IFLOW_API_KEY: ${{ secrets.IFLOW_API_KEY }}
