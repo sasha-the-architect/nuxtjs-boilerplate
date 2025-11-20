@@ -33,8 +33,11 @@
               to="/about"
               class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
             >
-              About
-            </NuxtLink>
+            <NuxtLink
+              to="/submit"
+              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium font-medium bg-gray-100 hover:bg-gray-200 rounded-md"
+              >Submit</NuxtLink
+            >
           </nav>
         </div>
       </div>
