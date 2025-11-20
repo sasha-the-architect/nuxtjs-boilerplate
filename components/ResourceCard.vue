@@ -52,7 +52,7 @@ interface Props {
   buttonLabel?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   newTab: true,
   buttonLabel: 'Get Free Access',
 })
