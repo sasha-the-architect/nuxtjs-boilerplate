@@ -9,3 +9,7 @@ The current implementation ensures:
 - Consistent application structure across all pages
 - Proper use of the default layout with header, navigation, and footer
 - Uniform user experience throughout the application
+
+## Status Update
+
+Issue #24 has been resolved. The fix was implemented via PR that addressed issue #23, which was a duplicate of this issue. Both issues concerned the same architectural problem with app.vue layout implementation.
