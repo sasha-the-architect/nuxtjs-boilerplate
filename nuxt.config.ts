@@ -18,7 +18,7 @@ export default defineNuxtConfig({
   // Image optimization configuration
   image: {
     // Use the same provider as your deployment
-    provider: 'static',
+    provider: 'ipx',
     // Set up image optimization options
     quality: 80,
     format: ['webp', 'jpeg', 'png'],
@@ -42,6 +42,11 @@ export default defineNuxtConfig({
     },
     // Enable compression
     compressPublicAssets: true,
+    experimental: {
+      wasm: false, // Disable if not using WebAssembly
+    },
+    // Improve build performance
+    ignore: ['**/.git/**', '**/node_modules/**', '**/dist/**'],
   },
 
   // Route-level caching and prerendering
@@ -156,5 +161,23 @@ export default defineNuxtConfig({
         'node-fetch-native': 'node-fetch-native/pure.js',
       },
     },
+    // Additional build performance optimizations
+    optimizeDeps: {
+      // Only scan necessary files
+      include: ['vue', 'vue-router', '@nuxt/image'],
+      // Exclude heavy dependencies that shouldn't be pre-bundled
+      exclude: [],
+    },
+  },
+  // Additional build optimization settings
+  build: {
+    // Enable compression
+    compress: true,
+    // Optimize for faster builds
+    transpile: ['vue'],
+    // Enable parallel builds
+    parallel: true,
+    // Add more detailed build information
+    analyze: false, // Enable only when needed for analysis
   },
 })
