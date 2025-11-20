@@ -1,8 +1,8 @@
 ---
-name: Bug Report
-about: Create a report to help us improve
+name: 🐛 Bug Report
+about: File a bug report to help us improve
 title: '[BUG] '
-labels: bug
+labels: ['bug', 'triage']
 assignees: ''
 ---
 
@@ -29,10 +29,21 @@ A clear and concise description of what actually happened.
 
 ## 📱 Environment Information
 
+**Please complete the following information:**
+
 - **OS**: [e.g. macOS 13.0, Windows 11, Ubuntu 22.04]
 - **Browser**: [e.g. Chrome 108, Firefox 107, Safari 16]
 - **Node.js Version**: [e.g. 18.12.1]
+- **Nuxt Version**: [e.g. 3.8.2]
 - **Package Manager**: [e.g. pnpm 7.26.1, npm 8.19.2]
+
+## 📋 Console Errors
+
+Please copy and paste any relevant console errors or browser console output.
+
+```bash
+# Paste error messages here
+```
 
 ## 📸 Screenshots
 
@@ -49,3 +60,14 @@ List any related issues or pull requests.
 ## 💡 Possible Solution
 
 If you have any ideas on how to fix this, please describe them here.
+
+## 🚨 Priority
+
+- [ ] Critical - Blocks development/production
+- [ ] High - Major functionality broken
+- [ ] Medium - Workaround available
+- [ ] Low - Minor inconvenience
+
+---
+
+**Thank you for helping us improve! 🎉**

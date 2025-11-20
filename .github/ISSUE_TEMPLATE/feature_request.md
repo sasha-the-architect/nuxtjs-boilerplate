@@ -1,8 +1,8 @@
 ---
-name: Feature Request
+name: ✨ Feature Request
 about: Suggest an idea for this project
 title: '[FEATURE] '
-labels: enhancement
+labels: ['enhancement', 'triage']
 assignees: ''
 ---
 
@@ -59,3 +59,21 @@ List any related issues, discussions, or pull requests.
 ## 📝 Additional Context
 
 Add any other context, examples, or use cases about the feature request here.
+
+## 🚀 Priority
+
+- [ ] Critical - Essential for next release
+- [ ] High - Important for user experience
+- [ ] Medium - Nice to have
+- [ ] Low - Future consideration
+
+## 📊 Effort Estimate
+
+- [ ] Small (1-2 days)
+- [ ] Medium (3-5 days)
+- [ ] Large (1-2 weeks)
+- [ ] Extra Large (2+ weeks)
+
+---
+
+**Thank you for your contribution! 🎉**
