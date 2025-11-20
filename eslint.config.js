@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // ESLint flat config for Nuxt 3 project
 import js from '@eslint/js'
 import pluginPrettier from 'eslint-plugin-prettier'
@@ -214,3 +215,60 @@ export default [
     },
   },
 ]
+=======
+import js from '@eslint/js'
+import typescript from '@typescript-eslint/eslint-plugin'
+import typescriptParser from '@typescript-eslint/parser'
+import vue from 'eslint-plugin-vue'
+import nuxt from 'eslint-plugin-nuxt'
+import prettier from 'eslint-plugin-prettier'
+import prettierConfig from 'eslint-config-prettier'
+
+export default [
+  js.configs.recommended,
+  {
+    files: ['**/*.{js,mjs,cjs,ts,vue}'],
+    languageOptions: {
+      parser: vue.parser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        parser: typescriptParser,
+      },
+    },
+    plugins: {
+      vue,
+      typescript,
+      nuxt,
+      prettier,
+    },
+    rules: {
+      ...vue.configs['flat/recommended'].rules,
+      ...typescript.configs.recommended.rules,
+      ...nuxt.configs.recommended.rules,
+      ...prettierConfig.rules,
+      'prettier/prettier': 'error',
+    },
+    globals: {
+      definePageMeta: 'readonly',
+      defineNuxtConfig: 'readonly',
+      defineNuxtRouteMiddleware: 'readonly',
+      useRuntimeConfig: 'readonly',
+      useState: 'readonly',
+      useFetch: 'readonly',
+      useAsyncData: 'readonly',
+      navigateTo: 'readonly',
+      $fetch: 'readonly',
+    },
+  },
+  {
+    files: ['**/*.vue'],
+    languageOptions: {
+      parser: vue.parser,
+      parserOptions: {
+        parser: typescriptParser,
+      },
+    },
+  },
+]
+>>>>>>> 9273e24 ([maintenance] critical fixes for repository health)
