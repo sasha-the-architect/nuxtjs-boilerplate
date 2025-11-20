@@ -7,7 +7,7 @@ export default defineNuxtPlugin(() => {
     // Check if we're in the browser and Web Vitals is available
     if ('PerformanceObserver' in window && 'measure' in performance) {
       // Send performance metrics to analytics or logging service
-      const sendToAnalytics = (metric: any) => {
+      const sendToAnalytics = (metric: { name: string; value: number }) => {
         // You can send these metrics to your analytics service
         console.log(`${metric.name}: ${metric.value}`)
 

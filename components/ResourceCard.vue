@@ -57,7 +57,7 @@ const {
   description,
   benefits,
   url,
-  icon,
+  icon = '',
   newTab = true,
   buttonLabel = 'Get Free Access',
 } = defineProps<Props>()

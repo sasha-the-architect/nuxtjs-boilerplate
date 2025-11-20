@@ -3,6 +3,8 @@ import js from '@eslint/js'
 import pluginPrettier from 'eslint-plugin-prettier'
 import pluginVue from 'eslint-plugin-vue'
 import tsParser from '@typescript-eslint/parser'
+import tsPlugin from '@typescript-eslint/eslint-plugin'
+import vueParser from 'vue-eslint-parser'
 
 export default [
   // Ignore generated and dependency directories
@@ -23,8 +25,9 @@ export default [
   // Register plugins
   {
     plugins: {
-      prettier: pluginPrettier,
       vue: pluginVue,
+      prettier: pluginPrettier,
+      '@typescript-eslint': tsPlugin,
     },
   },
 
@@ -37,6 +40,17 @@ export default [
       globals: {
         browser: true,
         node: true,
+        process: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        global: 'readonly',
+        console: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        defineNuxtPlugin: 'readonly',
       },
     },
     linterOptions: {
@@ -52,8 +66,8 @@ export default [
         },
       ],
       'no-var': 'error',
-      'no-console': 'warn',
-      'no-debugger': 'warn',
+      'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+      'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
 
       // Prettier integration
       'prettier/prettier': 'error',
@@ -79,6 +93,7 @@ export default [
         useAsyncData: 'readonly',
         navigateTo: 'readonly',
         $fetch: 'readonly',
+        defineNuxtPlugin: 'readonly',
       },
     },
     linterOptions: {
@@ -94,8 +109,15 @@ export default [
         },
       ],
       'no-var': 'error',
-      'no-console': 'warn',
-      'no-debugger': 'warn',
+      'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+      'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+
+      // TypeScript specific
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' },
+      ],
+      '@typescript-eslint/no-explicit-any': 'warn',
 
       // Prettier integration
       'prettier/prettier': 'error',
@@ -106,7 +128,7 @@ export default [
   {
     files: ['**/*.vue'],
     languageOptions: {
-      parser: (await import('vue-eslint-parser')).default,
+      parser: vueParser,
       parserOptions: {
         parser: tsParser, // Use TS parser for script blocks in Vue files
         ecmaVersion: 2022,
@@ -122,15 +144,29 @@ export default [
         useAsyncData: 'readonly',
         navigateTo: 'readonly',
         $fetch: 'readonly',
+        defineNuxtPlugin: 'readonly',
       },
     },
     plugins: {
       vue: pluginVue,
+      '@typescript-eslint': tsPlugin,
+      prettier,
     },
     rules: {
       // Basic Vue rules
       'vue/multi-word-component-names': 'off', // Allow single word component names in pages/layouts
       'vue/no-multiple-template-root': 'error',
+
+      // TypeScript specific
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' },
+      ],
+      '@typescript-eslint/no-explicit-any': 'warn',
+
+      // Code style
+      'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+      'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
 
       // Prettier integration
       'prettier/prettier': 'error',
