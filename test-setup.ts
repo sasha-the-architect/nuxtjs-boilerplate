@@ -1,4 +1,4 @@
-import { beforeAll, afterEach, afterAll } from 'vitest'
+import { beforeAll, afterEach, afterAll, vi } from 'vitest'
 import { config } from '@vue/test-utils'
 
 // Mock Nuxt composables
@@ -21,6 +21,21 @@ config.global.mocks = {
     },
   },
 }
+
+// Add global mocks for Nuxt composables that may be used in components
+global.useSeoMeta = vi.fn()
+global.useHead = vi.fn()
+global.definePageMeta = vi.fn()
+global.useRuntimeConfig = vi.fn()
+global.useFetch = vi.fn()
+global.useAsyncData = vi.fn()
+global.useState = vi.fn()
+global.navigateTo = vi.fn()
+global.computed = vi.fn()
+global.ref = vi.fn()
+global.reactive = vi.fn()
+global.onMounted = vi.fn()
+global.onUnmounted = vi.fn()
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
