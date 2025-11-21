@@ -156,6 +156,39 @@ export default [
       'prettier/prettier': 'error',
     },
   },
+  {
+    // For server files
+    files: ['server/**/*.ts'],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+        defineEventHandler: 'readonly',
+        setResponseHeader: 'readonly',
+        createError: 'readonly',
+      },
+    },
+  },
+  {
+    // For test files
+    files: ['**/*.spec.ts', '**/*.test.ts', 'test-setup.ts'],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+        vi: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+      },
+    },
+  },
   // Apply prettier config to disable conflicting rules
   configPrettier,
   {
