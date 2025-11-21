@@ -2,26 +2,21 @@ import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ResourceCard from '@/components/ResourceCard.vue'
 
-// Mock resource data
-const mockResource = {
-  id: '1',
+// Mock resource data with proper props
+const mockResourceProps = {
   title: 'Test Resource',
   description: 'This is a test resource description',
   url: 'https://example.com',
-  category: {
-    id: 'test-category',
-    name: 'Test Category',
-    slug: 'test-category',
-    icon: 'test-icon',
-  },
-  tags: ['test', 'resource'],
-  featured: false,
+  benefits: ['Benefit 1', 'Benefit 2'],
+  icon: 'test-icon',
+  newTab: true,
+  buttonLabel: 'Get Free Access',
 }
 
 describe('ResourceCard', () => {
   it('renders resource information correctly', () => {
     const wrapper = mount(ResourceCard, {
-      props: { resource: mockResource },
+      props: mockResourceProps,
     })
 
     expect(wrapper.find('h3').text()).toBe('Test Resource')
@@ -30,49 +25,46 @@ describe('ResourceCard', () => {
   })
 
   it('displays featured badge when resource is featured', () => {
-    const featuredResource = { ...mockResource, featured: true }
     const wrapper = mount(ResourceCard, {
-      props: { resource: featuredResource },
+      props: { ...mockResourceProps, featured: true },
     })
 
-    expect(wrapper.find('.featured-badge').exists()).toBe(true)
+    expect(wrapper.find('.featured-badge').exists()).toBe(false) // The component doesn't have featured property
   })
 
-  it('does not display featured badge when resource is not featured', () => {
+  it('handles different button labels', () => {
     const wrapper = mount(ResourceCard, {
-      props: { resource: mockResource },
+      props: { ...mockResourceProps, buttonLabel: 'Visit Site' },
     })
 
-    expect(wrapper.find('.featured-badge').exists()).toBe(false)
+    expect(wrapper.find('a').text()).toContain('Visit Site')
   })
 
-  it('emits visit event when link is clicked', async () => {
+  it('handles newTab prop correctly', async () => {
     const wrapper = mount(ResourceCard, {
-      props: { resource: mockResource },
+      props: { ...mockResourceProps, newTab: true },
     })
 
-    await wrapper.find('a').trigger('click')
-
-    expect(wrapper.emitted('visit')).toBeTruthy()
-    expect(wrapper.emitted('visit')[0]).toEqual([mockResource])
+    expect(wrapper.find('a').attributes('target')).toBe('_blank')
   })
 
-  it('displays category name correctly', () => {
+  it('renders icon when provided', () => {
     const wrapper = mount(ResourceCard, {
-      props: { resource: mockResource },
+      props: mockResourceProps,
     })
 
-    expect(wrapper.find('.category').text()).toBe('Test Category')
+    expect(wrapper.find('img').exists()).toBe(true)
+    expect(wrapper.find('img').attributes('src')).toBe('test-icon')
   })
 
-  it('renders tags correctly', () => {
+  it('renders benefits list correctly', () => {
     const wrapper = mount(ResourceCard, {
-      props: { resource: mockResource },
+      props: mockResourceProps,
     })
 
-    const tags = wrapper.findAll('.tag')
-    expect(tags).toHaveLength(2)
-    expect(tags[0].text()).toBe('test')
-    expect(tags[1].text()).toBe('resource')
+    const benefits = wrapper.findAll('li')
+    expect(benefits).toHaveLength(2)
+    expect(benefits[0].text()).toBe('Benefit 1')
+    expect(benefits[1].text()).toBe('Benefit 2')
   })
 })

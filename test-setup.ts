@@ -20,7 +20,20 @@ config.global.mocks = {
       meta: {},
     },
   },
+  // Add Nuxt composables that are used in components
+  useHead: vi.fn(),
+  useSeoMeta: vi.fn(),
+  computed: vi.fn(),
+  ref: vi.fn(),
+  reactive: vi.fn(),
 }
+
+// Mock global Nuxt composables
+global.useHead = vi.fn()
+global.useSeoMeta = vi.fn()
+global.computed = vi.fn()
+global.ref = vi.fn()
+global.reactive = vi.fn()
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
