@@ -13,10 +13,11 @@
     "format": "prettier --write .",
     "audit": "pnpm audit",
     "security": "pnpm audit --audit-level high",
-    "test": "vitest",
+    "test": "vitest --run",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage",
-    "test:watch": "vitest --watch"
+    "test:coverage": "vitest --run --coverage",
+    "test:watch": "vitest --watch",
+    "test:unit": "vitest --run"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -50,7 +51,9 @@
     "stylelint-config-css-modules": "^4.3.0",
     "stylelint-config-recommended": "^17.0.0",
     "stylelint-config-standard": "^39.0.1",
+    "typescript": "^5.9.3",
     "vitest": "^4.0.12",
+    "vitest-environment-nuxt": "^1.0.1",
     "vue": "^3.3.8",
     "vue-eslint-parser": "^10.2.0",
     "vue-router": "^4.2.5"
