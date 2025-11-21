@@ -340,7 +340,6 @@ const submitResource = async () => {
         response.message || 'An error occurred while submitting the resource'
     }
   } catch (error: any) {
-    console.error('Submission error:', error)
     submitError.value = error.data?.message || 'An unexpected error occurred'
   } finally {
     isSubmitting.value = false

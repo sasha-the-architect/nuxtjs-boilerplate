@@ -146,6 +146,20 @@ export default [
     },
   },
   {
+    // For script files
+    files: ['scripts/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      'no-console': 'off', // Allow console statements in script files
+    },
+  },
+  {
     // For TS files
     files: ['**/*.ts'],
     languageOptions: {
@@ -228,6 +242,9 @@ export default [
         beforeAll: 'readonly',
         afterAll: 'readonly',
       },
+    },
+    rules: {
+      'vue/one-component-per-file': 'off', // Allow multiple components in test files
     },
   },
   // Apply prettier config to disable conflicting rules

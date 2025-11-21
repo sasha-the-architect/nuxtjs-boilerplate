@@ -61,7 +61,8 @@ export const useResources = () => {
 
       loading.value = false
     } catch (err) {
-      console.error('Error loading resources:', err)
+      // eslint-disable-next-line no-console
+      console.error('Error loading resources:', err) // Keep for debugging during development
       error.value = 'Failed to load resources'
       loading.value = false
     }

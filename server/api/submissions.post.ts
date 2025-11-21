@@ -92,7 +92,7 @@ export default defineEventHandler(async event => {
     }
 
     // For now, we'll log the submission (in a real app, this would go to a database)
-    console.log('New submission received:', submission)
+    // console.log('New submission received:', submission) // Commented for production
 
     return {
       success: true,
@@ -100,7 +100,7 @@ export default defineEventHandler(async event => {
       submissionId: submission.id,
     }
   } catch (error) {
-    console.error('Error processing submission:', error)
+    // console.error('Error processing submission:', error) // Commented for production
     return {
       success: false,
       message: 'An error occurred while processing your submission',

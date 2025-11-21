@@ -9,8 +9,8 @@ export default defineNuxtPlugin(() => {
       // Send performance metrics to analytics or logging service
       const sendToAnalytics = (metric: { name: string; value: number }) => {
         // You can send these metrics to your analytics service
-        console.log(`${metric.name}: ${metric.value}`)
-
+        // Commenting out console.log for production
+        // console.log(`${metric.name}: ${metric.value}`)
         // Example of sending to a custom analytics endpoint
         // navigator.sendBeacon('/api/performance', JSON.stringify(metric));
       }

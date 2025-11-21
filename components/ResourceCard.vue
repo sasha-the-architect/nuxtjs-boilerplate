@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/no-v-html -->
 <template>
   <div
     class="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow duration-300"
@@ -20,6 +21,7 @@
             v-if="highlightedTitle"
             v-html="sanitizedHighlightedTitle"
           ></span>
+          <!-- eslint-disable-line vue/no-v-html -->
           <span v-else>{{ title }}</span>
         </h3>
         <p class="mt-1 text-gray-600 text-sm">
@@ -27,6 +29,7 @@
             v-if="highlightedDescription"
             v-html="sanitizedHighlightedDescription"
           ></span>
+          <!-- eslint-disable-line vue/no-v-html -->
           <span v-else>{{ description }}</span>
         </p>
         <div class="mt-3 bg-gray-50 p-3 rounded-md">
