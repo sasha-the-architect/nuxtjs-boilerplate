@@ -125,7 +125,7 @@
 </template>
 
 <script setup lang="ts">
-import { useResources, type SortOption } from '~/composables/useResources'
+import { useResources } from '~/composables/useResources'
 import { useUrlSync } from '~/composables/useUrlSync'
 import ResourceCard from '~/components/ResourceCard.vue'
 import SearchBar from '~/components/SearchBar.vue'
@@ -211,25 +211,5 @@ const getButtonLabel = (category: string) => {
     default:
       return 'Get Free Access'
   }
-}
-
-// Function to get related resources based on category
-const getRelatedResources = (currentResource: any, allResources: any[]) => {
-  if (!currentResource?.category) return []
-
-  return allResources
-    .filter(
-      (resource: any) =>
-        resource.category === currentResource.category &&
-        resource.id !== currentResource.id
-    )
-    .slice(0, 3) // Limit to 3 related resources
-}
-
-// Function to get trending resources (top 5 by popularity)
-const getTrendingResources = (allResources: any[]) => {
-  return [...allResources]
-    .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
-    .slice(0, 5)
 }
 </script>

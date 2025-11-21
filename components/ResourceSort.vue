@@ -10,8 +10,8 @@
         :value="selectedSortOption"
         class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-800 focus:border-transparent sm:text-sm rounded-md"
         @change="handleChange"
-        @keydown.enter="handleChange"
-        @keydown.space="handleChange"
+        @keydown.enter.prevent="handleChange"
+        @keydown.space.prevent="handleChange"
       >
         <option value="popularity-desc">Most Popular</option>
         <option value="alphabetical-asc">A-Z</option>
@@ -29,10 +29,10 @@ interface Props {
 }
 
 interface Emits {
-  (event: 'update-sort-option', option: string): void
+  (_event: 'update-sort-option', _option: string): void
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const handleChange = (event: Event) => {

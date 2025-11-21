@@ -62,11 +62,11 @@ interface Props {
 }
 
 interface Emits {
-  (event: 'update:modelValue', value: string): void
-  (event: 'search', value: string): void
+  (_event: 'update:modelValue', _value: string): void
+  (_event: 'search', _value: string): void
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const handleInput = (event: Event) => {

@@ -1,4 +1,4 @@
-import { ref, watch, onMounted } from 'vue'
+import { watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 export const useUrlSync = (filterOptions: any, sortOption: any) => {

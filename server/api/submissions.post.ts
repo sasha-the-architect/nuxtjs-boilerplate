@@ -1,5 +1,5 @@
 // For Nuxt 3, we'll use the built-in storage system instead of file system directly
-import { defineEventHandler, readBody, createError } from 'h3'
+import { defineEventHandler, readBody } from 'h3'
 
 export default defineEventHandler(async event => {
   try {
