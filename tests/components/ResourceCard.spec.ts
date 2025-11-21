@@ -2,29 +2,24 @@ import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ResourceCard from '@/components/ResourceCard.vue'
 
-// Mock resource data
-const mockResource = {
-  id: '1',
+// Mock props data - using individual props as expected by the component
+const mockProps = {
   title: 'Test Resource',
   description: 'This is a test resource description',
   url: 'https://example.com',
-  category: {
-    id: 'test-category',
-    name: 'Test Category',
-    slug: 'test-category',
-    icon: 'test-icon',
-  },
-  tags: ['test', 'resource'],
-  featured: false,
+  benefits: ['Free tier available', 'No credit card required'],
+  icon: 'test-icon',
+  newTab: true,
+  buttonLabel: 'Get Free Access',
+  highlightedTitle: undefined,
+  highlightedDescription: undefined,
 }
 
 describe('ResourceCard', () => {
   it('renders resource information correctly', () => {
     const wrapper = mount(ResourceCard, {
       props: {
-        title: mockResource.title,
-        description: mockResource.description,
-        url: mockResource.url,
+        ...mockProps,
         benefits: ['Free tier', 'Easy setup'],
       },
     })
@@ -37,9 +32,7 @@ describe('ResourceCard', () => {
   it('displays featured badge when resource is featured', () => {
     const wrapper = mount(ResourceCard, {
       props: {
-        title: mockResource.title,
-        description: mockResource.description,
-        url: mockResource.url,
+        ...mockProps,
         benefits: ['Free tier', 'Easy setup'],
       },
     })
@@ -50,9 +43,7 @@ describe('ResourceCard', () => {
   it('does not display featured badge when resource is not featured', () => {
     const wrapper = mount(ResourceCard, {
       props: {
-        title: mockResource.title,
-        description: mockResource.description,
-        url: mockResource.url,
+        ...mockProps,
         benefits: ['Free tier', 'Easy setup'],
       },
     })
@@ -63,9 +54,7 @@ describe('ResourceCard', () => {
   it('emits visit event when link is clicked', async () => {
     const wrapper = mount(ResourceCard, {
       props: {
-        title: mockResource.title,
-        description: mockResource.description,
-        url: mockResource.url,
+        ...mockProps,
         benefits: ['Free tier', 'Easy setup'],
       },
     })
@@ -79,9 +68,7 @@ describe('ResourceCard', () => {
   it('displays category name correctly', () => {
     const wrapper = mount(ResourceCard, {
       props: {
-        title: mockResource.title,
-        description: mockResource.description,
-        url: mockResource.url,
+        ...mockProps,
         benefits: ['Free tier', 'Easy setup'],
       },
     })
@@ -93,9 +80,7 @@ describe('ResourceCard', () => {
   it('renders benefits correctly', () => {
     const wrapper = mount(ResourceCard, {
       props: {
-        title: mockResource.title,
-        description: mockResource.description,
-        url: mockResource.url,
+        ...mockProps,
         benefits: ['Free tier', 'Easy setup'],
       },
     })
