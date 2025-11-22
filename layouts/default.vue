@@ -1,53 +1,78 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <header class="bg-white shadow">
+    <!-- Skip to main content link for screen readers -->
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-gray-900 focus:rounded-md focus:shadow-lg"
+    >
+      Skip to main content
+    </a>
+
+    <header class="bg-white shadow" role="banner">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center">
-            <NuxtLink to="/" class="text-xl font-semibold text-gray-900">
+            <NuxtLink
+              to="/"
+              class="text-xl font-semibold text-gray-900"
+              :aria-label="'Free Stuff on the Internet - Return to home page'"
+            >
               Free Stuff on the Internet
             </NuxtLink>
           </div>
           <div class="flex items-center flex-1 max-w-lg mx-8">
-            <SearchBar v-model="searchQuery" @search="handleSearch" />
+            <SearchBar
+              v-model="searchQuery"
+              :aria-label="'Search for free resources'"
+              @search="handleSearch"
+            />
           </div>
-          <nav class="flex items-center space-x-4">
+          <nav
+            class="flex items-center space-x-4"
+            role="navigation"
+            aria-label="Main navigation"
+          >
             <NuxtLink
               to="/"
               class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              active-class="bg-gray-100"
             >
               Home
             </NuxtLink>
             <NuxtLink
               to="/search"
               class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              active-class="bg-gray-100"
               >Search</NuxtLink
             >
             <NuxtLink
               to="/ai-keys"
               class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              active-class="bg-gray-100"
             >
               AI Keys
             </NuxtLink>
             <NuxtLink
               to="/about"
               class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              active-class="bg-gray-100"
             >
               About
             </NuxtLink>
             <NuxtLink
               to="/submit"
               class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium font-medium bg-gray-100 hover:bg-gray-200 rounded-md"
+              active-class="bg-gray-200"
               >Submit</NuxtLink
             >
           </nav>
         </div>
       </div>
     </header>
-    <main>
+    <main id="main-content" role="main">
       <slot />
     </main>
-    <footer class="bg-white mt-8 py-6 border-t">
+    <footer class="bg-white mt-8 py-6 border-t" role="contentinfo">
       <div
         class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm"
       >

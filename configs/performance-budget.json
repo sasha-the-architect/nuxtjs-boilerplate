@@ -1,0 +1,20 @@
+{
+  "budgets": [
+    {
+      "resourceType": "script",
+      "budget": 250000
+    },
+    {
+      "resourceType": "total",
+      "budget": 500000
+    },
+    {
+      "resourceType": "image",
+      "budget": 300000
+    },
+    {
+      "resourceType": "css",
+      "budget": 100000
+    }
+  ]
+}

@@ -2,17 +2,29 @@
 export default defineNuxtConfig({
   devtools: { enabled: false }, // Disable in production for performance
   css: ['~/assets/css/main.css'],
-  modules: [
-    '@nuxtjs/tailwindcss',
-    // '@nuxt/image', // Temporarily commented out due to build issues
-  ],
-  runtimeConfig: {
-    public: {
-      siteUrl:
-        process.env.NUXT_PUBLIC_SITE_URL ||
-        'https://free-stuff-on-the-internet.vercel.app',
+  modules: ['@nuxtjs/tailwindcss', '@nuxt/image'],
+
+  // Image optimization configuration
+  image: {
+    // Enable native lazy loading for images
+    provider: 'static', // Using static provider for local images
+    quality: 80, // Default quality for optimized images
+    format: ['webp', 'avif', 'jpeg'], // Prioritize modern formats
+    densities: [1, 2], // Support for high-DPI displays
+    // Optimize all images by default
+    optimize: true,
+    // Configure the image provider
+    static: {
+      baseURL: '/images/',
     },
   },
+
+  // Additional performance optimizations
+  features: {
+    // Optimize for production
+    inlineStyles: true,
+  },
+
   // SEO Configuration - using built-in meta handling
   app: {
     head: {
@@ -153,6 +165,8 @@ export default defineNuxtConfig({
     inlineSSRStyles: false,
     // Enable faster module resolution
     respectNoExternal: true,
+    // Enable component islands for better performance
+    componentIslands: true,
   },
   // Explicitly use Vite for faster builds
   builder: 'vite',
