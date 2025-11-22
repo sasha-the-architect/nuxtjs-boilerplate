@@ -1,5 +1,6 @@
 import { ref, computed, readonly } from 'vue'
 import Fuse from 'fuse.js'
+import DOMPurify from 'dompurify'
 
 // Define TypeScript interfaces
 export interface Resource {
@@ -270,14 +271,71 @@ export const useResources = () => {
   const highlightSearchTerms = (text: string, searchQuery: string): string => {
     if (!searchQuery || !text) return text || ''
 
+    // First sanitize the input text to prevent XSS
+    const sanitizedText = DOMPurify.sanitize(text, {
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: [],
+      FORBID_TAGS: [
+        'script',
+        'iframe',
+        'object',
+        'embed',
+        'form',
+        'input',
+        'button',
+        'img',
+      ],
+      FORBID_ATTR: [
+        'src',
+        'href',
+        'style',
+        'onload',
+        'onerror',
+        'onclick',
+        'onmouseover',
+        'onmouseout',
+        'data',
+        'formaction',
+      ],
+    })
+
     // Escape special regex characters in search query
     const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     const regex = new RegExp(`(${escapedQuery})`, 'gi')
 
-    return text.replace(
+    // Create highlighted text
+    const highlighted = sanitizedText.replace(
       regex,
       '<mark class="bg-yellow-200 text-gray-900">$1</mark>'
     )
+
+    // Sanitize the final result to ensure no malicious content remains
+    return DOMPurify.sanitize(highlighted, {
+      ALLOWED_TAGS: ['mark'],
+      ALLOWED_ATTR: ['class'],
+      FORBID_TAGS: [
+        'script',
+        'iframe',
+        'object',
+        'embed',
+        'form',
+        'input',
+        'button',
+        'img',
+      ],
+      FORBID_ATTR: [
+        'src',
+        'href',
+        'style',
+        'onload',
+        'onerror',
+        'onclick',
+        'onmouseover',
+        'onmouseout',
+        'data',
+        'formaction',
+      ],
+    })
   }
 
   return {
