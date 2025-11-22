@@ -1,0 +1,335 @@
+name: iFlow Serena Auto Fix PR
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number (opsional, default: auto-select PR)"
+        required: false
+        type: string
+      custom_prompt:
+        description: "Instruksi tambahan untuk iFlow/Serena (opsional)"
+        required: false
+        type: string
+  schedule:
+    # contoh: jalan tiap hari jam 00:00 Asia/Jakarta (17:00 UTC hari sebelumnya)
+    - cron: "0 17 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+  statuses: read
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.head_ref || github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  # STEP 2 – Build cepat, tanpa pakai token iFlow.
+  build:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      build_result: ${{ steps.set_result.outputs.result }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Pastikan yang di-checkout adalah head branch PR, supaya nanti bisa di-push
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Run CI build and tests (Node, generic, reusable)
+        id: run_build
+        continue-on-error: true
+        env:
+          CI: true
+        shell: bash
+        run: |
+          set -o pipefail
+
+          run_ci() {
+            if [ ! -f package.json ]; then
+              echo "No package.json found. Nothing to build."
+              return 0
+            fi
+
+            has_script() {
+              node -e "const s=require('./package.json').scripts || {}; process.exit(Object.prototype.hasOwnProperty.call(s, '$1') ? 0 : 1);"
+            }
+
+            if [ -f pnpm-lock.yaml ]; then
+              echo "Using pnpm"
+              corepack enable
+              pnpm install --frozen-lockfile
+
+              if has_script lint; then
+                pnpm run lint
+              fi
+              if has_script test; then
+                pnpm run test
+              fi
+              if has_script build; then
+                pnpm run build
+              fi
+
+            elif [ -f yarn.lock ]; then
+              echo "Using yarn"
+              corepack enable
+              yarn install --frozen-lockfile
+
+              if has_script lint; then
+                yarn run lint
+              fi
+              if has_script test; then
+                yarn run test
+              fi
+              if has_script build; then
+                yarn run build
+              fi
+
+            else
+              echo "Using npm"
+              if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
+                npm ci
+              else
+                npm install
+              fi
+
+              if has_script lint; then
+                npm run lint
+              fi
+              if has_script test; then
+                npm test
+              fi
+              if has_script build; then
+                npm run build
+              fi
+            fi
+          }
+
+          # Simpan semua output ke build.log untuk dikonsumsi iFlow jika gagal
+          run_ci 2>&1 | tee build.log
+          exit_code=${PIPESTATUS[0]}
+          exit $exit_code
+
+      - name: Upload build log (if present)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          if-no-files-found: ignore
+
+      - name: Set build result
+        id: set_result
+        run: |
+          if [ "${{ steps.run_build.outcome }}" = "failure" ]; then
+            echo "result=failure" >> "$GITHUB_OUTPUT"
+            # Tandai job ini gagal supaya PR kelihatan merah
+            exit 1
+          else
+            echo "result=success" >> "$GITHUB_OUTPUT"
+          fi
+
+  # STEP 3–7 – Auto-fix dengan iFlow + Serena.
+  autofix:
+    needs: [build]
+    runs-on: ubuntu-latest
+
+    # PR event: hanya jalan kalau build gagal.
+    # schedule / workflow_dispatch: selalu jalan (biarkan iFlow memilih PR).
+    if: >
+      (github.event_name == 'pull_request' && needs.build.outputs.build_result == 'failure') ||
+      (github.event_name != 'pull_request')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Untuk pull_request: checkout head branch PR; untuk event lain fallback ke ref.
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref }}
+          # Biarkan credential GITHUB_TOKEN terkonfigurasi untuk git push
+          persist-credentials: true
+
+      - name: Download build log (PR only)
+        if: github.event_name == 'pull_request'
+        uses: actions/download-artifact@v4
+        with:
+          name: build-log
+          path: ./artifacts
+
+      - name: Run iFlow CLI with Serena auto-fix
+        uses: iflow-ai/iflow-cli-action@v2.1.0
+        env:
+          # Token GitHub untuk gh CLI dan operasi git
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # Token iFlow untuk LLM utama
+          IFLOW_API_KEY: ${{ secrets.IFLOW_API_KEY }}
+
+          # Context dasar
+          REPOSITORY: ${{ github.repository }}
+
+          # PR selection – untuk PR event pakai nomor PR; untuk workflow_dispatch gunakan input; untuk schedule kosong (auto-select di prompt).
+          PR_NUMBER: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.event.inputs.pr_number || '' }}
+          PR_TITLE: ${{ github.event_name == 'pull_request' && github.event.pull_request.title || '' }}
+          PR_BODY: ${{ github.event_name == 'pull_request' && github.event.pull_request.body || '' }}
+          PR_HEAD_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || '' }}
+          PR_BASE_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || '' }}
+
+          # Custom prompt dari manual dispatch
+          CUSTOM_PROMPT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.custom_prompt || '' }}
+
+          # Path log build untuk di-baca iFlow (hanya PR)
+          BUILD_LOG_PATH: ${{ github.event_name == 'pull_request' && 'artifacts/build.log' || '' }}
+
+        with:
+          api_key: ${{ secrets.IFLOW_API_KEY }}
+          model: "Qwen3-Coder"
+          timeout: "3600"
+          debug: "true"
+
+          # Integrasi iFlow + Serena via MCP (pakai pattern settings_json resmi iflow-cli + mcpServers) :contentReference[oaicite:0]{index=0}
+          settings_json: |
+            {
+              "selectedAuthType": "iflow",
+              "apiKey": "${{ secrets.IFLOW_API_KEY }}",
+              "baseUrl": "https://apis.iflow.cn/v1",
+              "modelName": "Qwen3-Coder",
+              "searchApiKey": "${{ secrets.IFLOW_API_KEY }}",
+              "mcpServers": {
+                "serena": {
+                  "command": "uvx",
+                  "args": [
+                    "--from",
+                    "git+https://github.com/oraios/serena",
+                    "serena",
+                    "start-mcp-server",
+                    "--context",
+                    "ide-assistant",
+                    "--project",
+                    "."
+                  ]
+                }
+              }
+            }
+
+          # PROMPT: orkestrasi penuh – pilih PR, kumpulkan context, baca log, fix pakai Serena, commit+push, lalu merge/auto-merge :contentReference[oaicite:1]{index=1}
+          prompt: |
+            You are an autonomous coding agent running inside GitHub Actions for the repository $REPOSITORY.
+            Your goal is to make a selected pull request "green" (all CI checks passing) and mergeable, while minimizing iFlow token usage.
+            You have access to:
+            - GitHub CLI (gh) authenticated with $GITHUB_TOKEN
+            - The local git checkout of the repo
+            - Serena MCP server via @serena for fast, structured code navigation and editing
+            - Node.js, npm, pnpm, yarn, corepack, and normal shell tools
+
+            High-level plan:
+            1. Decide which pull request to work on.
+            2. Collect PR metadata and discussion.
+            3. Reproduce the build/test failure and capture the error log.
+            4. Use Serena (@serena) to locate and change only the minimal necessary code.
+            5. Re-run tests locally until they pass.
+            6. Commit and push changes back to the PR branch.
+            7. Enable auto-merge or merge the PR when safe.
+
+            ===== 1. PR selection =====
+            - If $PR_NUMBER is non-empty, work on that PR.
+            - Otherwise:
+              - Call: gh pr list --state open --json number,title,headRefName,baseRefName,mergeStateStatus
+              - Prefer PRs with failing checks or mergeStateStatus indicating problems.
+              - If there is no reasonable candidate (no open PRs or all already green), exit immediately without any changes.
+
+            ===== 2. Collect PR context (title, body, comments) =====
+            - For the chosen PR number N, run:
+              gh pr view N --json title,body,author,headRefName,baseRefName,commits,files,reviews,comments,reviewThreads
+            - Use this to understand:
+              - PR intent and scope
+              - Any constraints or notes from reviewers
+              - Which files were changed
+            - Also use $PR_TITLE and $PR_BODY if available as quick hints.
+            - Do NOT post comments unless strictly necessary. Focus on fixing code.
+
+            ===== 3. Reproduce build failure and build error log =====
+            - If $BUILD_LOG_PATH is a non-empty path and the file exists, treat its content as the "build error log" produced by the CI build job. Read it once and summarize the root cause.
+            - If there is no usable build log:
+              - Detect project type from package.json.
+              - Use this priority for package managers:
+                1) pnpm-lock.yaml → pnpm
+                2) yarn.lock      → yarn
+                3) otherwise      → npm
+              - Run corepack enable before using pnpm or yarn.
+              - Derive a reasonable build/test command:
+                - Prefer existing scripts in package.json: "ci", "test", "lint", "build".
+                - For Node apps, a good pattern is:
+                  - install (pnpm install --frozen-lockfile / yarn install --frozen-lockfile / npm ci or npm install)
+                  - lint (if script exists)
+                  - test (if script exists)
+                  - build (if script exists)
+              - Run that command once and capture full stdout+stderr as your build log.
+            - If the build/test command succeeds:
+              - Do NOT change any files.
+              - Exit early to save tokens.
+            - If it fails:
+              - Carefully identify the real root causes (compilation errors, test expectation failures, missing imports, TS errors, lint rules, etc.).
+              - Keep the full log internally for reference.
+
+            ===== 4. Fix the failure using Serena (@serena) =====
+            - Use Serena MCP tools instead of reading or editing raw files whenever possible.
+              Examples (tool names may vary, but the idea is important):
+              - @serena.list_dir, @serena.find_file, @serena.get_symbols_overview to find relevant files and modules.
+              - @serena.find_symbol, @serena.find_referencing_symbols to locate functions, components, tests, and their usages.
+              - @serena.read_file or symbol-aware tools to inspect only the minimal regions of code.
+              - @serena.replace_symbol_body, @serena.insert_before_symbol, @serena.insert_after_symbol, or small line edits to apply changes.
+            - Goals:
+              - Fix ONLY what is needed to make tests/build pass.
+              - Prefer minimal, local changes.
+              - Reuse existing patterns, helpers, and utilities in the project.
+              - Avoid large refactors and unnecessary API changes.
+            - Always tie each code change directly to a specific error or failing test from the build log.
+
+            ===== 5. Re-run tests until green =====
+            - After a batch of edits:
+              - Re-run the same build/test command you used to reproduce the failure.
+              - If failures remain:
+                - Inspect only the new or remaining errors.
+                - Repeat the Serena-based diagnosis and minimal fix process.
+              - Limit the number of iterations to a reasonable amount; stop if fixing would require broad redesign or if the error keeps moving around without converging.
+
+            ===== 6. Commit and push changes =====
+            - Ensure git status shows only intentional modifications.
+            - Configure git identity:
+              - git config user.name "iflow-bot"
+              - git config user.email "iflow-bot@users.noreply.github.com"
+            - Commit only the files you changed:
+              - git add <files>
+              - Use a clear message, e.g. "fix: make PR #<N> build green with Serena".
+            - Make sure you are on the correct PR branch:
+              - For pull_request events, you can use $PR_HEAD_REF.
+              - For schedule/workflow_dispatch runs, if necessary use gh pr checkout N to switch to the PR branch before editing.
+            - Push changes:
+              - git push (the checkout step already configured origin with the GitHub token).
+
+            ===== 7. Merge or enable auto-merge =====
+            - After pushing, ensure the local build/tests are still passing.
+            - Prefer enabling auto-merge so branch protection and checks are respected:
+              - gh pr merge --auto --merge N
+            - If auto-merge is not available or fails due to permissions:
+              - You MAY fall back to gh pr merge --merge N, but only if:
+                - All required checks are green (locally and according to GitHub checks),
+                - And branch protection rules allow merging.
+              - If merge is not possible, leave the PR unmerged but with fixes pushed, and exit successfully.
+
+            ===== 8. Safety and constraints ==
