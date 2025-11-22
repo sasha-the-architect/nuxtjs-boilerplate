@@ -52,28 +52,13 @@ export default defineNuxtConfig({
       ],
       // Add performance-related meta tags
       meta: [
-        // Add preloading for critical resources
-        { rel: 'preload', href: '/favicon.ico', as: 'image' },
-        // Preload critical CSS
-        { rel: 'preload', href: '/_nuxt/', as: 'fetch', crossorigin: true },
-        // Add canonical URL
-        {
-          rel: 'canonical',
-          href: 'https://free-stuff-on-the-internet.vercel.app/',
-        },
-      ],
-      script: [
-        // Add script for performance monitoring if needed
-        // Preload important scripts
-      ],
-      // Add security-related meta tags
-      meta: [
         // Content Security Policy via meta tag (backup)
         {
           'http-equiv': 'Content-Security-Policy',
           content:
-            "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none';",
+            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none';",
         },
+        { name: 'referrer', content: 'no-referrer' },
         { name: 'theme-color', content: '#ffffff' },
         { name: 'msapplication-TileColor', content: '#ffffff' },
         // Add Core Web Vitals meta tags
@@ -291,6 +276,16 @@ export default defineNuxtConfig({
     },
     // Improve build performance
     ignore: ['**/.git/**', '**/node_modules/**', '**/dist/**'],
+    // Add security headers
+    headers: {
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
+    },
+    // CSP headers via middleware
+    plugins: ['~/server/plugins/security-headers.ts'],
   },
   // Optimize bundle size
   vite: {

@@ -40,14 +40,14 @@
         </div>
 
         <div class="mt-8 space-y-4">
-          <p class="text-sm text-gray-500" v-if="error.message">
+          <p v-if="error.message" class="text-sm text-gray-500">
             Error: {{ error.message }}
           </p>
 
           <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <button
-              @click="handleRetry"
               class="px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800"
+              @click="handleRetry"
             >
               Go Back
             </button>
