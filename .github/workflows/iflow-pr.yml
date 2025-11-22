@@ -74,6 +74,12 @@ jobs:
               "selectedAuthType": "iflow",
               "apiKey": "${{ secrets.IFLOW_API_KEY }}",
               "modelName": "qwen3-coder-plus"
+              "mcpServers": {
+                "deepwiki": {
+                  "command": "npx",
+                  "args": ["-y", "mcp-deepwiki@latest"]
+                }
+              }
             }
           prompt: |
             ## ROLE
