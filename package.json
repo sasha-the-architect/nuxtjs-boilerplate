@@ -2,6 +2,9 @@
   "private": true,
   "type": "module",
   "packageManager": "npm@10.9.2",
+  "imports": {
+    "#internal/nuxt/paths": "./.nuxt/tsconfig.json"
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -29,7 +32,6 @@
     "@typescript-eslint/eslint-plugin": "^8.15.0",
     "@typescript-eslint/parser": "^8.47.0",
     "@vitejs/plugin-vue": "^6.0.2",
-<<<<<<< HEAD
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
     "@vue/test-utils": "^2.4.6",

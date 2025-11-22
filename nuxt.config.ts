@@ -261,29 +261,10 @@ export default defineNuxtConfig({
   nitro: {
     // Optimize server-side rendering
     minify: true,
-    // Add caching configuration for Nitro
-    storage: {
-      cache: {
-        driver: 'lru-cache',
-        max: 1000,
-        ttl: 60 * 60 * 1000, // 1 hour
-      },
-    },
     // Enable compression
     compressPublicAssets: true,
-    experimental: {
-      wasm: false, // Disable if not using WebAssembly
-    },
     // Improve build performance
     ignore: ['**/.git/**', '**/node_modules/**', '**/dist/**'],
-    // Add security headers
-    headers: {
-      'X-Content-Type-Options': 'nosniff',
-      'X-Frame-Options': 'DENY',
-      'X-XSS-Protection': '1; mode=block',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
-    },
     // CSP headers via middleware
     plugins: ['~/server/plugins/security-headers.ts'],
   },
@@ -298,11 +279,7 @@ export default defineNuxtConfig({
         output: {
           manualChunks: {
             // Split vendor chunks to improve caching
-            'vendor-reactivity': ['vue', '@vue/reactivity'],
-            'vendor-router': ['vue-router'],
-            // Group common dependencies for better caching
-            vendor: ['vue', 'vue-router', 'nuxt'],
-
+            'vendor-vue': ['vue', '@vue/reactivity', 'vue-router'],
             'vendor-search': ['fuse.js'],
             'vendor-utils': ['zod'],
           },
@@ -311,7 +288,7 @@ export default defineNuxtConfig({
           entryFileNames: '_nuxt/[name].[hash].js',
         },
         // Externalize dependencies that don't need to be bundled
-        external: [],
+        external: ['@nuxt/kit'],
       },
     },
     // Optimize build speed
