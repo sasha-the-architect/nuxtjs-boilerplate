@@ -82,4 +82,54 @@ describe('ResourceCard', () => {
 
     expect(wrapper.find('a').text()).toContain('Custom Button')
   })
+
+  it('sanitizes highlighted title to prevent XSS', () => {
+    const props = {
+      ...mockResourceProps,
+      highlightedTitle:
+        '<script>alert("xss")</script><mark class="bg-yellow-200">safe text</mark>',
+    }
+    const wrapper = mount(ResourceCard, {
+      props: props,
+    })
+
+    const titleElement = wrapper.find('h3 span')
+    // The script tag should be removed but the mark tag should remain
+    expect(titleElement.html()).toContain('safe text')
+    expect(titleElement.html()).not.toContain('alert')
+    expect(titleElement.html()).not.toContain('script')
+  })
+
+  it('sanitizes highlighted description to prevent XSS', () => {
+    const props = {
+      ...mockResourceProps,
+      highlightedDescription:
+        '<script>alert("xss")</script><mark class="bg-yellow-200">safe description</mark>',
+    }
+    const wrapper = mount(ResourceCard, {
+      props: props,
+    })
+
+    const descriptionElement = wrapper.find('p span')
+    // The script tag should be removed but the mark tag should remain
+    expect(descriptionElement.html()).toContain('safe description')
+    expect(descriptionElement.html()).not.toContain('alert')
+    expect(descriptionElement.html()).not.toContain('script')
+  })
+
+  it('allows safe mark tags with proper classes for highlighting', () => {
+    const props = {
+      ...mockResourceProps,
+      highlightedTitle:
+        '<mark class="bg-yellow-200 text-gray-900">highlighted text</mark>',
+    }
+    const wrapper = mount(ResourceCard, {
+      props: props,
+    })
+
+    const titleElement = wrapper.find('h3 span')
+    expect(titleElement.html()).toContain('highlighted text')
+    expect(titleElement.html()).toContain('bg-yellow-200')
+    expect(titleElement.html()).toContain('text-gray-900')
+  })
 })

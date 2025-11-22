@@ -89,6 +89,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import DOMPurify from 'dompurify'
 
 interface Props {
   title: string
@@ -112,27 +113,65 @@ const props = withDefaults(defineProps<Props>(), {
 
 const hasError = ref(false)
 
-// Sanitize highlighted content to prevent XSS
+// Sanitize highlighted content to prevent XSS using DOMPurify
 const sanitizedHighlightedTitle = computed(() => {
   if (!props.highlightedTitle) return ''
-  // Basic sanitization to prevent XSS - only allow mark tags
-  return props.highlightedTitle
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-    .replace(/javascript:/gi, '')
-    .replace(/data:/gi, '')
-    .replace(/vbscript:/gi, '')
+  // Use DOMPurify to sanitize content, allowing only mark tags for highlighting
+  return DOMPurify.sanitize(props.highlightedTitle, {
+    ALLOWED_TAGS: ['mark'],
+    ALLOWED_ATTR: ['class'],
+    FORBID_TAGS: [
+      'script',
+      'iframe',
+      'object',
+      'embed',
+      'form',
+      'input',
+      'button',
+    ],
+    FORBID_ATTR: [
+      'src',
+      'href',
+      'style',
+      'onload',
+      'onerror',
+      'onclick',
+      'onmouseover',
+      'onmouseout',
+      'data',
+      'formaction',
+    ],
+  })
 })
 
 const sanitizedHighlightedDescription = computed(() => {
   if (!props.highlightedDescription) return ''
-  // Basic sanitization to prevent XSS - only allow mark tags
-  return props.highlightedDescription
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-    .replace(/javascript:/gi, '')
-    .replace(/data:/gi, '')
-    .replace(/vbscript:/gi, '')
+  // Use DOMPurify to sanitize content, allowing only mark tags for highlighting
+  return DOMPurify.sanitize(props.highlightedDescription, {
+    ALLOWED_TAGS: ['mark'],
+    ALLOWED_ATTR: ['class'],
+    FORBID_TAGS: [
+      'script',
+      'iframe',
+      'object',
+      'embed',
+      'form',
+      'input',
+      'button',
+    ],
+    FORBID_ATTR: [
+      'src',
+      'href',
+      'style',
+      'onload',
+      'onerror',
+      'onclick',
+      'onmouseover',
+      'onmouseout',
+      'data',
+      'formaction',
+    ],
+  })
 })
 
 // Handle image loading errors

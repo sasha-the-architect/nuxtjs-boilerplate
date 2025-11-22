@@ -148,6 +148,31 @@ describe('useResources', () => {
     expect(highlighted).toContain('test')
   })
 
+  it('sanitizes highlighted content to prevent XSS in highlightSearchTerms', async () => {
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Test that XSS attempts are sanitized in search highlighting
+    const highlighted = resourcesComposable.highlightSearchTerms(
+      'This has <script>alert("xss")</script> malicious content',
+      'script'
+    )
+    expect(highlighted).not.toContain('alert')
+    expect(highlighted).not.toContain('<script')
+    expect(highlighted).not.toContain('javascript:')
+  })
+
+  it('allows safe mark tags in highlighted content', async () => {
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    const highlighted = resourcesComposable.highlightSearchTerms(
+      'This has a test keyword',
+      'test'
+    )
+    expect(highlighted).toContain('<mark')
+    expect(highlighted).toContain('test')
+    expect(highlighted).toContain('class="bg-yellow-200')
+  })
+
   it('provides retry functionality', async () => {
     // The retry functionality exists as a method on the composable
     expect(resourcesComposable.retryResources).toBeDefined()

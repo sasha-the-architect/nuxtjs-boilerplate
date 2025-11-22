@@ -1,3 +1,5 @@
+import { setResponseStatus } from 'h3'
+
 export default defineEventHandler(async event => {
   try {
     // Set the content type to XML

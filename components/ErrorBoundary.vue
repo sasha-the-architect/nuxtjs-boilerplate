@@ -22,8 +22,8 @@
         {{ error.message || 'An unexpected error occurred' }}
       </p>
       <div class="error-actions">
-        <button @click="resetError" class="retry-button">Try Again</button>
-        <button @click="goHome" class="home-button">Go Home</button>
+        <button class="retry-button" @click="resetError">Try Again</button>
+        <button class="home-button" @click="goHome">Go Home</button>
       </div>
     </div>
   </div>
@@ -31,6 +31,7 @@
 </template>
 
 <script setup lang="ts">
+import { onErrorCaptured } from 'vue'
 interface ErrorInfo {
   componentStack: string
 }
