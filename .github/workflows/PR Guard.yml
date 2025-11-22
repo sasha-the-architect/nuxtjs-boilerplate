@@ -1,0 +1,240 @@
+name: PR Guard (CI + Auto-Update All PRs)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+  schedule:
+    - cron: '0 * * * *'   # opsional: jaga PR tetap up to date tiap jam
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pr-guard-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  # =========================
+  # 1) CI: lint/build/test
+  # =========================
+  ci:
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Node.js (opsional; auto-deteksi)
+      - name: Setup Node
+        if: hashFiles('package-lock.json') != '' || hashFiles('pnpm-lock.yaml') != '' || hashFiles('yarn.lock') != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: ${{ hashFiles('pnpm-lock.yaml') != '' && 'pnpm' || (hashFiles('yarn.lock') != '' && 'yarn' || 'npm') }}
+      - name: Install deps (Node)
+        if: hashFiles('package.json') != ''
+        run: |
+          if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
+          elif [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+          else npm ci; fi
+      - name: Test (Node)
+        if: hashFiles('package.json') != ''
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm test --if-present; \
+          elif [ -f yarn.lock ]; then yarn test --if-present; \
+          else npm test --if-present; fi
+
+      # Python (opsional; auto-deteksi)
+      - name: Setup Python
+        if: hashFiles('requirements*.txt') != '' || hashFiles('pyproject.toml') != ''
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps (Python)
+        if: hashFiles('requirements*.txt') != '' || hashFiles('pyproject.toml') != ''
+        run: |
+          python -m pip install --upgrade pip
+          if ls requirements*.txt >/dev/null 2>&1; then pip install -r requirements.txt; fi
+          if [ -f pyproject.toml ]; then pip install .; fi
+      - name: Test (Python)
+        if: hashFiles('pytest.ini') != '' || hashFiles('pyproject.toml') != '' || hashFiles('tests/**') != ''
+        run: pytest -q || true
+
+      # Makefile (opsional; fallback)
+      - name: Make CI
+        if: hashFiles('Makefile') != ''
+        run: make ci || true
+
+  # ============================================================
+  # 2) Auto-update PR saat ada aktivitas PR (tanpa label, non-fork)
+  #    pull_request_target memberi write token tapi jangan jalankan
+  #    kode PR; hanya git rebase dan push.
+  # ============================================================
+  auto_update_event:
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stop jika PR dari fork (tidak bisa push)
+        id: forkcheck
+        run: echo "fork=${{ github.event.pull_request.head.repo.fork || false }}" >> "$GITHUB_OUTPUT"
+
+      - name: Comment instruksi untuk fork
+        if: steps.forkcheck.outputs.fork == 'true'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: >
+            PR berasal dari fork sehingga bot tidak bisa memperbarui cabang.
+            Silakan rebase/merge terhadap **${{ github.event.pull_request.base.ref }}**
+            di fork Anda atau gunakan tombol **Update branch**.
+
+      - name: Checkout PR head (non-fork)
+        if: steps.forkcheck.outputs.fork != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Konfigurasi Git
+        if: steps.forkcheck.outputs.fork != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Rebase ke base branch
+        if: steps.forkcheck.outputs.fork != 'true'
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          git remote add upstream "https://github.com/${{ github.repository }}.git"
+          git fetch upstream "${BASE_REF}"
+          git rebase --rebase-merges --autosquash "upstream/${BASE_REF}" || (git rebase --abort && exit 1)
+
+      - name: Push dengan lease
+        if: steps.forkcheck.outputs.fork != 'true'
+        run: git push --force-with-lease
+
+  # ============================================================
+  # 3) Jadwal: update SEMUA PR non-fork agar ikut pergerakan base
+  # ============================================================
+  list_open_prs:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.collect.outputs.matrix }}
+    steps:
+      - name: Kumpulkan PR terbuka non-fork
+        id: collect
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prs = await github.paginate(github.rest.pulls.list, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+            const selected = prs
+              .filter(pr => !pr.head.repo.fork)
+              .map(pr => ({
+                number: pr.number,
+                head_ref: pr.head.ref,
+                head_repo_full_name: pr.head.repo.full_name,
+                base_ref: pr.base.ref
+              }));
+            core.setOutput('matrix', JSON.stringify(selected.length ? selected : [{number: 0}]));
+
+  rebase_scheduled:
+    if: github.event_name == 'schedule'
+    needs: [list_open_prs]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pr: ${{ fromJson(needs.list_open_prs.outputs.matrix) }}
+    steps:
+      - name: Lewati jika tidak ada PR
+        if: matrix.pr.number == 0
+        run: echo "No PRs."
+
+      - name: Checkout PR head
+        if: matrix.pr.number != 0
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.pr.head_repo_full_name }}
+          ref: ${{ matrix.pr.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Konfigurasi Git
+        if: matrix.pr.number != 0
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Rebase ke base branch
+        if: matrix.pr.number != 0
+        run: |
+          git remote add upstream "https://github.com/${{ github.repository }}.git"
+          git fetch upstream "${{ matrix.pr.base_ref }}"
+          git rebase --rebase-merges --autosquash "upstream/${{ matrix.pr.base_ref }}" || (git rebase --abort && exit 1)
+
+      - name: Push dengan lease
+        if: matrix.pr.number != 0
+        run: git push --force-with-lease
+
+  # ============================================================
+  # 4) Perintah komentar universal: /update  (tanpa label)
+  # ============================================================
+  comment_update:
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request != '' && startsWith(github.event.comment.body, '/update')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ambil data PR
+        id: pr
+        uses: actions-ecosystem/action-get-PR@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Beritahu jika PR dari fork
+        if: steps.pr.outputs.head_repo_fork == 'true'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: "PR dari fork: maintainer tidak bisa mem-push. Mohon author memperbarui cabangnya."
+
+      - name: Checkout PR head
+        if: steps.pr.outputs.head_repo_fork != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.pr.outputs.head_repo_full_name }}
+          ref: ${{ steps.pr.outputs.head_ref }}
+          fetch-depth: 0
+
+      - name: Konfigurasi Git
+        if: steps.pr.outputs.head_repo_fork != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Rebase ke base
+        if: steps.pr.outputs.head_repo_fork != 'true'
+        run: |
+          git remote add upstream "https://github.com/${{ github.repository }}.git"
+          git fetch upstream "${{ steps.pr.outputs.base_ref }}"
+          git rebase --rebase-merges --autosquash "upstream/${{ steps.pr.outputs.base_ref }}" || (git rebase --abort && exit 1)
+
+      - name: Push dengan lease
+        if: steps.pr.outputs.head_repo_fork != 'true'
+        run: git push --force-with-lease
