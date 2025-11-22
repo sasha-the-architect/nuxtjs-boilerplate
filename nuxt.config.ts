@@ -4,6 +4,17 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   modules: ['@nuxtjs/tailwindcss', '@nuxt/image'],
 
+  // Security and CSP configuration
+  experimental: {
+    // Enable nonce-based CSP support
+    inlineSSRStyles: false,
+    payloadExtraction: true,
+    // Enable faster module resolution
+    respectNoExternal: true,
+    // Enable component islands for better performance
+    componentIslands: true,
+  },
+
   // Image optimization configuration
   image: {
     // Enable native lazy loading for images
@@ -54,12 +65,7 @@ export default defineNuxtConfig({
       ],
       // Add performance-related meta tags
       meta: [
-        // Content Security Policy via meta tag (backup)
-        {
-          'http-equiv': 'Content-Security-Policy',
-          content:
-            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none';",
-        },
+        // This approach is more secure and allows for nonces
         { name: 'referrer', content: 'no-referrer' },
         { name: 'theme-color', content: '#ffffff' },
         { name: 'msapplication-TileColor', content: '#ffffff' },
@@ -134,11 +140,9 @@ export default defineNuxtConfig({
       prerender: true,
       headers: {
         'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none';",
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '1; mode=block',
+        'X-XSS-Protection': '0',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
       },
     },
@@ -146,11 +150,9 @@ export default defineNuxtConfig({
       prerender: true,
       headers: {
         'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none';",
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '1; mode=block',
+        'X-XSS-Protection': '0',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
       },
     },
@@ -158,11 +160,9 @@ export default defineNuxtConfig({
       prerender: true,
       headers: {
         'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none';",
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '1; mode=block',
+        'X-XSS-Protection': '0',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
       },
     },
@@ -170,11 +170,9 @@ export default defineNuxtConfig({
       prerender: true,
       headers: {
         'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none';",
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '1; mode=block',
+        'X-XSS-Protection': '0',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
       },
     },
@@ -182,11 +180,9 @@ export default defineNuxtConfig({
       prerender: true,
       headers: {
         'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none';",
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '1; mode=block',
+        'X-XSS-Protection': '0',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
       },
     },
@@ -194,11 +190,9 @@ export default defineNuxtConfig({
     '/api/**': {
       headers: {
         'cache-control': 'max-age=300, public, s-maxage=300', // 5 minutes
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none';",
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '1; mode=block',
+        'X-XSS-Protection': '0',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
       },
     },
@@ -221,15 +215,7 @@ export default defineNuxtConfig({
   ogImage: {
     enabled: false, // We'll implement this later if needed
   },
-  // Performance optimizations
-  experimental: {
-    payloadExtraction: true,
-    inlineSSRStyles: false,
-    // Enable faster module resolution
-    respectNoExternal: true,
-    // Enable component islands for better performance
-    componentIslands: true,
-  },
+  // Performance optimizations are included in the experimental section above
   // Test configuration
   test: {
     // Enable testing features

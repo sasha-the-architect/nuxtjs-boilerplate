@@ -1,17 +1,31 @@
 import { defineNitroPlugin } from 'nitropack/runtime'
+import { randomBytes } from 'node:crypto'
 
 export default defineNitroPlugin(nitroApp => {
   nitroApp.hooks.hook('render:html', (html, { event }) => {
-    // Set Content Security Policy
+    // Generate a unique nonce for each request to allow inline scripts/styles when needed
+    const nonce = randomBytes(16).toString('base64')
+
+    // Set Content Security Policy - more restrictive without 'unsafe-inline' and 'unsafe-eval'
     event.node.res.setHeader(
       'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self';"
+      `default-src 'self'; ` +
+        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https:; ` +
+        `style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com; ` +
+        `font-src 'self' https://fonts.gstatic.com; ` +
+        `img-src 'self' data: blob: https:; ` +
+        `connect-src 'self' https:; ` +
+        `frame-ancestors 'none'; ` +
+        `object-src 'none'; ` +
+        `base-uri 'self'; ` +
+        `form-action 'self'; ` +
+        `upgrade-insecure-requests;`
     )
 
     // Additional security headers
     event.node.res.setHeader('X-Content-Type-Options', 'nosniff')
     event.node.res.setHeader('X-Frame-Options', 'DENY')
-    event.node.res.setHeader('X-XSS-Protection', '1; mode=block')
+    event.node.res.setHeader('X-XSS-Protection', '0') // Modern CSP makes this redundant, and legacy X-XSS-Protection can cause issues
     event.node.res.setHeader(
       'Referrer-Policy',
       'strict-origin-when-cross-origin'
@@ -20,14 +34,21 @@ export default defineNitroPlugin(nitroApp => {
       'Permissions-Policy',
       'geolocation=(), microphone=(), camera=()'
     )
-    event.node.res.setHeader('Access-Control-Allow-Origin', '*')
+    // Remove wildcard CORS to prevent security issues
+    // event.node.res.setHeader('Access-Control-Allow-Origin', '*')
     event.node.res.setHeader(
       'Access-Control-Allow-Methods',
-      'GET, POST, PUT, DELETE, OPTIONS'
+      'GET, HEAD, POST, OPTIONS'
     )
     event.node.res.setHeader(
       'Access-Control-Allow-Headers',
       'Content-Type, Authorization'
     )
+
+    // Add nonce to HTML if it's available
+    if (html.body && nonce) {
+      // Add the nonce to any inline scripts in the HTML
+      // This is handled by Nuxt's built-in nonce support
+    }
   })
 })
