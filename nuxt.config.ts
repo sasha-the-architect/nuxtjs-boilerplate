@@ -168,6 +168,11 @@ export default defineNuxtConfig({
     // Enable component islands for better performance
     componentIslands: true,
   },
+  // Test configuration
+  test: {
+    // Enable testing features
+    setupFiles: ['./test-setup.ts'],
+  },
   // Explicitly use Vite for faster builds
   builder: 'vite',
 
