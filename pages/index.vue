@@ -40,7 +40,7 @@
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="text-center py-12 mt-16">
+      <div v-else-if="hasError" class="text-center py-12 mt-16">
         <div class="mb-6">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -211,6 +211,7 @@ const {
   filteredResources,
   loading,
   error,
+  hasError,
   categories,
   filterOptions,
   sortOption,
@@ -221,6 +222,7 @@ const {
   resources,
   highlightSearchTerms,
   retryResources,
+  loadResources,
 } = useResources()
 
 // Compute trending resources (top 5 by popularity)

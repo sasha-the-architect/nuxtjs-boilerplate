@@ -1,13 +1,12 @@
 <!-- eslint-disable vue/no-v-html -->
 <template>
   <article
-    v-if="!hasError"
     class="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow duration-300"
     role="article"
   >
     <div class="flex items-start">
       <!-- Using standard img tag for optimization -->
-      <div v-if="icon" class="flex-shrink-0 mr-4">
+      <div v-if="icon && !imageHasError" class="flex-shrink-0 mr-4">
         <img
           :src="icon"
           :alt="title"
@@ -17,6 +16,25 @@
           loading="lazy"
           @error="handleImageError"
         />
+      </div>
+      <div
+        v-else-if="icon"
+        class="flex-shrink-0 mr-4 flex items-center justify-center w-12 h-12 rounded object-contain bg-gray-100"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6 text-gray-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
       </div>
       <div class="flex-1 min-w-0">
         <h3
@@ -68,34 +86,6 @@
       </div>
     </div>
   </article>
-
-  <!-- Error state -->
-  <div v-else class="bg-white p-6 rounded-lg shadow border border-red-200">
-    <div class="flex items-start">
-      <div class="flex-shrink-0 mr-4">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-12 w-12 text-red-600"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-          />
-        </svg>
-      </div>
-      <div class="flex-1 min-w-0">
-        <h3 class="text-lg font-medium text-red-900">Resource Unavailable</h3>
-        <p class="mt-1 text-red-700 text-sm">
-          This resource could not be displayed due to an error.
-        </p>
-      </div>
-    </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -122,7 +112,7 @@ const props = withDefaults(defineProps<Props>(), {
   icon: undefined,
 })
 
-const hasError = ref(false)
+const imageHasError = ref(false)
 
 // Sanitize highlighted content to prevent XSS using DOMPurify
 const sanitizedHighlightedTitle = computed(() => {
@@ -203,7 +193,7 @@ const sanitizedHighlightedDescription = computed(() => {
 
 // Handle image loading errors
 const handleImageError = () => {
-  hasError.value = true
+  imageHasError.value = true
   // In production, we might want to use a proper error tracking service instead of console
   if (process.dev) {
     // eslint-disable-next-line no-console
@@ -218,7 +208,6 @@ const handleLinkClick = (event: Event) => {
     // URL is valid, allow the click
   } catch (err) {
     event.preventDefault()
-    hasError.value = true
     // In production, we might want to use a proper error tracking service instead of console
     if (process.dev) {
       // eslint-disable-next-line no-console
@@ -229,9 +218,6 @@ const handleLinkClick = (event: Event) => {
 
 // Add structured data for the resource
 const resourceSchema = computed(() => {
-  // Only create schema if there's no error
-  if (hasError.value) return null
-
   return {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication', // Using SoftwareApplication as most resources are web-based tools
@@ -249,15 +235,13 @@ const resourceSchema = computed(() => {
   }
 })
 
-// Add JSON-LD structured data to the head if no error
-if (!hasError.value && resourceSchema.value) {
-  useHead({
-    script: [
-      {
-        type: 'application/ld+json',
-        innerHTML: JSON.stringify(resourceSchema.value),
-      },
-    ],
-  })
-}
+// Add JSON-LD structured data to the head
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify(resourceSchema.value),
+    },
+  ],
+})
 </script>

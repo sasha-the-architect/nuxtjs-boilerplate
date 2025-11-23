@@ -1,6 +1,8 @@
 import { ref, computed, readonly } from 'vue'
 import Fuse from 'fuse.js'
 import DOMPurify from 'dompurify'
+import { useErrorHandling } from '~/composables/useErrorHandling'
+import { useLoading } from '~/composables/useLoading'
 
 // Define TypeScript interfaces
 export interface Resource {
@@ -37,11 +39,14 @@ export type SortOption =
 // Main composable for managing resources
 export const useResources = () => {
   const resources = ref<Resource[]>([])
-  const loading = ref(true)
-  const error = ref<string | null>(null)
   const fuse = ref<Fuse<Resource> | null>(null)
   const retryCount = ref(0)
   const maxRetries = 3
+
+  // Use standardized error handling and loading
+  const { error, hasError, setError, clearError, handleError } =
+    useErrorHandling()
+  const { loading, withLoading, reset: resetLoading } = useLoading()
 
   // Initialize resources
   const initResources = async (attempt = 1) => {
@@ -62,15 +67,13 @@ export const useResources = () => {
         includeScore: true,
       })
 
-      loading.value = false
-      error.value = null
+      clearError()
     } catch (err) {
       // In production, we might want to use a proper error tracking service instead of console
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
         console.error('Error loading resources:', err)
       }
-      error.value = `Failed to load resources${attempt < maxRetries ? '. Retrying...' : ''}`
 
       // Retry if we haven't exceeded max retries
       if (attempt < maxRetries) {
@@ -79,17 +82,23 @@ export const useResources = () => {
         await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
         await initResources(attempt + 1)
       } else {
-        loading.value = false
+        setError(`Failed to load resources after ${maxRetries} attempts`)
       }
     }
   }
 
   // Retry loading resources
   const retryResources = async () => {
-    loading.value = true
-    error.value = null
+    resetLoading()
     retryCount.value = 0
     await initResources()
+  }
+
+  // Load resources with standardized loading
+  const loadResources = async () => {
+    await withLoading(async () => {
+      await initResources()
+    })
   }
 
   // Get unique categories
@@ -268,7 +277,7 @@ export const useResources = () => {
   }
 
   // Initialize resources when composable is created
-  initResources()
+  loadResources()
 
   // Function to highlight search terms in text
   const highlightSearchTerms = (text: string, searchQuery: string): string => {
@@ -354,6 +363,7 @@ export const useResources = () => {
     filteredResources,
     loading: readonly(loading),
     error: readonly(error),
+    hasError: readonly(hasError),
     retryCount: readonly(retryCount),
     maxRetries,
     categories,
@@ -371,5 +381,6 @@ export const useResources = () => {
     resetFilters,
     highlightSearchTerms,
     retryResources,
+    loadResources,
   }
 }

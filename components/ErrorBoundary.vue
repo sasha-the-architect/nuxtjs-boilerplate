@@ -1,5 +1,5 @@
 <template>
-  <div v-if="error" class="error-boundary">
+  <div v-if="hasError" class="error-boundary">
     <div class="error-content">
       <div class="error-icon">
         <svg
@@ -8,6 +8,7 @@
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
+          aria-hidden="true"
         >
           <path
             stroke-linecap="round"
@@ -19,11 +20,24 @@
       </div>
       <h2 class="error-title">Something went wrong</h2>
       <p class="error-message">
-        {{ error.message || 'An unexpected error occurred' }}
+        {{ error?.message || 'An unexpected error occurred' }}
+      </p>
+      <p v-if="showDetails" class="error-details">
+        <small>Component: {{ componentStack }}</small>
       </p>
       <div class="error-actions">
-        <button class="retry-button" @click="resetError">Try Again</button>
+        <button class="retry-button" :disabled="retrying" @click="handleRetry">
+          <span v-if="retrying">Retrying...</span>
+          <span v-else>Try Again</span>
+        </button>
         <button class="home-button" @click="goHome">Go Home</button>
+        <button
+          v-if="error?.stack"
+          class="details-button"
+          @click="toggleDetails"
+        >
+          {{ showDetails ? 'Hide Details' : 'Show Details' }}
+        </button>
       </div>
     </div>
   </div>
@@ -31,28 +45,46 @@
 </template>
 
 <script setup lang="ts">
-import { onErrorCaptured } from 'vue'
+import { onErrorCaptured, ref } from 'vue'
+import { useErrorHandling } from '~/composables/useErrorHandling'
+
 interface ErrorInfo {
   componentStack: string
 }
 
-const error = ref<Error | null>(null)
+const { error, hasError, clearError } = useErrorHandling()
+const componentStack = ref('')
+const showDetails = ref(false)
+const retrying = ref(false)
 
 const emit = defineEmits<{
   error: [error: Error, info: ErrorInfo]
+  retry: []
 }>()
 
 const throwError = (err: Error, info: ErrorInfo) => {
   error.value = err
+  componentStack.value = info.componentStack
   emit('error', err, info)
 }
 
-const resetError = () => {
-  error.value = null
+const handleRetry = async () => {
+  retrying.value = true
+  try {
+    clearError()
+    // In some cases, we might want to emit a retry event to parent components
+    emit('retry')
+  } finally {
+    retrying.value = false
+  }
 }
 
 const goHome = () => {
   navigateTo('/')
+}
+
+const toggleDetails = () => {
+  showDetails.value = !showDetails.value
 }
 
 onErrorCaptured((err, instance, info) => {
@@ -92,30 +124,50 @@ onErrorCaptured((err, instance, info) => {
   font-size: 0.875rem;
 }
 
+.error-details {
+  color: #4b5563;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  font-family: monospace;
+  text-align: left;
+  padding: 0.5rem;
+  background-color: #f9fafb;
+  border-radius: 0.25rem;
+  overflow: auto;
+  max-height: 100px;
+}
+
 .error-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   justify-content: center;
 }
 
 .retry-button,
-.home-button {
+.home-button,
+.details-button {
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  border: 1px solid transparent;
 }
 
 .retry-button {
   background-color: #3b82f6;
   color: white;
-  border: 1px solid #3b82f6;
 }
 
-.retry-button:hover {
+.retry-button:hover:not(:disabled) {
   background-color: #2563eb;
+}
+
+.retry-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .home-button {
@@ -126,5 +178,15 @@ onErrorCaptured((err, instance, info) => {
 
 .home-button:hover {
   background-color: #e5e7eb;
+}
+
+.details-button {
+  background-color: #e5e7eb;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.details-button:hover {
+  background-color: #d1d5db;
 }
 </style>
