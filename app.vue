@@ -1,6 +1,9 @@
 <template>
   <NuxtLayout>
     <NuxtPage />
+    <ClientOnly>
+      <ToastNotification />
+    </ClientOnly>
   </NuxtLayout>
 </template>
 

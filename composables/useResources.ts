@@ -1,6 +1,7 @@
 import { ref, computed, readonly } from 'vue'
 import Fuse from 'fuse.js'
 import DOMPurify from 'dompurify'
+import { useLoading } from '~/composables/useLoading'
 
 // Define TypeScript interfaces
 export interface Resource {
@@ -37,15 +38,20 @@ export type SortOption =
 // Main composable for managing resources
 export const useResources = () => {
   const resources = ref<Resource[]>([])
-  const loading = ref(true)
   const error = ref<string | null>(null)
   const fuse = ref<Fuse<Resource> | null>(null)
   const retryCount = ref(0)
   const maxRetries = 3
 
+  // Use the standardized loading composable
+  const { loading, setLoading, withLoading } = useLoading()
+
   // Initialize resources
   const initResources = async (attempt = 1) => {
     try {
+      // Set loading state using the standardized loading composable
+      setLoading(true)
+
       // Import resources from JSON
       const resourcesModule = await import('~/data/resources.json')
       resources.value = resourcesModule.default || resourcesModule
@@ -62,7 +68,6 @@ export const useResources = () => {
         includeScore: true,
       })
 
-      loading.value = false
       error.value = null
     } catch (err) {
       // In production, we might want to use a proper error tracking service instead of console
@@ -78,15 +83,15 @@ export const useResources = () => {
         // Wait for a bit before retrying (exponential backoff)
         await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
         await initResources(attempt + 1)
-      } else {
-        loading.value = false
       }
+    } finally {
+      // Ensure loading state is properly reset
+      setLoading(false)
     }
   }
 
   // Retry loading resources
   const retryResources = async () => {
-    loading.value = true
     error.value = null
     retryCount.value = 0
     await initResources()
@@ -400,7 +405,7 @@ export const useResources = () => {
   return {
     resources: readonly(resources),
     filteredResources,
-    loading: readonly(loading),
+    loading,
     error: readonly(error),
     retryCount: readonly(retryCount),
     maxRetries,
