@@ -22,9 +22,11 @@
           </div>
           <div class="flex items-center flex-1 max-w-lg mx-8">
             <SearchBar
+              :suggestions="searchSuggestions"
               v-model="searchQuery"
               :aria-label="'Search for free resources'"
               @search="handleSearch"
+              @select-suggestion="handleSuggestionSelect"
             />
           </div>
           <nav
@@ -99,7 +101,8 @@ import PWAInstallPrompt from '~/components/PWAInstallPrompt.vue'
 import OfflineIndicator from '~/components/OfflineIndicator.vue'
 
 // Use the resources composable to enable global search
-const { filterOptions, updateSearchQuery } = useResources()
+const { filterOptions, updateSearchQuery, getSearchSuggestions } =
+  useResources()
 
 // Reactive reference for search query
 const searchQuery = computed({
@@ -107,11 +110,29 @@ const searchQuery = computed({
   set: value => updateSearchQuery(value),
 })
 
+// Reactive reference for search suggestions
+const searchSuggestions = computed(() => {
+  if (searchQuery.value && searchQuery.value.length >= 2) {
+    return getSearchSuggestions(searchQuery.value)
+  }
+  return []
+})
+
 // Handle search
 const handleSearch = (query: string) => {
   updateSearchQuery(query)
 
   // If we're not on the search page, navigate to it
+  if (useRoute().path !== '/search') {
+    navigateTo('/search')
+  }
+}
+
+// Handle suggestion selection
+const handleSuggestionSelect = (suggestion: string) => {
+  updateSearchQuery(suggestion)
+
+  // Navigate to search page if not already there
   if (useRoute().path !== '/search') {
     navigateTo('/search')
   }

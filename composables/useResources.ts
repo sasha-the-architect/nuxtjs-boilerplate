@@ -192,6 +192,15 @@ export const useResources = () => {
     return result
   })
 
+  // Get search suggestions (top 5 resources matching the query)
+  const getSearchSuggestions = (query: string): Resource[] => {
+    if (!query || !fuse.value) return []
+
+    // Search with a limit of 5 suggestions
+    const searchResults = fuse.value.search(query, { limit: 5 })
+    return searchResults.map(item => item.item)
+  }
+
   // Filter options
   const filterOptions = ref<FilterOptions>({
     searchQuery: '',
@@ -370,6 +379,7 @@ export const useResources = () => {
     setSortOption,
     resetFilters,
     highlightSearchTerms,
+    getSearchSuggestions,
     retryResources,
   }
 }

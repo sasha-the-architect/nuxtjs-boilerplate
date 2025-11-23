@@ -12,7 +12,12 @@
 
       <!-- Search Bar -->
       <div class="mb-8">
-        <SearchBar v-model="searchQuery" @search="handleSearch" />
+        <SearchBar
+          :suggestions="searchSuggestions"
+          v-model="searchQuery"
+          @search="handleSearch"
+          @select-suggestion="handleSuggestionSelect"
+        />
       </div>
 
       <!-- Loading State -->
@@ -155,6 +160,7 @@ const {
   setSortOption,
   resetFilters,
   highlightSearchTerms,
+  getSearchSuggestions,
 } = useResources()
 
 // Set up URL synchronization
@@ -177,9 +183,22 @@ const selectedTechnologies = computed(
   () => filterOptions.value.technologies || []
 )
 
+// Reactive reference for search suggestions
+const searchSuggestions = computed(() => {
+  if (searchQuery.value && searchQuery.value.length >= 2) {
+    return getSearchSuggestions(searchQuery.value)
+  }
+  return []
+})
+
 // Handle search
 const handleSearch = (query: string) => {
   updateSearchQuery(query)
+}
+
+// Handle suggestion selection
+const handleSuggestionSelect = (suggestion: string) => {
+  updateSearchQuery(suggestion)
 }
 
 // Reset all filters
