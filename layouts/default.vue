@@ -36,6 +36,39 @@
           >
             <NuxtLink
               to="/"
+              class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
+              :aria-label="'Free Stuff on the Internet - Return to home page'"
+            >
+              Home
+            </NuxtLink>
+            <NuxtLink
+              to="/search"
+              class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
+              active-class="bg-gray-100"
+              >Search</NuxtLink
+            >
+            <NuxtLink
+              to="/ai-keys"
+              class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
+              active-class="bg-gray-100"
+            >
+              AI Keys
+            </NuxtLink>
+            <NuxtLink
+              to="/about"
+              class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
+              active-class="bg-gray-100"
+            >
+              About
+            </NuxtLink>
+            <NuxtLink
+              to="/submit"
+              class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium font-medium bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
+              active-class="bg-gray-200"
+              >Submit</NuxtLink
+            >
+            <NuxtLink
+              to="/"
               class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               active-class="bg-gray-100"
             >
@@ -76,7 +109,7 @@
     </main>
     <footer class="bg-white mt-8 py-6 border-t" role="contentinfo">
       <div
-        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm"
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-600 text-sm"
       >
         © {{ new Date().getFullYear() }} Free Stuff on the Internet. All rights
         reserved.

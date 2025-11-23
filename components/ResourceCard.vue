@@ -1,10 +1,9 @@
 <!-- eslint-disable vue/no-v-html -->
 <template>
-  <div
+  <article
     v-if="!hasError"
     class="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow duration-300"
     role="article"
-    aria-labelledby="resource-title"
   >
     <div class="flex items-start">
       <!-- Using standard img tag for optimization -->
@@ -23,7 +22,6 @@
         <h3
           id="resource-title"
           class="text-lg font-medium text-gray-900 truncate"
-          aria-label="Resource title"
         >
           <span
             v-if="highlightedTitle"
@@ -32,11 +30,7 @@
           <!-- eslint-disable-line vue/no-v-html -->
           <span v-else>{{ title }}</span>
         </h3>
-        <p
-          id="resource-description"
-          class="mt-1 text-gray-600 text-sm"
-          aria-label="Resource description"
-        >
+        <p id="resource-description" class="mt-1 text-gray-800 text-sm">
           <span
             v-if="highlightedDescription"
             v-html="sanitizedHighlightedDescription"
@@ -47,16 +41,12 @@
         <div
           class="mt-3 bg-gray-50 p-3 rounded-md"
           role="region"
-          aria-labelledby="free-tier-label"
+          aria-label="Free tier information"
         >
           <p id="free-tier-label" class="font-medium text-gray-900 text-sm">
             Free Tier:
           </p>
-          <ul
-            class="mt-1 space-y-1 text-xs text-gray-700"
-            role="list"
-            aria-label="Free tier benefits"
-          >
+          <ul class="mt-1 space-y-1 text-xs text-gray-800" role="list">
             <li v-for="(benefit, index) in benefits" :key="index">
               {{ benefit }}
             </li>
@@ -77,7 +67,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </article>
 
   <!-- Error state -->
   <div v-else class="bg-white p-6 rounded-lg shadow border border-red-200">
@@ -85,7 +75,7 @@
       <div class="flex-shrink-0 mr-4">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-12 w-12 text-red-500"
+          class="h-12 w-12 text-red-600"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -100,7 +90,7 @@
       </div>
       <div class="flex-1 min-w-0">
         <h3 class="text-lg font-medium text-red-900">Resource Unavailable</h3>
-        <p class="mt-1 text-red-600 text-sm">
+        <p class="mt-1 text-red-700 text-sm">
           This resource could not be displayed due to an error.
         </p>
       </div>

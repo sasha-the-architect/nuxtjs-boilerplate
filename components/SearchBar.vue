@@ -23,7 +23,7 @@
       <input
         id="search-input"
         ref="searchInputRef"
-        type="text"
+        type="search"
         :value="modelValue"
         class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
         :class="{ 'rounded-b-none': showSuggestions }"

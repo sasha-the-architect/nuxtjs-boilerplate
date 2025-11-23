@@ -8,8 +8,8 @@
           "tailwind",
           "apply",
           "layer",
-          "variants",
           "responsive",
+          "variants",
           "screen",
           "import",
           "include",
@@ -27,6 +27,15 @@
         ]
       }
     ],
+    "media-feature-name-no-unknown": [
+      true,
+      {
+        "ignoreMediaFeatureNames": [
+          "prefers-contrast"
+        ]
+      }
+    ],
+    "media-feature-name-value-no-unknown": null,
     "font-family-name-quotes": "always-where-recommended"
   }
 }

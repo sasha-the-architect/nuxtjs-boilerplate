@@ -30,9 +30,9 @@ export default defineNuxtPlugin(() => {
       // Wait for the user to respond to the prompt
       deferredPrompt.value.userChoice.then((choiceResult: any) => {
         if (choiceResult.outcome === 'accepted') {
-          console.log('User accepted the install prompt')
+          // User accepted the install prompt
         } else {
-          console.log('User dismissed the install prompt')
+          // User dismissed the install prompt
         }
         deferredPrompt.value = null
         showInstallPrompt.value = false

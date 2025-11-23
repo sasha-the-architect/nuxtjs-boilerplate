@@ -28,14 +28,14 @@
       </div>
       <div class="flex space-x-2">
         <button
-          @click="cancelInstall"
           class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+          @click="cancelInstall"
         >
           Not now
         </button>
         <button
-          @click="installPWA"
           class="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          @click="installPWA"
         >
           Install
         </button>
@@ -45,6 +45,8 @@
 </template>
 
 <script setup lang="ts">
+import { useNuxtApp } from '#app'
+
 const { pwa } = useNuxtApp()
 
 const installPWA = () => {

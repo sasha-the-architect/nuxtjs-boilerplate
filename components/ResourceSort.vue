@@ -1,10 +1,10 @@
 <template>
   <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-    <div class="text-sm text-gray-700">
+    <div class="text-sm text-gray-800">
       <span class="font-medium">{{ totalResources }}</span> resources found
     </div>
     <div class="flex items-center space-x-2">
-      <label for="sort" class="text-sm text-gray-700">Sort by:</label>
+      <label for="sort" class="text-sm text-gray-800">Sort by:</label>
       <select
         id="sort"
         :value="selectedSortOption"

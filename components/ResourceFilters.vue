@@ -13,7 +13,11 @@
     <!-- Category Filter -->
     <div class="mb-6">
       <h4 class="text-sm font-medium text-gray-900 mb-3">Category</h4>
-      <div class="space-y-2 max-h-40 overflow-y-auto">
+      <div
+        role="group"
+        :aria-label="'Category filters'"
+        class="space-y-2 max-h-40 overflow-y-auto"
+      >
         <label
           v-for="(category, index) in categories"
           :key="category"
@@ -27,9 +31,10 @@
             :value="category"
             :checked="selectedCategories.includes(category)"
             class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+            :aria-label="`Filter by ${category}`"
             @change="toggleCategory(category)"
           />
-          <span class="ml-2 text-sm text-gray-700">{{ category }}</span>
+          <span class="ml-2 text-sm text-gray-800">{{ category }}</span>
         </label>
       </div>
     </div>
@@ -37,7 +42,11 @@
     <!-- Pricing Model Filter -->
     <div class="mb-6">
       <h4 class="text-sm font-medium text-gray-900 mb-3">Pricing Model</h4>
-      <div class="space-y-2 max-h-40 overflow-y-auto">
+      <div
+        role="group"
+        :aria-label="'Pricing model filters'"
+        class="space-y-2 max-h-40 overflow-y-auto"
+      >
         <label
           v-for="(pricingModel, index) in pricingModels"
           :key="pricingModel"
@@ -51,9 +60,10 @@
             :value="pricingModel"
             :checked="selectedPricingModels.includes(pricingModel)"
             class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+            :aria-label="`Filter by ${pricingModel}`"
             @change="togglePricingModel(pricingModel)"
           />
-          <span class="ml-2 text-sm text-gray-700">{{ pricingModel }}</span>
+          <span class="ml-2 text-sm text-gray-800">{{ pricingModel }}</span>
         </label>
       </div>
     </div>
@@ -61,7 +71,11 @@
     <!-- Difficulty Level Filter -->
     <div class="mb-6">
       <h4 class="text-sm font-medium text-gray-900 mb-3">Difficulty</h4>
-      <div class="space-y-2 max-h-40 overflow-y-auto">
+      <div
+        role="group"
+        :aria-label="'Difficulty level filters'"
+        class="space-y-2 max-h-40 overflow-y-auto"
+      >
         <label
           v-for="(difficulty, index) in difficultyLevels"
           :key="difficulty"
@@ -75,9 +89,10 @@
             :value="difficulty"
             :checked="selectedDifficultyLevels.includes(difficulty)"
             class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+            :aria-label="`Filter by ${difficulty}`"
             @change="toggleDifficultyLevel(difficulty)"
           />
-          <span class="ml-2 text-sm text-gray-700">{{ difficulty }}</span>
+          <span class="ml-2 text-sm text-gray-800">{{ difficulty }}</span>
         </label>
       </div>
     </div>
@@ -85,7 +100,11 @@
     <!-- Technology Filter -->
     <div>
       <h4 class="text-sm font-medium text-gray-900 mb-3">Technology</h4>
-      <div class="space-y-2 max-h-40 overflow-y-auto">
+      <div
+        role="group"
+        :aria-label="'Technology filters'"
+        class="space-y-2 max-h-40 overflow-y-auto"
+      >
         <label
           v-for="(technology, index) in technologies"
           :key="technology"
@@ -99,9 +118,10 @@
             :value="technology"
             :checked="selectedTechnologies.includes(technology)"
             class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+            :aria-label="`Filter by ${technology}`"
             @change="toggleTechnology(technology)"
           />
-          <span class="ml-2 text-sm text-gray-700">{{ technology }}</span>
+          <span class="ml-2 text-sm text-gray-800">{{ technology }}</span>
         </label>
       </div>
     </div>

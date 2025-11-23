@@ -40,3 +40,59 @@ body.mouse-nav :focus {
   clip-path: none !important;
   white-space: nowrap !important;
 }
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .bg-white {
+    background-color: #ffffff !important;
+  }
+  .bg-gray-50 {
+    background-color: #ffffff !important;
+  }
+  .bg-gray-100 {
+    background-color: #ffffff !important;
+  }
+  .text-gray-900 {
+    color: #000000 !important;
+  }
+  .text-gray-800 {
+    color: #000000 !important;
+  }
+  .text-gray-700 {
+    color: #000000 !important;
+  }
+  .text-gray-600 {
+    color: #000000 !important;
+  }
+  .border-gray-300 {
+    border-color: #000000 !important;
+  }
+
+  /* Ensure sufficient contrast for interactive elements */
+  a,
+  button {
+    color: #0000ee !important;
+    text-decoration: underline !important;
+  }
+
+  a:hover,
+  button:hover {
+    color: #0000ee !important;
+  }
+
+  /* Improve contrast for resource cards in high contrast mode */
+  .bg-white.p-6.rounded-lg.shadow {
+    border: 2px solid #000000 !important;
+  }
+
+  /* Ensure focus indicators are visible in high contrast */
+  body.keyboard-nav :focus {
+    outline: 3px solid #000000 !important;
+    outline-offset: 2px;
+  }
+}
