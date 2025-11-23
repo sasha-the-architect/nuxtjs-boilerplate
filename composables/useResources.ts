@@ -1,6 +1,7 @@
 import { ref, computed, readonly } from 'vue'
 import Fuse from 'fuse.js'
 import DOMPurify from 'dompurify'
+import { useLoading, type ErrorInfo } from '~/composables/useLoading'
 
 // Define TypeScript interfaces
 export interface Resource {
@@ -37,8 +38,8 @@ export type SortOption =
 // Main composable for managing resources
 export const useResources = () => {
   const resources = ref<Resource[]>([])
-  const loading = ref(true)
-  const error = ref<string | null>(null)
+  const { loading, error, withLoading, setError, reset, clearError } =
+    useLoading()
   const fuse = ref<Fuse<Resource> | null>(null)
   const retryCount = ref(0)
   const maxRetries = 3
@@ -62,15 +63,15 @@ export const useResources = () => {
         includeScore: true,
       })
 
-      loading.value = false
-      error.value = null
+      reset() // Reset loading and error states
     } catch (err) {
       // In production, we might want to use a proper error tracking service instead of console
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
         console.error('Error loading resources:', err)
       }
-      error.value = `Failed to load resources${attempt < maxRetries ? '. Retrying...' : ''}`
+      const errorMessage = `Failed to load resources${attempt < maxRetries ? '. Retrying...' : ''}`
+      setError(errorMessage, err instanceof Error ? err.stack : undefined)
 
       // Retry if we haven't exceeded max retries
       if (attempt < maxRetries) {
@@ -78,16 +79,13 @@ export const useResources = () => {
         // Wait for a bit before retrying (exponential backoff)
         await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
         await initResources(attempt + 1)
-      } else {
-        loading.value = false
       }
     }
   }
 
   // Retry loading resources
   const retryResources = async () => {
-    loading.value = true
-    error.value = null
+    reset() // Reset loading and error states
     retryCount.value = 0
     await initResources()
   }
@@ -371,5 +369,8 @@ export const useResources = () => {
     resetFilters,
     highlightSearchTerms,
     retryResources,
+    setError,
+    clearError,
+    reset,
   }
 }

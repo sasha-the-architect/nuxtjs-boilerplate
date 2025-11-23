@@ -23,8 +23,12 @@
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="text-center py-12">
-        <p class="text-red-600 text-lg">Error loading resources: {{ error }}</p>
+      <div v-else-if="error" class="mt-8">
+        <ErrorMessage
+          :error="error"
+          :show-retry="true"
+          @retry="retryResources"
+        />
       </div>
 
       <!-- Resources Grid -->
@@ -102,6 +106,7 @@ import { useUrlSync } from '~/composables/useUrlSync'
 import ResourceCard from '~/components/ResourceCard.vue'
 import SearchBar from '~/components/SearchBar.vue'
 import ResourceSort from '~/components/ResourceSort.vue'
+import ErrorMessage from '~/components/ErrorMessage.vue'
 
 definePageMeta({
   layout: 'default',
@@ -133,6 +138,7 @@ const {
   toggleCategory,
   setSortOption,
   resetFilters,
+  retryResources,
 } = useResources()
 
 // Set up URL synchronization
