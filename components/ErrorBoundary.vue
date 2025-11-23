@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { onErrorCaptured } from 'vue'
+import { onErrorCaptured, ref } from 'vue'
 interface ErrorInfo {
   componentStack: string
 }

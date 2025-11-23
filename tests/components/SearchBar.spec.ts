@@ -122,5 +122,46 @@ describe('SearchBar', () => {
     expect(input.attributes('placeholder')).toBe(
       'Search resources by name, description, tags...'
     )
+    expect(input.attributes('type')).toBe('search')
+    expect(input.attributes('role')).toBeUndefined() // Not needed for search input
+  })
+
+  it('has proper ARIA attributes for screen reader announcements', () => {
+    const wrapper = mount(SearchBar, {
+      props: {
+        modelValue: '',
+      },
+    })
+
+    // Check for ARIA live region for search results
+    const ariaLiveRegion = wrapper.find('#search-results-info')
+    expect(ariaLiveRegion.exists()).toBe(true)
+    expect(ariaLiveRegion.attributes('role')).toBe('status')
+    expect(ariaLiveRegion.attributes('aria-live')).toBe('polite')
+    expect(ariaLiveRegion.classes()).toContain('sr-only') // Screen reader only
+  })
+
+  it('clear button has proper accessibility attributes', async () => {
+    const wrapper = mount(SearchBar, {
+      props: {
+        modelValue: 'test search',
+      },
+    })
+
+    const clearButton = wrapper.find('button')
+    expect(clearButton.attributes('aria-label')).toBe('Clear search')
+    expect(clearButton.attributes('title')).toBeUndefined() // aria-label is sufficient
+  })
+
+  it('input has proper search type and ARIA attributes', () => {
+    const wrapper = mount(SearchBar, {
+      props: {
+        modelValue: '',
+      },
+    })
+
+    const input = wrapper.find('input')
+    expect(input.attributes('type')).toBe('search')
+    expect(input.attributes('aria-describedby')).toBe('search-results-info')
   })
 })
