@@ -3,6 +3,8 @@
   <div
     v-if="!hasError"
     class="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow duration-300"
+    role="article"
+    aria-labelledby="resource-title"
   >
     <div class="flex items-start">
       <!-- Using standard img tag for optimization -->
@@ -18,7 +20,11 @@
         />
       </div>
       <div class="flex-1 min-w-0">
-        <h3 class="text-lg font-medium text-gray-900 truncate">
+        <h3
+          id="resource-title"
+          class="text-lg font-medium text-gray-900 truncate"
+          aria-label="Resource title"
+        >
           <span
             v-if="highlightedTitle"
             v-html="sanitizedHighlightedTitle"
@@ -26,7 +32,11 @@
           <!-- eslint-disable-line vue/no-v-html -->
           <span v-else>{{ title }}</span>
         </h3>
-        <p class="mt-1 text-gray-600 text-sm">
+        <p
+          id="resource-description"
+          class="mt-1 text-gray-600 text-sm"
+          aria-label="Resource description"
+        >
           <span
             v-if="highlightedDescription"
             v-html="sanitizedHighlightedDescription"
@@ -34,9 +44,19 @@
           <!-- eslint-disable-line vue/no-v-html -->
           <span v-else>{{ description }}</span>
         </p>
-        <div class="mt-3 bg-gray-50 p-3 rounded-md">
-          <p class="font-medium text-gray-900 text-sm">Free Tier:</p>
-          <ul class="mt-1 space-y-1 text-xs text-gray-700">
+        <div
+          class="mt-3 bg-gray-50 p-3 rounded-md"
+          role="region"
+          aria-labelledby="free-tier-label"
+        >
+          <p id="free-tier-label" class="font-medium text-gray-900 text-sm">
+            Free Tier:
+          </p>
+          <ul
+            class="mt-1 space-y-1 text-xs text-gray-700"
+            role="list"
+            aria-label="Free tier benefits"
+          >
             <li v-for="(benefit, index) in benefits" :key="index">
               {{ benefit }}
             </li>
@@ -47,7 +67,8 @@
             :href="url"
             :target="newTab ? '_blank' : '_self'"
             rel="noopener noreferrer"
-            class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-800 hover:bg-gray-900 transition-colors duration-200"
+            class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-800 hover:bg-gray-900 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800"
+            :aria-label="`Visit ${title} - opens in ${newTab ? 'new tab' : 'same window'}`"
             @click="handleLinkClick"
           >
             {{ buttonLabel }}

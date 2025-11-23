@@ -11,9 +11,34 @@ import { join } from 'path'
 
 // Configuration
 const GITHUB_TOKEN = process.env.GH_TOKEN || process.env.GITHUB_TOKEN
-const REPO_OWNER = 'nuxtjs-boilerplate'
-const REPO_NAME = 'nuxtjs-boilerplate'
+const REPO_OWNER = getRepoOwner()
+const REPO_NAME = getRepoName()
 const DEFAULT_BRANCH = 'main'
+
+function getRepoOwner() {
+  try {
+    const remoteUrl = execSync('git remote get-url origin', {
+      encoding: 'utf-8',
+    }).trim()
+    // Extract owner from URLs like git@github.com:owner/repo.git or https://github.com/owner/repo.git
+    const match = remoteUrl.match(/github\.com[/:]([^/]+)\/([^/.]+)/)
+    return match ? match[1] : 'nuxtjs-boilerplate'
+  } catch {
+    return 'nuxtjs-boilerplate'
+  }
+}
+
+function getRepoName() {
+  try {
+    const remoteUrl = execSync('git remote get-url origin', {
+      encoding: 'utf-8',
+    }).trim()
+    const match = remoteUrl.match(/github\.com[/:]([^/]+)\/([^/.]+)/)
+    return match ? match[2] : 'nuxtjs-boilerplate'
+  } catch {
+    return 'nuxtjs-boilerplate'
+  }
+}
 
 // Set git configuration for automation
 function configureGit() {
@@ -138,7 +163,14 @@ async function checkoutAndSyncPR(prNumber, prRef) {
     } catch (rebaseError) {
       if (process.env.DEBUG)
         console.log('Rebase failed, attempting merge instead...')
-      execSync('git rebase --abort', { stdio: 'pipe' })
+      try {
+        // Check if there's an active rebase to abort
+        execSync('git rebase --abort', { stdio: 'pipe' })
+      } catch (abortError) {
+        // If no rebase in progress, ignore the error
+        if (process.env.DEBUG)
+          console.log('No rebase in progress, continuing with merge...')
+      }
       execSync('git merge origin/main', { stdio: 'pipe' })
       if (process.env.DEBUG) console.log('✓ Merged main into PR branch')
     }

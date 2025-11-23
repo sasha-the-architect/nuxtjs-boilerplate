@@ -70,6 +70,16 @@
 
       <!-- Resources Grid -->
       <div v-else class="mt-16">
+        <!-- ARIA live region for search results -->
+        <div
+          id="search-results-status"
+          role="status"
+          aria-live="polite"
+          class="sr-only"
+        >
+          {{ filteredResources.length }} resources found for your search
+        </div>
+
         <!-- Category Filters -->
         <div class="flex flex-wrap gap-2 mb-8 justify-center">
           <button
@@ -81,6 +91,12 @@
                 ? 'bg-gray-800 text-white border-gray-800'
                 : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50',
             ]"
+            :aria-label="
+              selectedCategories.includes(category)
+                ? `Remove ${category} filter`
+                : `Filter by ${category}`
+            "
+            :aria-pressed="selectedCategories.includes(category)"
             @click="toggleCategory(category)"
           >
             {{ category }}

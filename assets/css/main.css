@@ -17,3 +17,26 @@ body {
     'Helvetica Neue',
     sans-serif;
 }
+
+/* Improved focus styles for keyboard navigation */
+body.keyboard-nav :focus {
+  outline: 2px solid #1f2937 !important; /* gray-800 */
+  outline-offset: 2px;
+}
+
+/* Hide focus indicators when using mouse navigation */
+body.mouse-nav :focus {
+  outline: none;
+}
+
+/* Ensure skip link is always visible when focused */
+.sr-only.focus:not(.sr-only) {
+  position: absolute !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 8px !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  clip-path: none !important;
+  white-space: nowrap !important;
+}

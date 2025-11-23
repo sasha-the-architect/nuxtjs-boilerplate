@@ -65,18 +65,26 @@ useHead({
 
 // Add global accessibility utilities
 onMounted(() => {
-  // Skip to main content link for keyboard users
-  const handleSkipLink = (e: KeyboardEvent) => {
-    if (e.key === 'Tab' && !document.body.classList.contains('tabbing')) {
-      document.body.classList.add('tabbing')
+  // Add visual focus indicators when using keyboard navigation
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Tab' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      document.body.classList.add('keyboard-nav')
+      document.body.classList.remove('mouse-nav')
     }
   }
 
-  window.addEventListener('keydown', handleSkipLink)
+  const handleMouseDown = () => {
+    document.body.classList.remove('keyboard-nav')
+    document.body.classList.add('mouse-nav')
+  }
 
-  // Cleanup event listener
+  window.addEventListener('keydown', handleKeyDown)
+  window.addEventListener('mousedown', handleMouseDown)
+
+  // Cleanup event listeners
   onUnmounted(() => {
-    window.removeEventListener('keydown', handleSkipLink)
+    window.removeEventListener('keydown', handleKeyDown)
+    window.removeEventListener('mousedown', handleMouseDown)
   })
 })
 </script>

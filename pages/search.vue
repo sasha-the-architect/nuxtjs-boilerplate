@@ -48,6 +48,16 @@
 
       <!-- Results with Filters -->
       <div v-else class="flex flex-col lg:flex-row gap-8">
+        <!-- ARIA live region for search results -->
+        <div
+          id="search-results-status"
+          role="status"
+          aria-live="polite"
+          class="sr-only"
+        >
+          {{ filteredResources.length }} resources found for your search
+        </div>
+
         <!-- Filters Sidebar -->
         <div class="lg:w-1/4">
           <ResourceFilters
@@ -59,6 +69,8 @@
             :selected-pricing-models="selectedPricingModels"
             :selected-difficulty-levels="selectedDifficultyLevels"
             :selected-technologies="selectedTechnologies"
+            role="region"
+            aria-label="Resource filters"
             @toggle-category="toggleCategory"
             @toggle-pricing-model="togglePricingModel"
             @toggle-difficulty-level="toggleDifficultyLevel"

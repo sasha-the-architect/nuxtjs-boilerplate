@@ -10,6 +10,7 @@
           stroke="currentColor"
           viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
         >
           <path
             stroke-linecap="round"
@@ -20,11 +21,13 @@
         </svg>
       </div>
       <input
+        id="search-input"
         type="text"
         :value="modelValue"
         class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
         placeholder="Search resources by name, description, tags..."
         aria-label="Search resources"
+        aria-describedby="search-results-info"
         @input="handleInput"
       />
       <div
@@ -42,6 +45,7 @@
             stroke="currentColor"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
           >
             <path
               stroke-linecap="round"
@@ -52,6 +56,15 @@
           </svg>
         </button>
       </div>
+    </div>
+    <!-- ARIA live region for search results information -->
+    <div
+      id="search-results-info"
+      role="status"
+      aria-live="polite"
+      class="sr-only"
+    >
+      Search results will be updated automatically
     </div>
   </div>
 </template>

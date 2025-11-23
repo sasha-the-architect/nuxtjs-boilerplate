@@ -3,7 +3,7 @@
     <!-- Skip to main content link for screen readers -->
     <a
       href="#main-content"
-      class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-gray-900 focus:rounded-md focus:shadow-lg"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-gray-900 focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-800"
     >
       Skip to main content
     </a>
@@ -14,7 +14,7 @@
           <div class="flex items-center">
             <NuxtLink
               to="/"
-              class="text-xl font-semibold text-gray-900"
+              class="text-xl font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               :aria-label="'Free Stuff on the Internet - Return to home page'"
             >
               Free Stuff on the Internet
@@ -34,34 +34,34 @@
           >
             <NuxtLink
               to="/"
-              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               active-class="bg-gray-100"
             >
               Home
             </NuxtLink>
             <NuxtLink
               to="/search"
-              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               active-class="bg-gray-100"
               >Search</NuxtLink
             >
             <NuxtLink
               to="/ai-keys"
-              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               active-class="bg-gray-100"
             >
               AI Keys
             </NuxtLink>
             <NuxtLink
               to="/about"
-              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               active-class="bg-gray-100"
             >
               About
             </NuxtLink>
             <NuxtLink
               to="/submit"
-              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium font-medium bg-gray-100 hover:bg-gray-200 rounded-md"
+              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium font-medium bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               active-class="bg-gray-200"
               >Submit</NuxtLink
             >
@@ -78,6 +78,7 @@
       >
         © {{ new Date().getFullYear() }} Free Stuff on the Internet. All rights
         reserved.
+        <p class="sr-only">Footer content ends</p>
       </div>
     </footer>
   </div>
