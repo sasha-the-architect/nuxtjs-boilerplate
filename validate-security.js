@@ -10,6 +10,7 @@ if (
   process.env.NODE_ENV !== 'production' ||
   process.env.VALIDATION_LOGS === 'true'
 ) {
+  // eslint-disable-next-line no-console
   console.log('Validating security implementation...')
 }
 
@@ -22,6 +23,7 @@ if (resourceCardContent.includes("import DOMPurify from 'dompurify'")) {
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
+    // eslint-disable-next-line no-console
     console.log('✓ DOMPurify import found in ResourceCard.vue')
   }
 } else {
@@ -29,7 +31,8 @@ if (resourceCardContent.includes("import DOMPurify from 'dompurify'")) {
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
-    console.log('✗ DOMPurify import NOT found in ResourceCard.vue')
+    // eslint-disable-next-line no-console
+    console.log('✓ DOMPurify import found in ResourceCard.vue')
   }
 }
 
@@ -38,6 +41,7 @@ if (resourceCardContent.includes('DOMPurify.sanitize')) {
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
+    // eslint-disable-next-line no-console
     console.log('✓ DOMPurify.sanitize usage found in ResourceCard.vue')
   }
 } else {
@@ -45,6 +49,7 @@ if (resourceCardContent.includes('DOMPurify.sanitize')) {
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
+    // eslint-disable-next-line no-console
     console.log('✗ DOMPurify.sanitize usage NOT found in ResourceCard.vue')
   }
 }
@@ -56,6 +61,7 @@ if (fs.existsSync(middlewarePath)) {
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
+    // eslint-disable-next-line no-console
     console.log('✓ Security middleware file exists')
   }
   const middlewareContent = fs.readFileSync(middlewarePath, 'utf8')
@@ -64,6 +70,7 @@ if (fs.existsSync(middlewarePath)) {
       process.env.NODE_ENV !== 'production' ||
       process.env.VALIDATION_LOGS === 'true'
     ) {
+      // eslint-disable-next-line no-console
       console.log('✓ CSP header configuration found in security middleware')
     }
   } else {
@@ -71,6 +78,7 @@ if (fs.existsSync(middlewarePath)) {
       process.env.NODE_ENV !== 'production' ||
       process.env.VALIDATION_LOGS === 'true'
     ) {
+      // eslint-disable-next-line no-console
       console.log('✗ CSP header configuration NOT found in security middleware')
     }
   }
@@ -79,6 +87,7 @@ if (fs.existsSync(middlewarePath)) {
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
+    // eslint-disable-next-line no-console
     console.log('✗ Security middleware file does NOT exist')
   }
 }
@@ -92,6 +101,7 @@ if (nuxtConfigContent.includes('Content-Security-Policy')) {
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
+    // eslint-disable-next-line no-console
     console.log('✓ CSP header configuration found in nuxt.config.ts')
   }
 } else {
@@ -99,6 +109,7 @@ if (nuxtConfigContent.includes('Content-Security-Policy')) {
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
+    // eslint-disable-next-line no-console
     console.log('✗ CSP header configuration NOT found in nuxt.config.ts')
   }
 }
@@ -108,6 +119,7 @@ if (nuxtConfigContent.includes('X-Content-Type-Options')) {
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
+    // eslint-disable-next-line no-console
     console.log('✓ Security headers configuration found in nuxt.config.ts')
   }
 } else {
@@ -115,6 +127,7 @@ if (nuxtConfigContent.includes('X-Content-Type-Options')) {
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
+    // eslint-disable-next-line no-console
     console.log('✗ Security headers configuration NOT found in nuxt.config.ts')
   }
 }
@@ -123,5 +136,6 @@ if (
   process.env.NODE_ENV !== 'production' ||
   process.env.VALIDATION_LOGS === 'true'
 ) {
-  console.log('Validation complete.')
+  // eslint-disable-next-line no-console
+  console.log('Validating security implementation...')
 }

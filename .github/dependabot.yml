@@ -11,10 +11,7 @@ updates:
       day: 'monday'
       time: '09:00'
     open-pull-requests-limit: 10
-    reviewers:
-      - 'cpa02cmz'
-    assignees:
-      - 'cpa02cmz'
+
     commit-message:
       prefix: 'deps'
       include: 'scope'
@@ -25,14 +22,10 @@ updates:
     allow:
       - dependency-type: 'direct'
       - dependency-type: 'indirect'
-    # Allow both direct and indirect dependencies
-    allow:
-      - dependency-type: 'direct'
-      - dependency-type: 'indirect'
     # Group updates for better review
     groups:
       nuxt-dependencies:
-        dependency-type: 'direct'
+        dependency-type: 'production'
         patterns:
           - 'nuxt*'
           - '@nuxt*'
@@ -51,10 +44,7 @@ updates:
       day: 'monday'
       time: '09:00'
     open-pull-requests-limit: 5
-    reviewers:
-      - 'cpa02cmz'
-    assignees:
-      - 'cpa02cmz'
+
     commit-message:
       prefix: 'ci'
       include: 'scope'
@@ -70,10 +60,7 @@ updates:
       day: 'monday'
       time: '09:00'
     open-pull-requests-limit: 5
-    reviewers:
-      - 'cpa02cmz'
-    assignees:
-      - 'cpa02cmz'
+
     commit-message:
       prefix: 'docker'
       include: 'scope'
