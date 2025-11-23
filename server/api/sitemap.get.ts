@@ -8,7 +8,9 @@ export default defineEventHandler(async event => {
     // Get the base URL
     const config = useRuntimeConfig()
     const baseUrl =
-      config.public.siteUrl || 'https://free-stuff-on-the-internet.vercel.app'
+      config.public.canonicalUrl ||
+      config.public.siteUrl ||
+      'https://free-stuff-on-the-internet.vercel.app'
 
     // Define the static pages
     const staticPages = [
