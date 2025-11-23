@@ -1,13 +1,31 @@
 <template>
   <NuxtLayout>
     <NuxtPage />
+    <!-- Toast notifications container -->
+    <div class="toast-container">
+      <ToastNotification
+        v-for="toast in toastComposable.toasts"
+        :key="toast.id"
+        :title="toast.title"
+        :message="toast.message"
+        :type="toast.type"
+        :duration="toast.duration"
+        @close="toastComposable.hide(toast.id)"
+      />
+    </div>
   </NuxtLayout>
 </template>
 
 <script setup lang="ts">
+import { useToast } from '~/composables/useToast'
+import ToastNotification from '~/components/ToastNotification.vue'
+
 // This app.vue file ensures proper layout integration across the application
 // It replaces the default Nuxt welcome page and integrates with the custom default layout
 // All pages will now properly render within the default layout structure
+
+// Initialize toast composable to make it available globally
+const toastComposable = useToast()
 
 // Set default meta tags for the entire application
 const runtimeConfig = useRuntimeConfig()

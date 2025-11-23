@@ -64,16 +64,21 @@
 
     <!-- Search Suggestions Dropdown -->
     <SearchSuggestions
-      v-if="
-        showSuggestions && (suggestions.length > 0 || searchHistory.length > 0)
-      "
+      v-if="showSuggestions"
       :suggestions="suggestions"
       :search-history="searchHistory"
       :visible="showSuggestions"
+      :loading="isSearching"
+      :error="searchError"
       @select-suggestion="handleSuggestionSelect"
       @select-history="handleHistorySelect"
       @clear-history="handleClearHistory"
       @navigate="handleNavigate"
+    />
+
+    <!-- Search Suggestions Loading Skeleton -->
+    <SearchSuggestionsSkeleton
+      v-if="showSuggestions && isSearching && !searchError"
     />
 
     <!-- ARIA live region for search results information -->
@@ -127,6 +132,16 @@ onMounted(() => {
   searchHistory.value = getSearchHistory()
 })
 
+// Refs
+const searchInputRef = ref<HTMLInputElement>()
+const showSuggestions = ref(false)
+const suggestions = ref<any[]>([])
+const searchHistory = ref<string[]>([])
+const debouncedQuery = ref('')
+const inputTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
+const isSearching = ref(false)
+const searchError = ref<string | null>(null)
+
 // Handle input with debounce
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -134,6 +149,9 @@ const handleInput = (event: Event) => {
 
   // Update the model value immediately
   emit('update:modelValue', value)
+
+  // Reset search error when user types
+  searchError.value = null
 
   // Debounce the search to avoid constant updates
   if (inputTimeout.value) {
@@ -150,17 +168,32 @@ const handleInput = (event: Event) => {
 // Update suggestions based on input
 const updateSuggestions = (query: string) => {
   if (query && query.length > 1) {
-    // Get search suggestions
-    suggestions.value = getSuggestions(query, 5).map((resource: any) => ({
-      id: resource.id,
-      title: resource.title,
-      description:
-        resource.description.substring(0, 100) +
-        (resource.description.length > 100 ? '...' : ''),
-      url: resource.url,
-    }))
+    try {
+      isSearching.value = true
+      searchError.value = null
+
+      // Get search suggestions
+      suggestions.value = getSuggestions(query, 5).map((resource: any) => ({
+        id: resource.id,
+        title: resource.title,
+        description:
+          resource.description.substring(0, 100) +
+          (resource.description.length > 100 ? '...' : ''),
+        url: resource.url,
+      }))
+    } catch (error) {
+      searchError.value =
+        error instanceof Error
+          ? error.message
+          : 'An error occurred while searching'
+      suggestions.value = []
+    } finally {
+      isSearching.value = false
+    }
   } else {
     suggestions.value = []
+    isSearching.value = false
+    searchError.value = null
   }
 }
 

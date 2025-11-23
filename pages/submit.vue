@@ -237,6 +237,10 @@
 </template>
 
 <script setup lang="ts">
+import { useToast } from '~/composables/useToast'
+
+const toast = useToast()
+
 const formData = reactive({
   title: '',
   description: '',
@@ -325,10 +329,11 @@ const submitResource = async () => {
       tagsInput.value = ''
       submitSuccess.value = true
 
-      // Reset success message after 5 seconds
-      setTimeout(() => {
-        submitSuccess.value = false
-      }, 5000)
+      // Show success toast
+      toast.success(
+        'Resource Submitted',
+        'Thank you for submitting a resource. Our team will review it and approve it if it meets our quality standards.'
+      )
     } else {
       if (response.errors && Array.isArray(response.errors)) {
         // Handle validation errors from API
@@ -336,11 +341,19 @@ const submitResource = async () => {
           errors.value[err.field] = err.message
         })
       }
-      submitError.value =
+      const errorMessage =
         response.message || 'An error occurred while submitting the resource'
+      submitError.value = errorMessage
+
+      // Show error toast
+      toast.error('Submission Failed', errorMessage)
     }
   } catch (error: any) {
-    submitError.value = error.data?.message || 'An unexpected error occurred'
+    const errorMessage = error.data?.message || 'An unexpected error occurred'
+    submitError.value = errorMessage
+
+    // Show error toast
+    toast.error('Submission Failed', errorMessage)
   } finally {
     isSubmitting.value = false
   }

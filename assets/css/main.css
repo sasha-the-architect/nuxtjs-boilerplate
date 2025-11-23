@@ -18,6 +18,20 @@ body {
     sans-serif;
 }
 
+/* Toast container styling */
+.toast-container {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 1rem;
+  pointer-events: none;
+}
+
+.toast-container > * {
+  pointer-events: auto;
+}
+
 /* Improved focus styles for keyboard navigation */
 body.keyboard-nav :focus {
   outline: 2px solid #1f2937 !important; /* gray-800 */
