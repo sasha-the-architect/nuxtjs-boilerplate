@@ -24,12 +24,27 @@
           id="resource-title"
           class="text-lg font-medium text-gray-900 truncate"
         >
-          <span
-            v-if="highlightedTitle"
-            v-html="sanitizedHighlightedTitle"
-          ></span>
-          <!-- eslint-disable-line vue/no-v-html -->
-          <span v-else>{{ title }}</span>
+          <NuxtLink
+            v-if="id"
+            :to="`/resources/${id}`"
+            class="hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:rounded-sm"
+            :aria-label="`View details for ${title}`"
+          >
+            <span
+              v-if="highlightedTitle"
+              v-html="sanitizedHighlightedTitle"
+            ></span>
+            <!-- eslint-disable-line vue/no-v-html -->
+            <span v-else>{{ title }}</span>
+          </NuxtLink>
+          <span v-else>
+            <span
+              v-if="highlightedTitle"
+              v-html="sanitizedHighlightedTitle"
+            ></span>
+            <!-- eslint-disable-line vue/no-v-html -->
+            <span v-else>{{ title }}</span>
+          </span>
         </h3>
         <p id="resource-description" class="mt-1 text-gray-800 text-sm">
           <span
@@ -110,6 +125,7 @@ interface Props {
   description: string
   benefits: string[]
   url: string
+  id?: string
   icon?: string
   newTab?: boolean
   buttonLabel?: string

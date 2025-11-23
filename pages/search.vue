@@ -91,6 +91,7 @@
             <ResourceCard
               v-for="resource in filteredResources"
               :key="resource.id"
+              :id="resource.id"
               :title="resource.title"
               :description="resource.description"
               :benefits="resource.benefits"

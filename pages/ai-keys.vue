@@ -62,6 +62,7 @@
               r.category.includes('AI')
             )"
             :key="resource.id"
+            :id="resource.id"
             :title="resource.title"
             :description="resource.description"
             :benefits="resource.benefits"
