@@ -113,7 +113,7 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  suggestions: () => [],
+  debounceTime: 300,
 })
 
 const emit = defineEmits<Emits>()
@@ -156,7 +156,7 @@ const handleInput = (event: Event) => {
     debouncedQuery.value = value
     updateSuggestions(value)
     emit('search', value)
-  }, props.debounceTime || 300)
+  }, props.debounceTime)
 }
 
 // Update suggestions based on input
@@ -228,9 +228,4 @@ const handleNavigate = (direction: 'up' | 'down') => {
   // This is handled by the SearchSuggestions component
   // but we can add additional logic here if needed
 }
-
-// Expose focus method to parent components
-defineExpose({
-  focus: () => searchInputRef.value?.focus(),
-})
 </script>
