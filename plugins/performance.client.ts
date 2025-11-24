@@ -16,12 +16,16 @@ export default defineNuxtPlugin(() => {
         id: string
         delta: number
       }) => {
-        // Log metrics for debugging in development
-        /* eslint-disable no-console */
+        // Log metrics for debugging in development using error logger
         if (process.env.NODE_ENV === 'development') {
-          console.log(`${metric.name}: ${metric.value}`)
+          // We can use error logger for performance metrics as well
+          const { logError } = await import('~/utils/errorLogger')
+          logError(
+            `Performance metric ${metric.name}: ${metric.value}`,
+            null,
+            'performance'
+          )
         }
-        /* eslint-enable no-console */
 
         // Store metrics in localStorage for potential later aggregation
         if (typeof window !== 'undefined') {
@@ -68,7 +72,12 @@ export default defineNuxtPlugin(() => {
               }, 0)
 
               if (process.env.NODE_ENV === 'development') {
-                console.log(`Total resource load time: ${resourceLoadTime}ms`)
+                const { logError } = await import('~/utils/errorLogger')
+                logError(
+                  `Total resource load time: ${resourceLoadTime}ms`,
+                  null,
+                  'performance'
+                )
               }
             }
 
@@ -77,7 +86,12 @@ export default defineNuxtPlugin(() => {
               performance.timing.domContentLoadedEventEnd -
               performance.timing.navigationStart
             if (process.env.NODE_ENV === 'development') {
-              console.log(`DOM Content Loaded Time: ${domContentLoadedTime}ms`)
+              const { logError } = await import('~/utils/errorLogger')
+              logError(
+                `DOM Content Loaded Time: ${domContentLoadedTime}ms`,
+                null,
+                'performance'
+              )
             }
           }, 1000)
         })

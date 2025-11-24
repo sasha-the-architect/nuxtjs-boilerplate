@@ -189,6 +189,8 @@ export default [
         defineProps: 'readonly',
         defineEmits: 'readonly',
         withDefaults: 'readonly',
+        onErrorCaptured: 'readonly',
+        clearError: 'readonly',
       },
       parser: tsParser,
       parserOptions: {
@@ -206,6 +208,20 @@ export default [
       'no-debugger': 'warn',
       'prettier/prettier': 'error',
       'no-unused-vars': 'off', // Disable this rule to allow unused variables in development
+    },
+  },
+  {
+    // For error logging utility files
+    files: ['utils/errorLogger.ts'],
+    rules: {
+      'no-console': 'off', // Allow console statements in error logger
+    },
+  },
+  {
+    // For performance monitoring files
+    files: ['plugins/performance.client.ts'],
+    rules: {
+      'no-console': 'off', // Allow console statements in performance monitoring
     },
   },
   {

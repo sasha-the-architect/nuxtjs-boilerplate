@@ -40,15 +40,16 @@ class ErrorLogger {
       this.logs = this.logs.slice(-this.maxLogs)
     }
 
-    // In development, log to console
+    // In development, log to console with a warning about the potential circular reference
     if (process.env.NODE_ENV === 'development') {
-      console[
+      // Use a direct console call to avoid circular reference
+      const consoleMethod =
         severity === 'error' || severity === 'critical'
           ? 'error'
           : severity === 'warning'
             ? 'warn'
             : 'log'
-      ](`[${severity.toUpperCase()}]`, message, error)
+      console[consoleMethod](`[${severity.toUpperCase()}]`, message, error)
     }
 
     // Here we could also send logs to an external service
@@ -84,7 +85,11 @@ class ErrorLogger {
     try {
       // Example: await fetch('/api/logs', { method: 'POST', body: JSON.stringify(log) })
     } catch (err) {
-      console.error('Failed to send log to external service:', err)
+      // Use a simple console.error here since this is inside the error logger itself
+      // In a real scenario, you would want to avoid circular references
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to send log to external service:', err)
+      }
     }
   }
 }

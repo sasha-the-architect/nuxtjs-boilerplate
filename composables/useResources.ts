@@ -75,8 +75,8 @@ export const useResources = () => {
 
       // In production, we might want to use a proper error tracking service instead of console
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('Error loading resources:', err)
+        // Use error logging service instead of console
+        logError('Error loading resources:', err as Error, 'useResources')
       }
       error.value = `Failed to load resources${attempt < maxRetries ? '. Retrying...' : ''}`
 
@@ -293,7 +293,7 @@ export const useResources = () => {
       const history = localStorage.getItem(SEARCH_HISTORY_KEY)
       return history ? JSON.parse(history) : []
     } catch (e) {
-      console.error('Error reading search history:', e)
+      logError('Error reading search history:', e as Error, 'useResources')
       return []
     }
   }
@@ -310,7 +310,7 @@ export const useResources = () => {
     try {
       localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history))
     } catch (e) {
-      console.error('Error saving search history:', e)
+      logError('Error saving search history:', e as Error, 'useResources')
     }
   }
 
@@ -319,7 +319,7 @@ export const useResources = () => {
     try {
       localStorage.removeItem(SEARCH_HISTORY_KEY)
     } catch (e) {
-      console.error('Error clearing search history:', e)
+      logError('Error clearing search history:', e as Error, 'useResources')
     }
   }
 
