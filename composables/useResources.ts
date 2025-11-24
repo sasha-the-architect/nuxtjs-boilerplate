@@ -293,6 +293,7 @@ export const useResources = () => {
       const history = localStorage.getItem(SEARCH_HISTORY_KEY)
       return history ? JSON.parse(history) : []
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error('Error reading search history:', e)
       return []
     }
@@ -310,6 +311,7 @@ export const useResources = () => {
     try {
       localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history))
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error('Error saving search history:', e)
     }
   }
@@ -319,6 +321,7 @@ export const useResources = () => {
     try {
       localStorage.removeItem(SEARCH_HISTORY_KEY)
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error('Error clearing search history:', e)
     }
   }
