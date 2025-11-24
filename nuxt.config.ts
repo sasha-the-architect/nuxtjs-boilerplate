@@ -292,7 +292,7 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    // Add security headers globally
+    // Define reusable security headers object
     '/**': {
       headers: {
         'X-Content-Type-Options': 'nosniff',
@@ -445,12 +445,19 @@ export default defineNuxtConfig({
     plugins: [
       // Add bundle analyzer for performance monitoring
       process.env.ANALYZE_BUNDLE === 'true' &&
-        (await import('rollup-plugin-visualizer')).default({
-          filename: './dist/stats.html',
-          open: false,
-          gzipSize: true,
-          brotliSize: true,
-        }),
+        (function () {
+          try {
+            return require('rollup-plugin-visualizer').default({
+              filename: './dist/stats.html',
+              open: false,
+              gzipSize: true,
+              brotliSize: true,
+            })
+          } catch (e) {
+            console.warn('Bundle analyzer plugin not available')
+            return null
+          }
+        })(),
     ].filter(Boolean), // Filter out falsy values when ANALYZE_BUNDLE is not true
     // Optimize build speed
     esbuild: {
