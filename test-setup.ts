@@ -75,11 +75,7 @@ global.useSeoMeta = vi.fn()
 global.definePageMeta = vi.fn()
 global.defineNuxtConfig = vi.fn()
 global.defineNuxtRouteMiddleware = vi.fn()
-global.useRuntimeConfig = vi.fn(() => ({
-  public: {
-    siteUrl: 'https://example.com',
-  },
-}))
+global.useRuntimeConfig = vi.fn(() => ({}))
 global.useState = vi.fn((key, defaultValue) => ref(defaultValue))
 global.useFetch = vi.fn(() => ({
   data: ref(null),
@@ -103,6 +99,35 @@ global.useRoute = () => ({
   name: 'index',
   meta: {},
 })
+global.useRouter = () => ({
+  push: vi.fn(),
+  replace: vi.fn(),
+  go: vi.fn(),
+  back: vi.fn(),
+  forward: vi.fn(),
+})
+
+// Mock OptimizedImage component
+config.global.components = {
+  ...config.global.components,
+  OptimizedImage: {
+    name: 'OptimizedImage',
+    props: [
+      'src',
+      'alt',
+      'width',
+      'height',
+      'format',
+      'loading',
+      'sizes',
+      'quality',
+      'imgClass',
+      'provider',
+    ],
+    template:
+      '<img :src="src" :alt="alt" :width="width" :height="height" :class="imgClass" />',
+  },
+}
 global.useRouter = () => ({
   push: vi.fn(),
   replace: vi.fn(),

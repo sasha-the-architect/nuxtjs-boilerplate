@@ -6,6 +6,9 @@ export default defineNuxtPlugin(() => {
   if (process.client) {
     // Check if we're in the browser and Web Vitals is available
     if ('PerformanceObserver' in window && 'measure' in performance) {
+      // Enhanced performance monitoring with additional metrics
+      const perfEntries: PerformanceEntryList = []
+
       // Send performance metrics to analytics or logging service
       const sendToAnalytics = (metric: {
         name: string
@@ -51,6 +54,34 @@ export default defineNuxtPlugin(() => {
       onFCP(sendToAnalytics) // First Contentful Paint (FCP)
       onLCP(sendToAnalytics) // Largest Contentful Paint (LCP)
       onTTFB(sendToAnalytics) // Time to First Byte (TTFB)
+
+      // Additional performance monitoring for resource loading
+      if ('addEventListener' in window) {
+        window.addEventListener('load', () => {
+          // Measure additional performance metrics after the page has loaded
+          setTimeout(() => {
+            // Log resource loading information
+            if ('getEntriesByType' in performance) {
+              const resources = performance.getEntriesByType('resource')
+              const resourceLoadTime = resources.reduce((total, resource) => {
+                return total + (resource.responseEnd - resource.startTime)
+              }, 0)
+
+              if (process.env.NODE_ENV === 'development') {
+                console.log(`Total resource load time: ${resourceLoadTime}ms`)
+              }
+            }
+
+            // Log DOM content loaded time
+            const domContentLoadedTime =
+              performance.timing.domContentLoadedEventEnd -
+              performance.timing.navigationStart
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`DOM Content Loaded Time: ${domContentLoadedTime}ms`)
+            }
+          }, 1000)
+        })
+      }
     }
   }
 })

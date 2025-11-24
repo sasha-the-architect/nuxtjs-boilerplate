@@ -218,10 +218,16 @@ export default defineNuxtConfig({
           href: 'https://fonts.gstatic.com',
           crossorigin: 'anonymous',
         },
+        // Prefetch resources that might be needed later
+        { rel: 'prefetch', href: '/api/resources.json' },
+        { rel: 'prefetch', href: '/api/submissions' },
         // Add preloading for critical resources
         { rel: 'preload', href: '/favicon.ico', as: 'image' },
         // Preload critical CSS
         { rel: 'preload', href: '/_nuxt/', as: 'fetch', crossorigin: true },
+        // DNS prefetch for external resources
+        { rel: 'dns-prefetch', href: 'https://fonts.googleapis.com' },
+        { rel: 'dns-prefetch', href: 'https://fonts.gstatic.com' },
         // Add canonical URL - will be set dynamically in app.vue
       ],
       script: [
@@ -442,6 +448,8 @@ export default defineNuxtConfig({
             'vendor-vue': ['vue', '@vue/reactivity', 'vue-router'],
             'vendor-search': ['fuse.js'],
             'vendor-utils': ['zod'],
+            'vendor-security': ['dompurify', 'xss'],
+            'vendor-web-vitals': ['web-vitals'],
           },
           // Optimize chunk naming for better caching
           chunkFileNames: '_nuxt/[name].[hash].js',
@@ -451,6 +459,16 @@ export default defineNuxtConfig({
         external: ['@nuxt/kit'],
       },
     },
+    plugins: [
+      // Add bundle analyzer for performance monitoring
+      process.env.ANALYZE_BUNDLE === 'true' &&
+        (await import('rollup-plugin-visualizer')).default({
+          filename: './dist/stats.html',
+          open: false,
+          gzipSize: true,
+          brotliSize: true,
+        }),
+    ].filter(Boolean), // Filter out falsy values when ANALYZE_BUNDLE is not true
     // Optimize build speed
     esbuild: {
       logLevel: 'silent', // Reduce build noise

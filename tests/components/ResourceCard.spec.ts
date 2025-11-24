@@ -46,10 +46,10 @@ describe('ResourceCard', () => {
       props: mockResourceProps,
     })
 
-    const icon = wrapper.find('img')
+    const icon = wrapper.findComponent({ name: 'OptimizedImage' })
     expect(icon.exists()).toBe(true)
-    expect(icon.attributes('src')).toBe('https://example.com/icon.png')
-    expect(icon.attributes('alt')).toBe('Test Resource')
+    expect(icon.props('src')).toBe('https://example.com/icon.png')
+    expect(icon.props('alt')).toBe('Test Resource')
   })
 
   it('opens link in new tab when newTab is true', () => {

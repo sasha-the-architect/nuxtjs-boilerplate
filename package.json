@@ -20,7 +20,8 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --run --coverage",
     "test:watch": "vitest --watch",
-    "test:unit": "vitest --run"
+    "test:unit": "vitest --run",
+    "analyze": "ANALYZE_BUNDLE=true nuxt build"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -51,6 +52,7 @@
     "postcss": "^8.4.32",
     "postcss-html": "^1.5.0",
     "prettier": "^3.1.1",
+    "rollup-plugin-visualizer": "^6.0.5",
     "stylelint": "^16.1.0",
     "stylelint-config-css-modules": "^4.3.0",
     "stylelint-config-recommended": "^17.0.0",
