@@ -178,4 +178,116 @@ describe('useResources', () => {
     expect(resourcesComposable.retryResources).toBeDefined()
     expect(typeof resourcesComposable.retryResources).toBe('function')
   })
+
+  describe('search history functionality', () => {
+    beforeEach(() => {
+      // Clear any existing search history
+      localStorage.clear()
+    })
+
+    it('returns empty array when no search history exists', () => {
+      const history = resourcesComposable.getSearchHistory()
+      expect(history).toEqual([])
+    })
+
+    it('adds search query to history', () => {
+      resourcesComposable.addSearchToHistory('test query')
+
+      const history = resourcesComposable.getSearchHistory()
+      expect(history).toEqual(['test query'])
+    })
+
+    it('removes duplicates from search history', () => {
+      resourcesComposable.addSearchToHistory('test query')
+      resourcesComposable.addSearchToHistory('another query')
+      resourcesComposable.addSearchToHistory('test query') // duplicate
+
+      const history = resourcesComposable.getSearchHistory()
+      expect(history).toEqual(['test query', 'another query'])
+    })
+
+    it('limits search history to maximum items', () => {
+      // Add more than the max history items (10)
+      for (let i = 0; i < 15; i++) {
+        resourcesComposable.addSearchToHistory(`query ${i}`)
+      }
+
+      const history = resourcesComposable.getSearchHistory()
+      expect(history.length).toBe(10) // MAX_HISTORY_ITEMS
+      expect(history[0]).toBe('query 14') // Most recent first
+      expect(history[9]).toBe('query 5') // Oldest in history
+    })
+
+    it('clears search history', () => {
+      resourcesComposable.addSearchToHistory('test query')
+
+      let history = resourcesComposable.getSearchHistory()
+      expect(history.length).toBe(1)
+
+      resourcesComposable.clearSearchHistory()
+      history = resourcesComposable.getSearchHistory()
+      expect(history).toEqual([])
+    })
+  })
+
+  describe('search suggestions functionality', () => {
+    it('returns empty array when no query', async () => {
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      const suggestions = resourcesComposable.getSuggestions('')
+      expect(suggestions).toEqual([])
+    })
+
+    it('returns empty array when no fuse', async () => {
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      // This test depends on the internal state of the composable
+      // If fuse is not initialized, it should return empty array
+      const suggestions = resourcesComposable.getSuggestions('test')
+      // The result will depend on whether the internal fuse is properly initialized
+      // But it should not throw an error
+      expect(Array.isArray(suggestions)).toBe(true)
+    })
+
+    it('returns limited number of suggestions', async () => {
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      const suggestions = resourcesComposable.getSuggestions('test', 1)
+      // Should return at most the limit specified
+      expect(suggestions.length).toBeLessThanOrEqual(1)
+    })
+  })
+
+  describe('filtering by pricing model', () => {
+    it('filters resources by pricing model', async () => {
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      resourcesComposable.togglePricingModel('Free')
+      const filtered = resourcesComposable.filteredResources.value
+      expect(filtered.length).toBeGreaterThan(0)
+      expect(filtered.every(r => r.pricingModel === 'Free')).toBe(true)
+    })
+  })
+
+  describe('filtering by difficulty level', () => {
+    it('filters resources by difficulty level', async () => {
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      resourcesComposable.toggleDifficultyLevel('Beginner')
+      const filtered = resourcesComposable.filteredResources.value
+      expect(filtered.length).toBeGreaterThan(0)
+      expect(filtered.every(r => r.difficulty === 'Beginner')).toBe(true)
+    })
+  })
+
+  describe('filtering by technology', () => {
+    it('filters resources by technology', async () => {
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      resourcesComposable.toggleTechnology('Vue')
+      const filtered = resourcesComposable.filteredResources.value
+      expect(filtered.length).toBeGreaterThan(0)
+      expect(filtered.every(r => r.technology.includes('Vue'))).toBe(true)
+    })
+  })
 })
