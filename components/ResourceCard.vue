@@ -68,7 +68,7 @@
             </li>
           </ul>
         </div>
-        <div class="mt-3">
+        <div class="mt-3 flex items-center">
           <a
             :href="url"
             :target="newTab ? '_blank' : '_self'"
@@ -80,6 +80,7 @@
             {{ buttonLabel }}
             <span v-if="newTab" class="ml-1 text-xs">(new tab)</span>
           </a>
+          <BookmarkButton :resource="resourceData" class="ml-2" />
         </div>
       </div>
     </div>
@@ -119,6 +120,8 @@ import { computed, ref } from 'vue'
 import { useHead } from '#imports'
 import DOMPurify from 'dompurify'
 import OptimizedImage from '~/components/OptimizedImage.vue'
+import BookmarkButton from '~/components/BookmarkButton.vue'
+import { Resource } from '~/composables/useResources'
 
 interface Props {
   title: string
@@ -131,6 +134,7 @@ interface Props {
   buttonLabel?: string
   highlightedTitle?: string
   highlightedDescription?: string
+  id?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -139,6 +143,25 @@ const props = withDefaults(defineProps<Props>(), {
   highlightedTitle: undefined,
   highlightedDescription: undefined,
   icon: undefined,
+  id: undefined,
+})
+
+// Create resource object from props for the bookmark button
+const resourceData = computed<Resource>(() => {
+  return {
+    id: props.id || `resource-${props.url}`,
+    title: props.title,
+    description: props.description,
+    benefits: props.benefits,
+    url: props.url,
+    category: 'Unknown',
+    pricingModel: 'Unknown',
+    difficulty: 'Unknown',
+    tags: [],
+    technology: [],
+    dateAdded: new Date().toISOString(),
+    popularity: 0,
+  }
 })
 
 const hasError = ref(false)
