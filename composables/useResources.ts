@@ -396,13 +396,7 @@ export const useResources = () => {
       ],
     })
 
-    // Final sanitization to remove dangerous keywords from text content
-    // This is required to prevent XSS when highlighting terms like "javascript"
-    // that might be part of dangerous patterns like "javascript:alert(1)"
-    return sanitized.replace(
-      /(alert|script|javascript|vbscript|onload|onerror|onclick|onmouseover|onmouseout|onfocus|onblur)/gi,
-      ''
-    )
+    return sanitized
   }
 
   return {
