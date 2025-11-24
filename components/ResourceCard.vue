@@ -1,21 +1,21 @@
 <!-- eslint-disable vue/no-v-html -->
 <template>
-  <article
+  <div
     v-if="!hasError"
     class="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow duration-300"
     role="article"
+    aria-labelledby="resource-title"
   >
     <div class="flex items-start">
+      <!-- Using standard img tag for optimization -->
       <div v-if="icon" class="flex-shrink-0 mr-4">
-        <OptimizedImage
+        <img
           :src="icon"
           :alt="title"
           width="48"
           height="48"
-          format="webp"
+          class="w-12 h-12 rounded object-contain"
           loading="lazy"
-          quality="80"
-          img-class="w-12 h-12 rounded object-contain"
           @error="handleImageError"
         />
       </div>
@@ -23,30 +23,20 @@
         <h3
           id="resource-title"
           class="text-lg font-medium text-gray-900 truncate"
+          aria-label="Resource title"
         >
-          <NuxtLink
-            v-if="id"
-            :to="`/resources/${id}`"
-            class="hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:rounded-sm"
-            :aria-label="`View details for ${title}`"
-          >
-            <span
-              v-if="highlightedTitle"
-              v-html="sanitizedHighlightedTitle"
-            ></span>
-            <!-- eslint-disable-line vue/no-v-html -->
-            <span v-else>{{ title }}</span>
-          </NuxtLink>
-          <span v-else>
-            <span
-              v-if="highlightedTitle"
-              v-html="sanitizedHighlightedTitle"
-            ></span>
-            <!-- eslint-disable-line vue/no-v-html -->
-            <span v-else>{{ title }}</span>
-          </span>
+          <span
+            v-if="highlightedTitle"
+            v-html="sanitizedHighlightedTitle"
+          ></span>
+          <!-- eslint-disable-line vue/no-v-html -->
+          <span v-else>{{ title }}</span>
         </h3>
-        <p id="resource-description" class="mt-1 text-gray-800 text-sm">
+        <p
+          id="resource-description"
+          class="mt-1 text-gray-600 text-sm"
+          aria-label="Resource description"
+        >
           <span
             v-if="highlightedDescription"
             v-html="sanitizedHighlightedDescription"
@@ -57,12 +47,16 @@
         <div
           class="mt-3 bg-gray-50 p-3 rounded-md"
           role="region"
-          aria-label="Free tier information"
+          aria-labelledby="free-tier-label"
         >
           <p id="free-tier-label" class="font-medium text-gray-900 text-sm">
             Free Tier:
           </p>
-          <ul class="mt-1 space-y-1 text-xs text-gray-800" role="list">
+          <ul
+            class="mt-1 space-y-1 text-xs text-gray-700"
+            role="list"
+            aria-label="Free tier benefits"
+          >
             <li v-for="(benefit, index) in benefits" :key="index">
               {{ benefit }}
             </li>
@@ -83,49 +77,29 @@
         </div>
       </div>
     </div>
-  </article>
+  </div>
 
   <!-- Error state -->
-  <div v-else class="bg-white p-6 rounded-lg shadow border border-red-200">
-    <div class="flex items-start">
-      <div class="flex-shrink-0 mr-4">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-12 w-12 text-red-600"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-          />
-        </svg>
-      </div>
-      <div class="flex-1 min-w-0">
-        <h3 class="text-lg font-medium text-red-900">Resource Unavailable</h3>
-        <p class="mt-1 text-red-700 text-sm">
-          This resource could not be displayed due to an error.
-        </p>
-      </div>
-    </div>
+  <div class="bg-white p-6 rounded-lg shadow border border-red-200">
+    <StandardError
+      title="Resource Unavailable"
+      message="This resource could not be displayed due to an error."
+      :show-retry="false"
+      :show-home="false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useHead } from '#imports'
 import DOMPurify from 'dompurify'
-import OptimizedImage from '~/components/OptimizedImage.vue'
+import StandardError from '~/components/StandardError.vue'
 
 interface Props {
   title: string
   description: string
   benefits: string[]
   url: string
-  id?: string
   icon?: string
   newTab?: boolean
   buttonLabel?: string
@@ -269,20 +243,14 @@ const resourceSchema = computed(() => {
 })
 
 // Add JSON-LD structured data to the head if no error
-// Skip useHead in test environment to avoid injection issues
-if (process.env.NODE_ENV !== 'test' && typeof useHead === 'function') {
-  useHead(() => {
-    if (hasError.value || !resourceSchema.value) {
-      return {}
-    }
-    return {
-      script: [
-        {
-          type: 'application/ld+json',
-          innerHTML: JSON.stringify(resourceSchema.value),
-        },
-      ],
-    }
+if (!hasError.value && resourceSchema.value) {
+  useHead({
+    script: [
+      {
+        type: 'application/ld+json',
+        innerHTML: JSON.stringify(resourceSchema.value),
+      },
+    ],
   })
 }
 </script>

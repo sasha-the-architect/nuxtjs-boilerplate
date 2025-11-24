@@ -1,59 +1,71 @@
 <template>
-  <div v-if="error" class="error-boundary">
-    <StandardError
-      :title="title"
-      :message="error.message || 'An unexpected error occurred'"
-      :retry-text="retryText"
-      :home-text="homeText"
-      @retry="resetError"
-      @home="goHome"
-    />
+  <div class="standard-error">
+    <div class="error-content">
+      <div class="error-icon">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-16 w-16 text-red-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+      </div>
+      <h2 class="error-title">{{ title }}</h2>
+      <p class="error-message">{{ message }}</p>
+      <div class="error-actions">
+        <button v-if="showRetry" class="retry-button" @click="handleRetry">
+          {{ retryText }}
+        </button>
+        <button v-if="showHome" class="home-button" @click="goHome">
+          {{ homeText }}
+        </button>
+      </div>
+    </div>
   </div>
-  <slot v-else />
 </template>
 
 <script setup lang="ts">
-import { onErrorCaptured } from 'vue'
-import StandardError from '~/components/StandardError.vue'
-
-interface ErrorInfo {
-  componentStack: string
-}
-
 interface Props {
   title?: string
+  message?: string
+  showRetry?: boolean
+  showHome?: boolean
   retryText?: string
   homeText?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   title: 'Something went wrong',
+  message: 'An unexpected error occurred',
+  showRetry: true,
+  showHome: true,
   retryText: 'Try Again',
   homeText: 'Go Home',
 })
 
-const error = ref<Error | null>(null)
-
 const emit = defineEmits<{
-  error: [error: Error, info: ErrorInfo]
+  retry: []
+  home: []
 }>()
 
-const throwError = (err: Error, info: ErrorInfo) => {
-  error.value = err
-  emit('error', err, info)
-}
-
-const resetError = () => {
-  error.value = null
+const handleRetry = () => {
+  emit('retry')
 }
 
 const goHome = () => {
-  navigateTo('/')
+  emit('home')
 }
 </script>
 
 <style scoped>
-.error-boundary {
+.standard-error {
   display: flex;
   justify-content: center;
   align-items: center;
