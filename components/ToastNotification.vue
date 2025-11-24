@@ -1,25 +1,21 @@
 <template>
-  <div class="fixed top-4 right-4 z-50 space-y-2 w-full max-w-sm">
-    <transition-group name="toast" tag="div" class="space-y-2">
+  <div class="toast-container">
+    <transition-group name="toast" tag="div" class="toast-wrapper">
       <div
         v-for="toast in toasts"
         :key="toast.id"
-        :class="[
-          'p-4 rounded-md shadow-lg flex items-start',
-          'bg-white border border-gray-200',
-          'transform transition-all duration-300 ease-in-out',
-        ]"
+        class="toast"
+        :class="`toast--${toast.type}`"
         role="alert"
         :aria-live="toast.type === 'error' ? 'assertive' : 'polite'"
       >
-        <div class="flex-shrink-0">
+        <div class="toast__icon">
           <svg
             v-if="toast.type === 'success'"
-            class="h-5 w-5 text-green-400"
             xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
             viewBox="0 0 20 20"
             fill="currentColor"
-            aria-hidden="true"
           >
             <path
               fill-rule="evenodd"
@@ -29,11 +25,10 @@
           </svg>
           <svg
             v-else-if="toast.type === 'error'"
-            class="h-5 w-5 text-red-400"
             xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
             viewBox="0 0 20 20"
             fill="currentColor"
-            aria-hidden="true"
           >
             <path
               fill-rule="evenodd"
@@ -43,11 +38,10 @@
           </svg>
           <svg
             v-else-if="toast.type === 'warning'"
-            class="h-5 w-5 text-yellow-400"
             xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
             viewBox="0 0 20 20"
             fill="currentColor"
-            aria-hidden="true"
           >
             <path
               fill-rule="evenodd"
@@ -57,11 +51,10 @@
           </svg>
           <svg
             v-else
-            class="h-5 w-5 text-blue-400"
             xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
             viewBox="0 0 20 20"
             fill="currentColor"
-            aria-hidden="true"
           >
             <path
               fill-rule="evenodd"
@@ -70,94 +63,193 @@
             />
           </svg>
         </div>
-        <div class="ml-3 flex-1">
-          <p class="text-sm font-medium text-gray-900">
-            {{ toast.title }}
-          </p>
-          <p class="mt-1 text-sm text-gray-500">
-            {{ toast.message }}
+        <div class="toast__content">
+          <p class="toast__message">{{ toast.message }}</p>
+          <p v-if="toast.description" class="toast__description">
+            {{ toast.description }}
           </p>
         </div>
-        <div class="ml-4 flex flex-shrink-0">
-          <button
-            type="button"
-            class="inline-flex rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            @click="removeToast(toast.id)"
+        <button
+          type="button"
+          class="toast__close"
+          :aria-label="`Dismiss ${toast.type} notification`"
+          @click="removeToast(toast.id)"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            viewBox="0 0 20 20"
+            fill="currentColor"
           >
-            <span class="sr-only">Close</span>
-            <svg
-              class="h-5 w-5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clip-rule="evenodd"
-              />
-            </svg>
-          </button>
-        </div>
+            <path
+              fill-rule="evenodd"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
       </div>
     </transition-group>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, provide } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+
+export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
 interface Toast {
   id: string
-  title: string
+  type: ToastType
   message: string
-  type: 'success' | 'error' | 'warning' | 'info'
+  description?: string
   duration?: number
 }
 
-// Reactive state for toasts
 const toasts = ref<Toast[]>([])
 
-// Add a new toast
 const addToast = (toast: Omit<Toast, 'id'>) => {
   const id = Math.random().toString(36).substring(2, 9)
-  const newToast = {
-    id,
-    duration: toast.duration || 5000, // Default 5 seconds
-    ...toast,
-  }
-
+  const newToast = { id, ...toast }
   toasts.value.push(newToast)
 
-  // Auto-remove toast after duration
-  if (newToast.duration > 0) {
+  // Auto remove toast after duration
+  const duration = toast.duration || (toast.type === 'error' ? 10000 : 5000)
+  if (duration > 0) {
     setTimeout(() => {
       removeToast(id)
-    }, newToast.duration)
+    }, duration)
   }
 }
 
-// Remove a toast by ID
 const removeToast = (id: string) => {
   toasts.value = toasts.value.filter(toast => toast.id !== id)
 }
 
-// Expose methods globally via provide/inject pattern
-provide('toast', { addToast, removeToast })
-
-// Expose methods for direct use in templates
-defineExpose({ addToast, removeToast })
+// Expose methods to parent components
+defineExpose({
+  addToast,
+  removeToast,
+})
 </script>
 
 <style scoped>
-.toast-enter-from,
-.toast-leave-to {
-  opacity: 0;
-  transform: translateX(100%) translateY(-50%);
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  max-width: 400px;
+  width: 100%;
 }
 
+.toast-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  min-width: 300px;
+  max-width: 100%;
+  animation: slideIn 0.3s ease-out;
+}
+
+.toast--success {
+  background-color: #f0fdf4;
+  border-left: 4px solid #22c55e;
+  color: #166534;
+}
+
+.toast--error {
+  background-color: #fef2f2;
+  border-left: 4px solid #ef4444;
+  color: #b91c1c;
+}
+
+.toast--warning {
+  background-color: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  color: #92400e;
+}
+
+.toast--info {
+  background-color: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  color: #1e40af;
+}
+
+.toast__icon {
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.toast__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast__message {
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.toast__description {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  margin-top: 0.25rem;
+  opacity: 0.8;
+}
+
+.toast__close {
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.toast__close:hover {
+  opacity: 1;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-enter-active,
 .toast-leave-active {
-  position: absolute;
+  transition: all 0.3s ease;
+}
+
+.toast-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.toast-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
 }
 </style>

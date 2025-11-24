@@ -1,96 +1,100 @@
-import { ref, computed } from 'vue'
+import { ref, reactive, readonly } from 'vue'
 
-// Define a loading state management composable
+// Define loading state interface
+export interface LoadingState {
+  loading: boolean
+  error: string | null
+  success: boolean
+  message: string | null
+}
+
+// Loading composable for consistent loading state management
 export const useLoading = () => {
-  const loading = ref(false)
-  const error = ref<string | null>(null)
-  const message = ref<string | null>(null)
+  const loadingState = reactive<LoadingState>({
+    loading: false,
+    error: null,
+    success: false,
+    message: null,
+  })
 
-  // Function to wrap async operations with loading state
+  // Wrapper function to execute async operations with loading states
   const withLoading = async <T>(
     fn: () => Promise<T>,
-    loadingMessage?: string
-  ): Promise<T> => {
-    loading.value = true
-    error.value = null
-    message.value = loadingMessage || null
-
+    options?: {
+      successMessage?: string
+      errorMessage?: string
+    }
+  ): Promise<T | null> => {
     try {
+      loadingState.loading = true
+      loadingState.error = null
+      loadingState.success = false
+      loadingState.message = null
+
       const result = await fn()
+
+      if (options?.successMessage) {
+        loadingState.success = true
+        loadingState.message = options.successMessage
+      }
+
       return result
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'An error occurred'
-      error.value = errorMessage
-      throw err
+        options?.errorMessage ||
+        (err instanceof Error ? err.message : 'An error occurred')
+      loadingState.error = errorMessage
+      loadingState.message = errorMessage
+
+      return null
     } finally {
-      loading.value = false
+      loadingState.loading = false
+      // Clear success message after a delay to allow user to see it
+      if (loadingState.success) {
+        setTimeout(() => {
+          if (loadingState.success) {
+            loadingState.success = false
+            loadingState.message = null
+          }
+        }, 3000)
+      }
     }
   }
 
-  // Function to set loading state manually
-  const setLoading = (state: boolean) => {
-    loading.value = state
-    if (!state) {
-      error.value = null
-      message.value = null
-    }
+  // Manual loading state control
+  const startLoading = (message?: string) => {
+    loadingState.loading = true
+    loadingState.error = null
+    loadingState.success = false
+    loadingState.message = message || null
   }
 
-  // Function to set error state
-  const setError = (errorMessage: string | null) => {
-    error.value = errorMessage
-    if (errorMessage) {
-      loading.value = false
-    }
+  const stopLoading = (message?: string, isSuccess: boolean = false) => {
+    loadingState.loading = false
+    loadingState.success = isSuccess
+    loadingState.message = message || null
   }
 
-  // Function to reset loading and error states
+  const setError = (error: string) => {
+    loadingState.error = error
+    loadingState.loading = false
+    loadingState.success = false
+    loadingState.message = error
+  }
+
   const reset = () => {
-    loading.value = false
-    error.value = null
-    message.value = null
+    loadingState.loading = false
+    loadingState.error = null
+    loadingState.success = false
+    loadingState.message = null
   }
 
   return {
-    loading: computed(() => loading.value),
-    error: computed(() => error.value),
-    message: computed(() => message.value),
+    loadingState: readonly(loadingState),
     withLoading,
-    setLoading,
+    startLoading,
+    stopLoading,
     setError,
     reset,
-  }
-}
-
-// Define a global loading state composable for the entire application
-export const useGlobalLoading = () => {
-  const globalLoading = ref(false)
-  const globalLoadingCount = ref(0)
-
-  const startGlobalLoading = () => {
-    globalLoadingCount.value++
-    globalLoading.value = true
-  }
-
-  const stopGlobalLoading = () => {
-    if (globalLoadingCount.value > 0) {
-      globalLoadingCount.value--
-    }
-    if (globalLoadingCount.value === 0) {
-      globalLoading.value = false
-    }
-  }
-
-  const resetGlobalLoading = () => {
-    globalLoadingCount.value = 0
-    globalLoading.value = false
-  }
-
-  return {
-    globalLoading: computed(() => globalLoading.value),
-    startGlobalLoading,
-    stopGlobalLoading,
-    resetGlobalLoading,
   }
 }

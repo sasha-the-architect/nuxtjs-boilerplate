@@ -14,6 +14,7 @@
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              aria-hidden="true"
             >
               <path
                 stroke-linecap="round"
@@ -40,32 +41,27 @@
         </div>
 
         <div class="mt-8 space-y-4">
-          <p
-            v-if="error.message && error.message !== 'NuxtServerError'"
-            class="text-sm text-gray-500"
-          >
-            Error: {{ error.message }}
-          </p>
-
-          <!-- Error details for debugging in development -->
-          <details
-            v-if="process.dev && error.stack"
-            class="text-xs text-left text-gray-500 bg-gray-100 p-3 rounded"
-          >
-            <summary class="cursor-pointer">Show Error Details</summary>
-            <pre class="mt-2 overflow-x-auto">{{ error.stack }}</pre>
+          <details v-if="error.message" class="text-left inline-block">
+            <summary class="text-sm text-gray-500 cursor-pointer">
+              Error Details
+            </summary>
+            <p class="text-sm text-gray-500 mt-2 bg-gray-100 p-2 rounded">
+              {{ error.message }}
+            </p>
           </details>
 
           <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               class="px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800"
+              :aria-label="`Go back to previous page, error code ${error.statusCode}`"
               @click="handleRetry"
             >
-              Try Again
+              Go Back
             </button>
             <NuxtLink
               to="/"
               class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800"
+              aria-label="Go to home page"
             >
               Go Home
             </NuxtLink>
@@ -82,32 +78,17 @@ interface ErrorProps {
     statusCode: number
     message: string
     url: string
-    stack?: string
   }
 }
 
 const props = defineProps<ErrorProps>()
 
-const handleRetry = async () => {
-  // Clear the error to allow the page to re-render
-  await clearError({ redirect: props.error.url || '/' })
-}
-
-// Alternative to go back to the previous page
-const handleGoBack = () => {
+const handleRetry = () => {
   if (process.client) {
     window.history.back()
   }
 }
 
-// Add structured data for the error page
-useHead({
-  title: 'Error - Free Stuff on the Internet',
-  meta: [
-    {
-      name: 'robots',
-      content: 'noindex, nofollow',
-    },
-  ],
-})
+// Clear the error so the page can render
+const handleError = () => clearError({ redirect: '/' })
 </script>

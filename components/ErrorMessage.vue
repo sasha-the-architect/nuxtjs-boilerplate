@@ -1,179 +1,143 @@
 <template>
   <div
-    :class="[
-      'p-4 rounded-md',
-      {
-        'bg-red-50 border border-red-200': type === 'error',
-        'bg-yellow-50 border border-yellow-200': type === 'warning',
-        'bg-blue-50 border border-blue-200': type === 'info',
-        'bg-gray-50 border border-gray-200': type === 'generic',
-      },
-    ]"
+    v-if="message"
+    class="error-message"
+    :class="`error-message--${variant}`"
     role="alert"
-    :aria-live="type === 'error' ? 'assertive' : 'polite'"
+    :aria-live="variant === 'error' ? 'assertive' : 'polite'"
   >
-    <div class="flex">
-      <div class="flex-shrink-0">
-        <svg
-          v-if="type === 'error'"
-          class="h-5 w-5 text-red-400"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
+    <div class="error-message__icon">
+      <svg
+        v-if="variant === 'error'"
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+          clip-rule="evenodd"
+        />
+      </svg>
+      <svg
+        v-else-if="variant === 'warning'"
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+          clip-rule="evenodd"
+        />
+      </svg>
+      <svg
+        v-else-if="variant === 'success'"
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+          clip-rule="evenodd"
+        />
+      </svg>
+    </div>
+    <div class="error-message__content">
+      <p class="error-message__text">{{ message }}</p>
+      <div v-if="action" class="error-message__action">
+        <button
+          type="button"
+          class="error-message__action-button"
+          :aria-label="action.label"
+          @click="action.handler"
         >
-          <path
-            fill-rule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        <svg
-          v-else-if="type === 'warning'"
-          class="h-5 w-5 text-yellow-400"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        <svg
-          v-else-if="type === 'info'"
-          class="h-5 w-5 text-blue-400"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        <svg
-          v-else
-          class="h-5 w-5 text-gray-400"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-            clip-rule="evenodd"
-          />
-        </svg>
-      </div>
-      <div class="ml-3">
-        <h3
-          :class="[
-            'text-sm font-medium',
-            {
-              'text-red-800': type === 'error',
-              'text-yellow-800': type === 'warning',
-              'text-blue-800': type === 'info',
-              'text-gray-800': type === 'generic',
-            },
-          ]"
-        >
-          {{ title }}
-        </h3>
-        <div
-          :class="[
-            'mt-2 text-sm',
-            {
-              'text-red-700': type === 'error',
-              'text-yellow-700': type === 'warning',
-              'text-blue-700': type === 'info',
-              'text-gray-700': type === 'generic',
-            },
-          ]"
-        >
-          <p>{{ message }}</p>
-        </div>
-        <div v-if="showActions" class="mt-4">
-          <div class="-mx-2 -my-1.5 flex">
-            <button
-              v-if="retryAction"
-              type="button"
-              :class="[
-                'rounded-md px-2 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2',
-                {
-                  'bg-red-50 text-red-800 hover:bg-red-100 focus:ring-red-600':
-                    type === 'error',
-                  'bg-yellow-50 text-yellow-800 hover:bg-yellow-100 focus:ring-yellow-600':
-                    type === 'warning',
-                  'bg-blue-50 text-blue-800 hover:bg-blue-100 focus:ring-blue-600':
-                    type === 'info',
-                  'bg-gray-50 text-gray-800 hover:bg-gray-100 focus:ring-gray-600':
-                    type === 'generic',
-                },
-              ]"
-              @click="handleRetry"
-            >
-              Retry
-            </button>
-            <button
-              v-if="dismissAction"
-              type="button"
-              :class="[
-                'ml-3 rounded-md px-2 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2',
-                {
-                  'bg-red-50 text-red-800 hover:bg-red-100 focus:ring-red-600':
-                    type === 'error',
-                  'bg-yellow-50 text-yellow-800 hover:bg-yellow-100 focus:ring-yellow-600':
-                    type === 'warning',
-                  'bg-blue-50 text-blue-800 hover:bg-blue-100 focus:ring-blue-600':
-                    type === 'info',
-                  'bg-gray-50 text-gray-800 hover:bg-gray-100 focus:ring-gray-600':
-                    type === 'generic',
-                },
-              ]"
-              @click="handleDismiss"
-            >
-              Dismiss
-            </button>
-          </div>
-        </div>
+          {{ action.label }}
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+interface Action {
+  label: string
+  handler: () => void
+}
+
 interface Props {
-  type?: 'error' | 'warning' | 'info' | 'generic'
-  title: string
-  message: string
-  showActions?: boolean
-  retryAction?: boolean
-  dismissAction?: boolean
+  message?: string | null
+  variant?: 'error' | 'warning' | 'success'
+  action?: Action
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  type: 'error',
-  showActions: true,
-  retryAction: false,
-  dismissAction: false,
+withDefaults(defineProps<Props>(), {
+  message: null,
+  variant: 'error',
+  action: undefined,
 })
-
-const emit = defineEmits<{
-  retry: []
-  dismiss: []
-}>()
-
-const handleRetry = () => {
-  emit('retry')
-}
-
-const handleDismiss = () => {
-  emit('dismiss')
-}
 </script>
+
+<style scoped>
+.error-message {
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.error-message--error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.error-message--warning {
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.error-message--success {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.error-message__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+}
+
+.error-message__content {
+  flex: 1;
+}
+
+.error-message__text {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.error-message__action {
+  margin-top: 0.25rem;
+}
+
+.error-message__action-button {
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: transparent;
+  border: none;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+</style>

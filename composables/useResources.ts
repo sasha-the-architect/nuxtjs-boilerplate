@@ -40,6 +40,7 @@ export const useResources = () => {
   const resources = ref<Resource[]>([])
   const loading = ref(true)
   const error = ref<string | null>(null)
+  const errorMessage = ref<string | null>(null)
   const fuse = ref<Fuse<Resource> | null>(null)
   const retryCount = ref(0)
   const maxRetries = 3
@@ -65,6 +66,7 @@ export const useResources = () => {
 
       loading.value = false
       error.value = null
+      errorMessage.value = null
     } catch (err) {
       // Log error using our error logging service
       logError(
@@ -79,6 +81,10 @@ export const useResources = () => {
         console.error('Error loading resources:', err)
       }
       error.value = `Failed to load resources${attempt < maxRetries ? '. Retrying...' : ''}`
+      errorMessage.value =
+        err instanceof Error
+          ? err.message
+          : 'An unexpected error occurred while loading resources'
 
       // Retry if we haven't exceeded max retries
       if (attempt < maxRetries) {
@@ -96,6 +102,7 @@ export const useResources = () => {
   const retryResources = async () => {
     loading.value = true
     error.value = null
+    errorMessage.value = null
     retryCount.value = 0
     await initResources()
   }
@@ -422,6 +429,7 @@ export const useResources = () => {
     filteredResources,
     loading: readonly(loading),
     error: readonly(error),
+    errorMessage: readonly(errorMessage),
     retryCount: readonly(retryCount),
     maxRetries,
     categories,
