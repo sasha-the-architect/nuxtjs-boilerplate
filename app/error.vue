@@ -40,16 +40,28 @@
         </div>
 
         <div class="mt-8 space-y-4">
-          <p v-if="error.message" class="text-sm text-gray-500">
+          <p
+            v-if="error.message && error.message !== 'NuxtServerError'"
+            class="text-sm text-gray-500"
+          >
             Error: {{ error.message }}
           </p>
+
+          <!-- Error details for debugging in development -->
+          <details
+            v-if="process.dev && error.stack"
+            class="text-xs text-left text-gray-500 bg-gray-100 p-3 rounded"
+          >
+            <summary class="cursor-pointer">Show Error Details</summary>
+            <pre class="mt-2 overflow-x-auto">{{ error.stack }}</pre>
+          </details>
 
           <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               class="px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800"
               @click="handleRetry"
             >
-              Go Back
+              Try Again
             </button>
             <NuxtLink
               to="/"
@@ -70,17 +82,32 @@ interface ErrorProps {
     statusCode: number
     message: string
     url: string
+    stack?: string
   }
 }
 
 const props = defineProps<ErrorProps>()
 
-const handleRetry = () => {
+const handleRetry = async () => {
+  // Clear the error to allow the page to re-render
+  await clearError({ redirect: props.error.url || '/' })
+}
+
+// Alternative to go back to the previous page
+const handleGoBack = () => {
   if (process.client) {
     window.history.back()
   }
 }
 
-// Clear the error so the page can render
-const handleError = () => clearError({ redirect: '/' })
+// Add structured data for the error page
+useHead({
+  title: 'Error - Free Stuff on the Internet',
+  meta: [
+    {
+      name: 'robots',
+      content: 'noindex, nofollow',
+    },
+  ],
+})
 </script>

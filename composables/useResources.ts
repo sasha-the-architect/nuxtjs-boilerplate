@@ -1,6 +1,7 @@
 import { ref, computed, readonly } from 'vue'
 import Fuse from 'fuse.js'
 import DOMPurify from 'dompurify'
+import { logError } from '~/utils/errorLogger'
 
 // Define TypeScript interfaces
 export interface Resource {
@@ -65,6 +66,13 @@ export const useResources = () => {
       loading.value = false
       error.value = null
     } catch (err) {
+      // Log error using our error logging service
+      logError(
+        `Failed to load resources (attempt ${attempt}/${maxRetries}): ${err instanceof Error ? err.message : 'Unknown error'}`,
+        err as Error,
+        'useResources'
+      )
+
       // In production, we might want to use a proper error tracking service instead of console
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
