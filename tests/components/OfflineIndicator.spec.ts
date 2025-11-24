@@ -21,24 +21,21 @@ describe('OfflineIndicator', () => {
   })
 
   it('does not show when online', () => {
-    // Mock navigator to be online
-    Object.defineProperty(navigator, 'onLine', {
-      value: true,
-      writable: true,
-    })
+    // Mock navigator to be online before mounting
+    vi.stubGlobal('onLine', true)
 
     const wrapper = mount(OfflineIndicator)
 
     // The indicator should not be visible when online
     expect(wrapper.find('.fixed.top-0').exists()).toBe(false)
+
+    // Restore original value
+    vi.unstubAllGlobals()
   })
 
   it('shows when offline', async () => {
-    // Mock navigator to be offline
-    Object.defineProperty(navigator, 'onLine', {
-      value: false,
-      writable: true,
-    })
+    // Mock navigator to be offline before mounting
+    vi.stubGlobal('onLine', false)
 
     const wrapper = mount(OfflineIndicator)
 
@@ -51,14 +48,14 @@ describe('OfflineIndicator', () => {
     expect(wrapper.text()).toContain(
       'You are offline. Some features may be limited.'
     )
+
+    // Restore original value
+    vi.unstubAllGlobals()
   })
 
   it('has correct styling classes when visible', async () => {
-    // Mock navigator to be offline
-    Object.defineProperty(navigator, 'onLine', {
-      value: false,
-      writable: true,
-    })
+    // Mock navigator to be offline before mounting
+    vi.stubGlobal('onLine', false)
 
     const wrapper = mount(OfflineIndicator)
 
@@ -78,14 +75,14 @@ describe('OfflineIndicator', () => {
     expect(indicator.classes()).toContain('border-yellow-300')
     expect(indicator.classes()).toContain('p-2')
     expect(indicator.classes()).toContain('z-50')
+
+    // Restore original value
+    vi.unstubAllGlobals()
   })
 
   it('has correct content structure', async () => {
-    // Mock navigator to be offline
-    Object.defineProperty(navigator, 'onLine', {
-      value: false,
-      writable: true,
-    })
+    // Mock navigator to be offline before mounting
+    vi.stubGlobal('onLine', false)
 
     const wrapper = mount(OfflineIndicator)
 
@@ -112,21 +109,22 @@ describe('OfflineIndicator', () => {
     expect(textElement.text()).toBe(
       'You are offline. Some features may be limited.'
     )
+
+    // Restore original value
+    vi.unstubAllGlobals()
   })
 
   it('responds to online/offline events', async () => {
     // Mock navigator to be online initially
-    Object.defineProperty(navigator, 'onLine', {
-      value: true,
-      writable: true,
-    })
+    vi.stubGlobal('onLine', true)
 
     const wrapper = mount(OfflineIndicator)
 
     // Initially should not be visible
     expect(wrapper.find('.fixed.top-0').exists()).toBe(false)
 
-    // Simulate going offline
+    // Restore and set to offline to trigger event listener
+    vi.unstubAllGlobals()
     Object.defineProperty(navigator, 'onLine', {
       value: false,
       writable: true,
@@ -142,7 +140,7 @@ describe('OfflineIndicator', () => {
     // Should now be visible
     expect(wrapper.find('.fixed.top-0').exists()).toBe(true)
 
-    // Simulate going back online
+    // Change to online
     Object.defineProperty(navigator, 'onLine', {
       value: true,
       writable: true,
@@ -160,11 +158,8 @@ describe('OfflineIndicator', () => {
   })
 
   it('cleans up event listeners on unmount', () => {
-    // Mock navigator to be offline
-    Object.defineProperty(navigator, 'onLine', {
-      value: false,
-      writable: true,
-    })
+    // Mock navigator to be offline before mounting
+    vi.stubGlobal('onLine', false)
 
     const addEventListenerSpy = vi.spyOn(window, 'addEventListener')
     const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener')
@@ -193,5 +188,8 @@ describe('OfflineIndicator', () => {
       'offline',
       expect.any(Function)
     )
+
+    // Restore original value
+    vi.unstubAllGlobals()
   })
 })
