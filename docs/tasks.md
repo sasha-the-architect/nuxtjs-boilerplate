@@ -813,7 +813,246 @@ Documentation & Process
 
 ---
 
-_Last Updated: 2025-11-23_
-_Next Review: 2025-11-24 (DAILY REVIEW REQUIRED)_
+## 🆕 LATEST GRANULAR TASKS (2025-11-24)
+
+### 📋 Newly Created Issues with Granular Tasks
+
+Based on comprehensive repository analysis by the Orchestrator, 4 new critical issues have been created with detailed granular tasks:
+
+#### **Issue #205**: 🔴 CRITICAL: Fix ESLint Configuration and Dependency Issues
+
+**Priority**: 🔴 CRITICAL | **Estimated Time**: 6-8 hours | **Status**: NEW
+
+##### **Task 205.1: Fix ESLint Version Conflict** (2-3 hours)
+
+- [ ] Check current ESLint CLI version: `eslint --version`
+- [ ] Update ESLint CLI to match package version (9.39.1)
+- [ ] Verify flat config compatibility
+- [ ] Test ESLint on all file types (.vue, .ts, .js)
+- [ ] Run `npm run lint` to verify no errors
+- [ ] Update CI/CD workflows if needed
+
+##### **Task 205.2: Install Missing Dependencies** (1-2 hours)
+
+- [ ] Run `npm install` to install all devDependencies
+- [ ] Verify Vitest installation: `npx vitest --version`
+- [ ] Test suite execution: `npm run test`
+- [ ] Update package-lock.json if needed
+- [ ] Verify all dependencies are properly installed
+
+##### **Task 205.3: Consolidate Security Headers** (2-3 hours)
+
+- [ ] Review current CSP policies in both files
+- [ ] Create unified security header configuration
+- [ ] Remove duplicate security headers from route rules
+- [ ] Test security headers in development
+- [ ] Verify CSP policies don't conflict
+- [ ] Test in production environment
+
+#### **Issue #206**: 🟠 HIGH: Refactor Overly Complex Composable and Code Duplication
+
+**Priority**: 🟠 HIGH | **Estimated Time**: 9-13 hours | **Status**: NEW
+
+##### **Task 206.1: Split useResources Composable** (6-8 hours)
+
+- [ ] Analyze current useResources.ts structure (436 lines)
+- [ ] Create useResourceData.ts for data management
+- [ ] Create useResourceFilters.ts for filtering logic
+- [ ] Create useResourceSearch.ts for search functionality
+- [ ] Create useResourceSort.ts for sorting logic
+- [ ] Update all components to use new composables
+- [ ] Maintain backward compatibility during transition
+- [ ] Test all functionality after refactoring
+
+##### **Task 206.2: Eliminate Security Headers Duplication** (2-3 hours)
+
+- [ ] Identify all duplicated security header blocks
+- [ ] Create reusable securityHeaderConfig object
+- [ ] Apply configuration using inheritance pattern
+- [ ] Remove 6 duplicate blocks from route rules
+- [ ] Test security headers still work correctly
+- [ ] Verify no functionality is broken
+
+##### **Task 206.3: Fix Bundle Analyzer Configuration** (1-2 hours)
+
+- [ ] Remove dynamic import from vite config
+- [ ] Create separate plugin for bundle analyzer
+- [ ] Enable via ANALYZE_BUNDLE environment variable
+- [ ] Test bundle analyzer works correctly
+- [ ] Verify build process without analyzer
+
+#### **Issue #207**: 🟡 MEDIUM: Enable TypeScript Strict Mode and Standardize Error Handling
+
+**Priority**: 🟡 MEDIUM | **Estimated Time**: 13-18 hours | **Status**: NEW
+
+##### **Task 207.1: Enable TypeScript Strict Mode** (4-6 hours)
+
+- [ ] Update tsconfig.json with strict mode settings
+- [ ] Add strict: true, noImplicitAny: true
+- [ ] Fix all TypeScript errors that arise
+- [ ] Add proper type definitions where missing
+- [ ] Update component props with proper types
+- [ ] Test all functionality after strict mode
+
+##### **Task 207.2: Standardize Error Handling** (6-8 hours)
+
+- [ ] Create useErrorHandler.ts composable
+- [ ] Implement consistent error handling patterns
+- [ ] Add error boundaries to layout.vue
+- [ ] Update all components with new error handling
+- [ ] Standardize error messages and user feedback
+- [ ] Test error scenarios across application
+
+##### **Task 207.3: Fix Component Props Validation** (3-4 hours)
+
+- [ ] Review all component props for validation
+- [ ] Add proper prop validation with defaults
+- [ ] Use TypeScript interfaces for prop types
+- [ ] Implement error handling for invalid props
+- [ ] Test components with various prop combinations
+- [ ] Update component documentation
+
+#### **Issue #208**: 🟢 LOW: Code Cleanup and Documentation Updates
+
+**Priority**: 🟢 LOW | **Estimated Time**: 17-25 hours | **Status**: NEW
+
+##### **Task 208.1: Remove Unused Code** (4-6 hours)
+
+- [ ] Run ESLint to find unused code
+- [ ] Remove unused functions from pages/index.vue:275-294
+- [ ] Remove unused imports across all files
+- [ ] Remove unused variables and constants
+- [ ] Verify nothing breaks after removal
+- [ ] Run full test suite to ensure no regressions
+
+##### **Task 208.2: Standardize Naming Conventions** (3-4 hours)
+
+- [ ] Define project naming conventions document
+- [ ] Identify inconsistent naming patterns
+- [ ] Update mixed camelCase/kebab-case usage
+- [ ] Add ESLint rules to enforce conventions
+- [ ] Review and update all variable/function names
+- [ ] Test application after naming changes
+
+##### **Task 208.3: Extract Configuration** (2-3 hours)
+
+- [ ] Identify hardcoded values in pages/index.vue:258-273
+- [ ] Create config/constants files for magic numbers
+- [ ] Move hardcoded button labels to configuration
+- [ ] Make configuration easily maintainable
+- [ ] Update components to use configuration
+- [ ] Test all configuration-driven functionality
+
+##### **Task 208.4: Improve Test Coverage** (8-12 hours)
+
+- [ ] Analyze current test coverage (target: 90%+)
+- [ ] Add tests for uncovered edge cases
+- [ ] Improve test assertions and mocking
+- [ ] Add integration tests for key workflows
+- [ ] Add accessibility tests
+- [ ] Update test documentation
+- [ ] Configure coverage reporting in CI/CD
+
+### 📊 Updated Task Metrics
+
+#### **Priority Distribution (New Issues)**
+
+- 🔴 **CRITICAL**: 3 tasks (6-8 hours total)
+- 🟠 **HIGH**: 3 tasks (9-13 hours total)
+- 🟡 **MEDIUM**: 3 tasks (13-18 hours total)
+- 🟢 **LOW**: 4 tasks (17-25 hours total)
+
+#### **Combined Effort (All Issues)**
+
+- **New Issues**: 45-64 hours
+- **Previous Issues**: 90+ hours
+- **Total Estimated**: 135-154 hours
+- **With Testing**: 160-180 hours
+
+### 🔄 Updated Critical Path (2025-11-24)
+
+```
+IMMEDIATE (Next 24-48 hours):
+Issue #205 (ESLint & Dependencies) → Tasks 205.1, 205.2, 205.3
+
+HIGH PRIORITY (Next 3-5 days):
+Issue #206 (Refactoring) → Tasks 206.1, 206.2, 206.3
+
+MEDIUM PRIORITY (Next 1-2 weeks):
+Issue #207 (TypeScript & Error Handling) → Tasks 207.1, 207.2, 207.3
+
+LOW PRIORITY (Next 2-3 weeks):
+Issue #208 (Cleanup & Documentation) → Tasks 208.1, 208.2, 208.3, 208.4
+```
+
+### 🎯 Updated Success Criteria
+
+#### **Immediate Success (48 hours)**
+
+- [ ] ESLint runs with 0 errors, <10 warnings (Task 205.1)
+- [ ] All dependencies installed and working (Task 205.2)
+- [ ] Security headers consistent (Task 205.3)
+- [ ] CI/CD pipeline passing
+
+#### **Short-term Success (1 week)**
+
+- [ ] Composable architecture clean (Task 206.1)
+- [ ] Code duplication eliminated (Task 206.2)
+- [ ] Build system stable and fast (Task 206.3)
+
+#### **Medium-term Success (2 weeks)**
+
+- [ ] TypeScript strict mode enabled (Task 207.1)
+- [ ] Error handling standardized (Task 207.2)
+- [ ] All components properly validated (Task 207.3)
+
+#### **Long-term Success (1 month)**
+
+- [ ] 90%+ test coverage achieved (Task 208.4)
+- [ ] Code clean and well-documented (Tasks 208.1, 208.2, 208.3)
+- [ ] Performance optimized
+
+### 📋 Task Management Integration
+
+#### **Daily Standup Updates**
+
+- Track progress on Issue #205 tasks (critical)
+- Report blockers for ESLint/dependency fixes
+- Update completion status for each subtask
+
+#### **Weekly Review Process**
+
+- Review completion of Issue #205
+- Plan start of Issue #206 tasks
+- Assess timeline adjustments needed
+- Update resource allocation
+
+#### **Quality Gates**
+
+- No issue moves to next priority without ALL tasks completed
+- All tests must pass before task completion
+- Code review required for all changes
+- Documentation must be updated with each task
+
+### 🚨 Updated Risk Assessment
+
+#### **Risk Levels by Issue**
+
+- **Issue #205**: 🔴 CRITICAL - Blocks all development
+- **Issue #206**: 🟠 HIGH - Affects developer productivity
+- **Issue #207**: 🟡 MEDIUM - Improves code quality
+- **Issue #208**: 🟢 LOW - Nice to have improvements
+
+#### **Mitigation Strategies**
+
+- **Issue #205**: Immediate focus, all resources allocated
+- **Issue #206**: Careful refactoring, extensive testing
+- **Issue #207**: Incremental implementation, backward compatibility
+- **Issue #208**: Incremental cleanup, can be done in parallel
+
+---
+
+_Last Updated: 2025-11-24_
+_Next Review: 2025-11-25 (DAILY REVIEW)_
 _Owner: Project Orchestrator_
-_Status: 🚨 CRITICAL INFRASTRUCTURE FAILURE + 5 NEW HIGH-PRIORITY ISSUES CREATED_
+_Status: 🚨 CRITICAL INFRASTRUCTURE ISSUES IDENTIFIED - 4 NEW ISSUES WITH GRANULAR TASKS CREATED_
