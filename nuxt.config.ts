@@ -6,6 +6,9 @@ export default defineNuxtConfig({
 
   // Runtime configuration for environment variables
   runtimeConfig: {
+    githubClientId: process.env.GITHUB_CLIENT_ID,
+    githubClientSecret: process.env.GITHUB_CLIENT_SECRET,
+    sessionSecret: process.env.SESSION_SECRET,
     public: {
       canonicalUrl:
         process.env.CANONICAL_URL ||

@@ -34,14 +34,14 @@
           >
             <NuxtLink
               to="/"
-              class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
+              class="text-gray-800 hover:text-gray-90 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               :aria-label="'Free Stuff on the Internet - Return to home page'"
             >
               Home
             </NuxtLink>
             <NuxtLink
               to="/search"
-              class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
+              class="text-gray-800 hover:text-gray-90 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               active-class="bg-gray-100"
               >Search</NuxtLink
             >
@@ -54,7 +54,7 @@
             </NuxtLink>
             <NuxtLink
               to="/about"
-              class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
+              class="text-gray-800 hover:text-gray-90 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               active-class="bg-gray-100"
             >
               About
@@ -65,6 +65,7 @@
               active-class="bg-gray-200"
               >Submit</NuxtLink
             >
+            <AuthButton />
           </nav>
         </div>
       </div>
@@ -103,6 +104,7 @@ import SearchBar from '~/components/SearchBar.vue'
 import PWAInstallPrompt from '~/components/PWAInstallPrompt.vue'
 import OfflineIndicator from '~/components/OfflineIndicator.vue'
 import ToastNotification from '~/components/ToastNotification.vue'
+import AuthButton from '~/components/AuthButton.vue'
 
 // Use the resources composable to enable global search
 const { filterOptions, updateSearchQuery } = useResources()
@@ -115,7 +117,7 @@ const searchQuery = computed({
 
 // Handle search
 const handleSearch = (query: string) => {
-  updateSearchQuery(query)
+ updateSearchQuery(query)
 
   // If we're not on the search page, navigate to it
   if (useRoute().path !== '/search') {
