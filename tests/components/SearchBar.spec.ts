@@ -3,6 +3,10 @@ import { mount } from '@vue/test-utils'
 import SearchBar from '@/components/SearchBar.vue'
 
 describe('SearchBar', () => {
+  beforeEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders correctly with empty value', () => {
     const wrapper = mount(SearchBar, {
       props: {
@@ -43,20 +47,29 @@ describe('SearchBar', () => {
   })
 
   it('emits search event on input', async () => {
+    vi.useFakeTimers()
+
     const wrapper = mount(SearchBar, {
       props: {
         modelValue: '',
+        debounceTime: 0, // Disable debounce for testing
       },
     })
 
     const input = wrapper.find('input')
     await input.setValue('search query')
 
+    // Fast-forward all timers
+    vi.runAllTimers()
+
     expect(wrapper.emitted('search')).toBeTruthy()
     expect(wrapper.emitted('search')![0]).toEqual(['search query'])
+
+    vi.useRealTimers()
   })
 
   it('clears search when clear button is clicked', async () => {
+    vi.useFakeTimers()
     const wrapper = mount(SearchBar, {
       props: {
         modelValue: 'search to clear',
@@ -71,9 +84,12 @@ describe('SearchBar', () => {
 
     expect(wrapper.emitted('search')).toBeTruthy()
     expect(wrapper.emitted('search')![0]).toEqual([''])
+
+    vi.useRealTimers()
   })
 
   it('displays clear button only when modelValue is not empty', async () => {
+    vi.useFakeTimers()
     const wrapper = mount(SearchBar, {
       props: {
         modelValue: '',
@@ -90,6 +106,8 @@ describe('SearchBar', () => {
     // After clearing value, clear button disappears
     await wrapper.setProps({ modelValue: '' })
     expect(wrapper.find('button').exists()).toBe(false)
+
+    vi.useRealTimers()
   })
 
   it('has proper accessibility attributes', () => {

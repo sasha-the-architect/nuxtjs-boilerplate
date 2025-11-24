@@ -276,6 +276,54 @@ export const useResources = () => {
     sortOption.value = 'popularity-desc'
   }
 
+  // Search suggestions functionality
+  const getSuggestions = (query: string, limit: number = 5): Resource[] => {
+    if (!query || !fuse.value) return []
+
+    const searchResults = fuse.value.search(query, { limit })
+    return searchResults.map(item => item.item)
+  }
+
+  // Search history functionality
+  const SEARCH_HISTORY_KEY = 'resource_search_history'
+  const MAX_HISTORY_ITEMS = 10
+
+  const getSearchHistory = (): string[] => {
+    if (typeof window === 'undefined') return []
+    try {
+      const history = localStorage.getItem(SEARCH_HISTORY_KEY)
+      return history ? JSON.parse(history) : []
+    } catch (e) {
+      console.error('Error reading search history:', e)
+      return []
+    }
+  }
+
+  const addSearchToHistory = (query: string) => {
+    if (!query || typeof window === 'undefined') return
+    const history = getSearchHistory().filter(
+      item => item.toLowerCase() !== query.toLowerCase()
+    )
+    history.unshift(query)
+    if (history.length > MAX_HISTORY_ITEMS) {
+      history.pop()
+    }
+    try {
+      localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history))
+    } catch (e) {
+      console.error('Error saving search history:', e)
+    }
+  }
+
+  const clearSearchHistory = () => {
+    if (typeof window === 'undefined') return
+    try {
+      localStorage.removeItem(SEARCH_HISTORY_KEY)
+    } catch (e) {
+      console.error('Error clearing search history:', e)
+    }
+  }
+
   // Initialize resources when composable is created
   initResources()
 
@@ -381,5 +429,9 @@ export const useResources = () => {
     highlightSearchTerms,
     getSearchSuggestions,
     retryResources,
+    getSuggestions,
+    getSearchHistory,
+    addSearchToHistory,
+    clearSearchHistory,
   }
 }

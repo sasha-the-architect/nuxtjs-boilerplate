@@ -38,7 +38,7 @@
             : undefined
         "
         @input="handleInput"
-        @keydown="handleKeydown"
+        @keydown="handleKeyDown"
         @focus="handleFocus"
         @blur="handleBlur"
       />
@@ -70,103 +70,19 @@
       </div>
     </div>
 
-    <!-- Search suggestions dropdown -->
-    <div
+    <!-- Search Suggestions Dropdown -->
+    <SearchSuggestions
       v-if="
         showSuggestions && (suggestions.length > 0 || searchHistory.length > 0)
       "
-      class="absolute z-10 w-full mt-0.5 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto"
-      role="listbox"
-      aria-label="Search suggestions"
-    >
-      <!-- Search History Section -->
-      <div
-        v-if="searchHistory.length > 0 && !modelValue"
-        class="py-2 border-b border-gray-200"
-      >
-        <div
-          class="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider"
-        >
-          Recent Searches
-        </div>
-        <ul>
-          <li
-            v-for="(historyItem, index) in searchHistory"
-            :key="'history-' + index"
-            :id="`suggestion-${index}`"
-            role="option"
-            :class="[
-              'px-4 py-2 cursor-pointer hover:bg-gray-100',
-              activeSuggestionIndex === index ? 'bg-gray-100' : '',
-            ]"
-            @click="selectHistoryItem(historyItem)"
-            @mouseenter="activeSuggestionIndex = index"
-          >
-            <div class="flex items-center">
-              <svg
-                class="w-4 h-4 mr-2 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
-              </svg>
-              <span>{{ historyItem }}</span>
-            </div>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Search Suggestions Section -->
-      <div v-if="suggestions.length > 0" class="py-2">
-        <div
-          class="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider"
-        >
-          Suggestions
-        </div>
-        <ul>
-          <li
-            v-for="(suggestion, index) in suggestions"
-            :key="index"
-            :id="`suggestion-${searchHistory.length + index}`"
-            role="option"
-            :class="[
-              'px-4 py-2 cursor-pointer hover:bg-gray-100',
-              activeSuggestionIndex === searchHistory.length + index
-                ? 'bg-gray-100'
-                : '',
-            ]"
-            @click="selectSuggestion(suggestion)"
-            @mouseenter="activeSuggestionIndex = searchHistory.length + index"
-          >
-            <div v-html="highlightMatch(suggestion.title, modelValue)"></div>
-            <div
-              class="text-sm text-gray-500 mt-1"
-              v-html="highlightMatch(suggestion.description, modelValue)"
-            ></div>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Clear History Option -->
-      <div
-        v-if="searchHistory.length > 0 && !modelValue"
-        class="px-4 py-2 border-t border-gray-200"
-      >
-        <button
-          class="text-sm text-gray-600 hover:text-gray-900 w-full text-left"
-          @click="clearSearchHistory"
-        >
-          Clear search history
-        </button>
-      </div>
-    </div>
+      :suggestions="suggestions"
+      :search-history="searchHistory"
+      :visible="showSuggestions"
+      @select-suggestion="handleSuggestionSelect"
+      @select-history="handleHistorySelect"
+      @clear-history="handleClearHistory"
+      @navigate="handleNavigate"
+    />
 
     <!-- ARIA live region for search results information -->
     <div
@@ -181,27 +97,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted } from 'vue'
-
-interface Resource {
-  id: string
-  title: string
-  description: string
-  benefits: string[]
-  url: string
-  category: string
-  pricingModel: string
-  difficulty: string
-  tags: string[]
-  technology: string[]
-  dateAdded: string
-  popularity: number
-  icon?: string
-}
+import { ref, onMounted } from 'vue'
+import SearchSuggestions from '~/components/SearchSuggestions.vue'
+import { useResources } from '~/composables/useResources'
 
 interface Props {
   modelValue: string
-  suggestions?: Resource[]
+  debounceTime?: number
 }
 
 interface Emits {
@@ -216,219 +118,119 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
+// Use the resources composable
+const {
+  getSuggestions,
+  getSearchHistory,
+  addSearchToHistory,
+  clearSearchHistory,
+} = useResources()
+
 // Refs
 const searchInputRef = ref<HTMLInputElement>()
 const showSuggestions = ref(false)
-const activeSuggestionIndex = ref(-1)
+const suggestions = ref<any[]>([])
 const searchHistory = ref<string[]>([])
+const debouncedQuery = ref('')
+const inputTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
 
-// Load search history from localStorage on component mount
+// Load search history on component mount
 onMounted(() => {
-  const savedHistory = localStorage.getItem('searchHistory')
-  if (savedHistory) {
-    try {
-      searchHistory.value = JSON.parse(savedHistory)
-    } catch {
-      searchHistory.value = []
-    }
-  }
+  searchHistory.value = getSearchHistory()
 })
 
-// Filter suggestions based on current input
-const filteredSuggestions = computed(() => {
-  if (!props.modelValue.trim()) return []
-
-  return props.suggestions
-    .slice(0, 5) // Limit to 5 suggestions
-    .filter(
-      suggestion =>
-        suggestion.title
-          .toLowerCase()
-          .includes(props.modelValue.toLowerCase()) ||
-        suggestion.description
-          .toLowerCase()
-          .includes(props.modelValue.toLowerCase()) ||
-        suggestion.tags.some(tag =>
-          tag.toLowerCase().includes(props.modelValue.toLowerCase())
-        )
-    )
-})
-
-// If we have input, show filtered suggestions; otherwise show search history
-const suggestions = computed(() => {
-  return props.modelValue.trim() ? filteredSuggestions.value : []
-})
-
-// Handle input with debouncing
-let inputTimeout: NodeJS.Timeout
-
+// Handle input with debounce
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement
-  emit('update:modelValue', target.value)
+  const value = target.value
 
-  // Clear previous timeout
-  if (inputTimeout) {
-    clearTimeout(inputTimeout)
+  // Update the model value immediately
+  emit('update:modelValue', value)
+
+  // Debounce the search to avoid constant updates
+  if (inputTimeout.value) {
+    clearTimeout(inputTimeout.value)
   }
 
-  // Set new timeout for debounced search
-  inputTimeout = setTimeout(() => {
-    emit('search', target.value)
-  }, 300)
+  inputTimeout.value = setTimeout(() => {
+    debouncedQuery.value = value
+    updateSuggestions(value)
+    emit('search', value)
+  }, props.debounceTime || 300)
 }
 
-const handleFocus = () => {
-  showSuggestions.value = true
-  activeSuggestionIndex.value = -1
-}
-
-const handleBlur = () => {
-  // Delay hiding suggestions to allow click events to register
-  setTimeout(() => {
-    showSuggestions.value = false
-    activeSuggestionIndex.value = -1
-  }, 200)
-}
-
-const handleKeydown = (event: KeyboardEvent) => {
-  // Handle arrow keys for navigation
-  if (event.key === 'ArrowDown') {
-    event.preventDefault()
-
-    const totalSuggestions = props.modelValue
-      ? suggestions.value.length
-      : searchHistory.value.length
-    if (activeSuggestionIndex.value < totalSuggestions - 1) {
-      activeSuggestionIndex.value++
-    } else {
-      activeSuggestionIndex.value = 0 // Wrap around
-    }
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault()
-
-    if (activeSuggestionIndex.value > 0) {
-      activeSuggestionIndex.value--
-    } else {
-      const totalSuggestions = props.modelValue
-        ? suggestions.value.length
-        : searchHistory.value.length
-      activeSuggestionIndex.value = totalSuggestions - 1 // Wrap around
-    }
-  } else if (event.key === 'Enter') {
-    event.preventDefault()
-
-    if (activeSuggestionIndex.value >= 0) {
-      if (props.modelValue) {
-        // Select from suggestions
-        if (activeSuggestionIndex.value < suggestions.value.length) {
-          selectSuggestion(suggestions.value[activeSuggestionIndex.value])
-        }
-      } else {
-        // Select from history
-        if (activeSuggestionIndex.value < searchHistory.value.length) {
-          selectHistoryItem(searchHistory.value[activeSuggestionIndex.value])
-        }
-      }
-    } else {
-      // Submit current search if no suggestion selected
-      emit('search', props.modelValue)
-    }
-  } else if (event.key === 'Escape') {
-    showSuggestions.value = false
-    activeSuggestionIndex.value = -1
-    if (searchInputRef.value) {
-      searchInputRef.value.blur()
-    }
+// Update suggestions based on input
+const updateSuggestions = (query: string) => {
+  if (query && query.length > 1) {
+    // Get search suggestions
+    suggestions.value = getSuggestions(query, 5).map((resource: any) => ({
+      id: resource.id,
+      title: resource.title,
+      description:
+        resource.description.substring(0, 100) +
+        (resource.description.length > 100 ? '...' : ''),
+      url: resource.url,
+    }))
+  } else {
+    suggestions.value = []
   }
-}
-
-const selectSuggestion = (suggestion: Resource) => {
-  const searchText = suggestion.title
-  emit('update:modelValue', searchText)
-  emit('search', searchText)
-  emit('select-suggestion', searchText)
-  addToSearchHistory(searchText)
-  showSuggestions.value = false
-  activeSuggestionIndex.value = -1
-}
-
-const selectHistoryItem = (historyItem: string) => {
-  emit('update:modelValue', historyItem)
-  emit('search', historyItem)
-  emit('select-suggestion', historyItem)
-  // Move to top of history
-  moveHistoryItemToFront(historyItem)
-  showSuggestions.value = false
-  activeSuggestionIndex.value = -1
 }
 
 const clearSearch = () => {
   emit('update:modelValue', '')
   emit('search', '')
+  suggestions.value = []
   showSuggestions.value = false
-  activeSuggestionIndex.value = -1
 }
 
-const addToSearchHistory = (query: string) => {
-  if (!query.trim()) return
-
-  // Remove if already exists to avoid duplicates
-  const index = searchHistory.value.indexOf(query)
-  if (index !== -1) {
-    searchHistory.value.splice(index, 1)
-  }
-
-  // Add to beginning of array
-  searchHistory.value.unshift(query)
-
-  // Limit to 10 items
-  if (searchHistory.value.length > 10) {
-    searchHistory.value = searchHistory.value.slice(0, 10)
-  }
-
-  // Save to localStorage
-  try {
-    localStorage.setItem('searchHistory', JSON.stringify(searchHistory.value))
-  } catch {
-    // If localStorage fails, continue without saving
-  }
+const handleFocus = () => {
+  // Update search history when input is focused
+  searchHistory.value = getSearchHistory()
+  showSuggestions.value = true
 }
 
-const moveHistoryItemToFront = (query: string) => {
-  const index = searchHistory.value.indexOf(query)
-  if (index !== -1) {
-    searchHistory.value.splice(index, 1)
-    searchHistory.value.unshift(query)
+const handleBlur = () => {
+  // Use a timeout to allow for click events on suggestions
+  setTimeout(() => {
+    showSuggestions.value = false
+  }, 200)
+}
 
-    try {
-      localStorage.setItem('searchHistory', JSON.stringify(searchHistory.value))
-    } catch {
-      // If localStorage fails, continue without saving
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    showSuggestions.value = false
+  } else if (event.key === 'Enter') {
+    if (props.modelValue) {
+      addSearchToHistory(props.modelValue)
     }
   }
 }
 
-const clearSearchHistory = () => {
-  searchHistory.value = []
-  try {
-    localStorage.removeItem('searchHistory')
-  } catch {
-    // If localStorage fails, continue without clearing
-  }
+const handleSuggestionSelect = (suggestion: any) => {
+  emit('update:modelValue', suggestion.title)
+  emit('search', suggestion.title)
+  addSearchToHistory(suggestion.title)
   showSuggestions.value = false
 }
 
-// Function to highlight matching text
-const highlightMatch = (text: string, query: string) => {
-  if (!query) return text
-
-  // Escape special regex characters in query
-  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const regex = new RegExp(`(${escapedQuery})`, 'gi')
-
-  return text.replace(
-    regex,
-    '<mark class="bg-yellow-200 text-gray-900">$1</mark>'
-  )
+const handleHistorySelect = (history: string) => {
+  emit('update:modelValue', history)
+  emit('search', history)
+  showSuggestions.value = false
 }
+
+const handleClearHistory = () => {
+  clearSearchHistory()
+  searchHistory.value = []
+}
+
+const handleNavigate = (direction: 'up' | 'down') => {
+  // This is handled by the SearchSuggestions component
+  // but we can add additional logic here if needed
+}
+
+// Expose focus method to parent components
+defineExpose({
+  focus: () => searchInputRef.value?.focus(),
+})
 </script>
