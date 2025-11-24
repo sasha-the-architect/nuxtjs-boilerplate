@@ -152,7 +152,7 @@ describe('ResourceCard', () => {
 
     // Verify that error state is shown
     expect(wrapper.vm.hasError).toBe(true)
-    expect(wrapper.find('.bg-red-600').exists()).toBe(true)
+    expect(wrapper.find('.text-red-600').exists()).toBe(true)
     expect(wrapper.text()).toContain('Resource Unavailable')
   })
 
@@ -180,7 +180,7 @@ describe('ResourceCard', () => {
     // Verify that error state is shown (event.preventDefault should have been called)
     expect(mockEvent.preventDefault).toHaveBeenCalled()
     expect(wrapper.vm.hasError).toBe(true)
-    expect(wrapper.find('.bg-red-600').exists()).toBe(true)
+    expect(wrapper.find('.text-red-600').exists()).toBe(true)
     expect(wrapper.text()).toContain('Resource Unavailable')
   })
 

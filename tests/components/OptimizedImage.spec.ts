@@ -2,9 +2,37 @@ import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import OptimizedImage from '~/components/OptimizedImage.vue'
 
+// Stub NuxtImg for this test
+const NuxtImgStub = {
+  name: 'NuxtImg',
+  props: [
+    'src',
+    'alt',
+    'width',
+    'height',
+    'format',
+    'loading',
+    'sizes',
+    'quality',
+    'class',
+    'provider',
+  ],
+  template: '<div></div>',
+  emits: ['load', 'error'],
+}
+
 describe('OptimizedImage', () => {
+  const defaultMountOptions = {
+    global: {
+      stubs: {
+        NuxtImg: NuxtImgStub,
+      },
+    },
+  }
+
   it('renders NuxtImg component with correct props', () => {
     const wrapper = mount(OptimizedImage, {
+      ...defaultMountOptions,
       props: {
         src: '/test-image.jpg',
         alt: 'Test Image',
@@ -23,6 +51,7 @@ describe('OptimizedImage', () => {
 
   it('applies default values for optional props', () => {
     const wrapper = mount(OptimizedImage, {
+      ...defaultMountOptions,
       props: {
         src: '/test-image.jpg',
         alt: 'Test Image',
@@ -39,6 +68,7 @@ describe('OptimizedImage', () => {
 
   it('applies custom prop values', () => {
     const wrapper = mount(OptimizedImage, {
+      ...defaultMountOptions,
       props: {
         src: '/test-image.jpg',
         alt: 'Test Image',
@@ -62,6 +92,7 @@ describe('OptimizedImage', () => {
 
   it('emits load event when image loads', async () => {
     const wrapper = mount(OptimizedImage, {
+      ...defaultMountOptions,
       props: {
         src: '/test-image.jpg',
         alt: 'Test Image',
@@ -76,6 +107,7 @@ describe('OptimizedImage', () => {
 
   it('emits error event when image fails to load', async () => {
     const wrapper = mount(OptimizedImage, {
+      ...defaultMountOptions,
       props: {
         src: '/test-image.jpg',
         alt: 'Test Image',
@@ -92,6 +124,7 @@ describe('OptimizedImage', () => {
 
   it('handles string error events', async () => {
     const wrapper = mount(OptimizedImage, {
+      ...defaultMountOptions,
       props: {
         src: '/test-image.jpg',
         alt: 'Test Image',
@@ -107,6 +140,7 @@ describe('OptimizedImage', () => {
 
   it('passes through width and height as numbers or strings', () => {
     const wrapper = mount(OptimizedImage, {
+      ...defaultMountOptions,
       props: {
         src: '/test-image.jpg',
         alt: 'Test Image',
@@ -122,6 +156,7 @@ describe('OptimizedImage', () => {
 
   it('has all required props defined', () => {
     const wrapper = mount(OptimizedImage, {
+      ...defaultMountOptions,
       props: {
         src: '/test-image.jpg',
         alt: 'Test Image',
@@ -137,6 +172,7 @@ describe('OptimizedImage', () => {
 
   it('applies imgClass prop correctly', () => {
     const wrapper = mount(OptimizedImage, {
+      ...defaultMountOptions,
       props: {
         src: '/test-image.jpg',
         alt: 'Test Image',
