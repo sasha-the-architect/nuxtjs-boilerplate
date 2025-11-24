@@ -42,6 +42,7 @@ class ErrorLogger {
 
     // In development, log to console
     if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
       console[
         severity === 'error' || severity === 'critical'
           ? 'error'
@@ -84,7 +85,11 @@ class ErrorLogger {
     try {
       // Example: await fetch('/api/logs', { method: 'POST', body: JSON.stringify(log) })
     } catch (err) {
-      console.error('Failed to send log to external service:', err)
+      // In production, we might want to use a proper error tracking service instead of console
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Failed to send log to external service:', err)
+      }
     }
   }
 }

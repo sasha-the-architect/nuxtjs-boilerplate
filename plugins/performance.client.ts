@@ -68,6 +68,7 @@ export default defineNuxtPlugin(() => {
               }, 0)
 
               if (process.env.NODE_ENV === 'development') {
+                // eslint-disable-next-line no-console
                 console.log(`Total resource load time: ${resourceLoadTime}ms`)
               }
             }
@@ -77,6 +78,7 @@ export default defineNuxtPlugin(() => {
               performance.timing.domContentLoadedEventEnd -
               performance.timing.navigationStart
             if (process.env.NODE_ENV === 'development') {
+              // eslint-disable-next-line no-console
               console.log(`DOM Content Loaded Time: ${domContentLoadedTime}ms`)
             }
           }, 1000)

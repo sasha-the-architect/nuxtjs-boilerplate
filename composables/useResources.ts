@@ -293,7 +293,11 @@ export const useResources = () => {
       const history = localStorage.getItem(SEARCH_HISTORY_KEY)
       return history ? JSON.parse(history) : []
     } catch (e) {
-      console.error('Error reading search history:', e)
+      // In production, we might want to use a proper error tracking service instead of console
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Error reading search history:', e)
+      }
       return []
     }
   }
@@ -310,7 +314,11 @@ export const useResources = () => {
     try {
       localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history))
     } catch (e) {
-      console.error('Error saving search history:', e)
+      // In production, we might want to use a proper error tracking service instead of console
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Error saving search history:', e)
+      }
     }
   }
 
@@ -319,7 +327,11 @@ export const useResources = () => {
     try {
       localStorage.removeItem(SEARCH_HISTORY_KEY)
     } catch (e) {
-      console.error('Error clearing search history:', e)
+      // In production, we might want to use a proper error tracking service instead of console
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Error clearing search history:', e)
+      }
     }
   }
 
