@@ -3,6 +3,13 @@ import { config } from '@vue/test-utils'
 import { ref, computed, onUnmounted } from 'vue'
 import { createRouter, createMemoryHistory } from 'vue-router'
 
+// Mock @unhead/vue before any components are imported
+vi.mock('@unhead/vue', () => ({
+  useHead: vi.fn(() => {}),
+  useSeoMeta: vi.fn(),
+  useHeadSafe: vi.fn(() => {}),
+}))
+
 // Create a mock router for testing
 const router = createRouter({
   history: createMemoryHistory(),
@@ -64,48 +71,42 @@ config.global.mocks = {
       meta: {},
     },
   },
-  useHead: vi.fn(),
   useSeoMeta: vi.fn(),
   useRuntimeConfig: vi.fn(() => ({})),
+  useState: (key: string, defaultValue: any) => ref(defaultValue),
+  useFetch: () => ({
+    data: ref(null),
+    pending: ref(false),
+    error: ref(null),
+    refresh: vi.fn(),
+  }),
+  useAsyncData: () => ({
+    data: ref(null),
+    pending: ref(false),
+    error: ref(null),
+    refresh: vi.fn(),
+  }),
+  useRoute: () => ({
+    path: '/',
+    query: {},
+    params: {},
+    hash: '',
+    name: 'index',
+    meta: {},
+  }),
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    go: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+  }),
+  definePageMeta: vi.fn(),
+  defineNuxtConfig: vi.fn(),
+  defineNuxtRouteMiddleware: vi.fn(),
+  useHead: vi.fn(() => {}),
+  useHeadSafe: vi.fn(() => {}),
 }
-
-// Mock Nuxt composables
-global.useHead = vi.fn()
-global.useSeoMeta = vi.fn()
-global.definePageMeta = vi.fn()
-global.defineNuxtConfig = vi.fn()
-global.defineNuxtRouteMiddleware = vi.fn()
-global.useRuntimeConfig = vi.fn(() => ({}))
-global.useState = vi.fn((key, defaultValue) => ref(defaultValue))
-global.useFetch = vi.fn(() => ({
-  data: ref(null),
-  pending: ref(false),
-  error: ref(null),
-  refresh: vi.fn(),
-}))
-global.useAsyncData = vi.fn(() => ({
-  data: ref(null),
-  pending: ref(false),
-  error: ref(null),
-  refresh: vi.fn(),
-}))
-global.navigateTo = vi.fn()
-global.$fetch = vi.fn()
-global.useRoute = () => ({
-  path: '/',
-  query: {},
-  params: {},
-  hash: '',
-  name: 'index',
-  meta: {},
-})
-global.useRouter = () => ({
-  push: vi.fn(),
-  replace: vi.fn(),
-  go: vi.fn(),
-  back: vi.fn(),
-  forward: vi.fn(),
-})
 
 // Mock OptimizedImage component
 config.global.components = {
@@ -124,8 +125,18 @@ config.global.components = {
       'imgClass',
       'provider',
     ],
-    template:
-      '<img :src="src" :alt="alt" :width="width" :height="height" :class="imgClass" />',
+    render() {
+      return {
+        type: 'img',
+        props: {
+          src: this.src,
+          alt: this.alt,
+          width: this.width,
+          height: this.height,
+          class: this.imgClass,
+        },
+      }
+    },
   },
   NuxtImg: {
     name: 'NuxtImg',
@@ -141,39 +152,25 @@ config.global.components = {
       'class',
       'provider',
     ],
-    template:
-      '<img :src="src" :alt="alt" :width="width" :height="height" :class="class" />',
+    render() {
+      return {
+        type: 'img',
+        props: {
+          src: this.src,
+          alt: this.alt,
+          width: this.width,
+          height: this.height,
+          class: this.class,
+        },
+        on: {
+          load: this.$emit.bind(this, 'load'),
+          error: this.$emit.bind(this, 'error'),
+        },
+      }
+    },
     emits: ['load', 'error'],
   },
 }
-global.useRouter = () => ({
-  push: vi.fn(),
-  replace: vi.fn(),
-  go: vi.fn(),
-  back: vi.fn(),
-  forward: vi.fn(),
-})
-
-// Make Vue Composition API functions globally available
-global.Ref = ref
-global.ComputedRef = computed
-global.ComputedGetters = {}
-global.ComputedSetters = {}
-
-// Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(), // deprecated
-    removeListener: vi.fn(), // deprecated
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-})
 
 // Mock IntersectionObserver
 global.IntersectionObserver = vi.fn().mockImplementation(() => ({
