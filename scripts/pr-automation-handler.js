@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
 /**
- * PR Automation Handler
- * Comprehensive implementation of the PR automation system
+ * PR Automation Specialist Script
+ * Comprehensive implementation of the PR automation system as specified
  */
 
 import { execSync, spawnSync } from 'child_process'
 import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 
-// Constants
+// Configuration
 const GITHUB_TOKEN = process.env.GH_TOKEN || process.env.GITHUB_TOKEN
 const REPO_OWNER = getRepoOwner()
 const REPO_NAME = getRepoName()
@@ -75,10 +75,11 @@ function getOpenPRs() {
       pr =>
         !pr.author.is_bot &&
         !pr.author.login.includes('github-actions') &&
-        !pr.author.login.includes('dependabot')
+        !pr.author.login.includes('dependabot') &&
+        !pr.author.login.includes('openhands')
     )
 
-    // Sort by priority and creation date
+    // Sort by priority and creation date (oldest first as per spec)
     return filteredPRs.sort((a, b) => {
       const aPriority = getPriorityScore(a.labels)
       const bPriority = getPriorityScore(b.labels)
@@ -87,8 +88,8 @@ function getOpenPRs() {
         return bPriority - aPriority // Higher priority first
       }
 
-      // Same priority - sort by creation date (newest first to handle recent PRs)
-      return new Date(b.createdAt) - new Date(a.createdAt)
+      // Same priority - sort by creation date (oldest first as per spec)
+      return new Date(a.createdAt) - new Date(b.createdAt)
     })
   } catch (error) {
     if (process.env.DEBUG)
@@ -98,7 +99,7 @@ function getOpenPRs() {
 }
 
 function getPriorityScore(labels) {
-  const labelNames = labels.map(l => l.name)
+  const labelNames = labels?.map(l => l.name) || []
   if (labelNames.includes('priority/high')) return 3
   if (labelNames.includes('priority/medium')) return 2
   if (labelNames.includes('priority/low')) return 1
@@ -201,6 +202,15 @@ async function processReviewComments(prNumber) {
     // Process review comments
     if (prDetails.reviews) {
       for (const review of prDetails.reviews) {
+        // Skip comments from automation bots to avoid loops
+        if (
+          review.author.login === 'github-actions' ||
+          review.author.login.includes('bot') ||
+          review.author.login === 'openhands'
+        ) {
+          continue
+        }
+
         if (
           review.state === 'COMMENTED' ||
           review.state === 'CHANGES_REQUESTED'
@@ -316,8 +326,183 @@ function isTechnicalFeedback(body) {
     'correct',
     'adjust',
     'enhance',
+    'lint',
+    'format',
+    'style',
+    'type',
+    'validation',
+    'test',
+    'coverage',
+    'dependency',
+    'package',
+    'config',
+    'configuration',
+    'secret',
+    'credential',
+    'hardcoded',
+    'environment',
+    'variable',
+    'api',
+    'endpoint',
+    'route',
+    'middleware',
+    'plugin',
+    'component',
+    'composable',
+    'hook',
+    'function',
+    'method',
+    'class',
+    'interface',
+    'module',
+    'import',
+    'export',
+    'require',
+    'async',
+    'promise',
+    'callback',
+    'error handling',
+    'validation',
+    'sanitization',
+    'encoding',
+    'decoding',
+    'serialization',
+    'deserialization',
+    'parsing',
+    'formatting',
+    'optimization',
+    'memory',
+    'cpu',
+    'bandwidth',
+    'efficiency',
+    'caching',
+    'compression',
+    'minification',
+    'bundle',
+    'build',
+    'deploy',
+    'release',
+    'version',
+    'tag',
+    'branch',
+    'merge',
+    'conflict',
+    'resolution',
+    'strategy',
+    'algorithm',
+    'data structure',
+    'architecture',
+    'design',
+    'pattern',
+    'best practice',
+    'convention',
+    'standard',
+    'specification',
+    'protocol',
+    'authentication',
+    'authorization',
+    'permission',
+    'role',
+    'session',
+    'cookie',
+    'token',
+    'jwt',
+    'oauth',
+    'sso',
+    'cors',
+    'csrf',
+    'xss',
+    'sql injection',
+    'injection',
+    'validation',
+    'sanitization',
+    'encoding',
+    'decoding',
+    'encryption',
+    'decryption',
+    'hash',
+    'signature',
+    'certificate',
+    'ssl',
+    'tls',
+    'https',
+    'http',
+    'rest',
+    'graphql',
+    'websocket',
+    'socket',
+    'tcp',
+    'udp',
+    'ip',
+    'dns',
+    'cdn',
+    'load balancer',
+    'proxy',
+    'reverse proxy',
+    'cache',
+    'database',
+    'query',
+    'transaction',
+    'migration',
+    'schema',
+    'model',
+    'orm',
+    'driver',
+    'connection',
+    'pool',
+    'timeout',
+    'retry',
+    'circuit breaker',
+    'fallback',
+    'graceful degradation',
+    'circuit breaker',
+    'retry',
+    'timeout',
+    'rate limit',
+    'throttle',
+    'quota',
+    'backpressure',
+    'queue',
+    'buffer',
+    'stream',
+    'pipeline',
+    'workflow',
+    'pipeline',
+    'ci',
+    'cd',
+    'pipeline',
+    'workflow',
+    'job',
+    'task',
+    'step',
+    'action',
+    'trigger',
+    'event',
+    'hook',
+    'webhook',
+    'notification',
+    'alert',
+    'monitoring',
+    'logging',
+    'tracing',
+    'metrics',
+    'telemetry',
+    'observability',
+    'debugging',
+    'profiling',
+    'benchmark',
+    'performance',
+    'load testing',
+    'stress testing',
+    'integration testing',
+    'unit testing',
+    'e2e testing',
+    'smoke testing',
+    'regression testing',
+    'acceptance testing',
   ]
 
+  if (!body) return false
   const lowerBody = body.toLowerCase()
   return technicalTerms.some(term => lowerBody.includes(term))
 }
@@ -332,9 +517,11 @@ async function implementChangeFromReview(feedback, prNumber) {
     // Check for specific types of feedback and implement changes
     if (
       feedback.toLowerCase().includes('eslint') ||
-      feedback.toLowerCase().includes('lint')
+      feedback.toLowerCase().includes('lint') ||
+      feedback.toLowerCase().includes('format') ||
+      feedback.toLowerCase().includes('style')
     ) {
-      if (process.env.DEBUG) console.log('Applying lint fixes...')
+      if (process.env.DEBUG) console.log('Applying lint/format fixes...')
       try {
         execSync('npm run lint:fix', { stdio: 'pipe' })
         return true
@@ -346,7 +533,11 @@ async function implementChangeFromReview(feedback, prNumber) {
 
     if (
       feedback.toLowerCase().includes('security') ||
-      feedback.toLowerCase().includes('secret')
+      feedback.toLowerCase().includes('secret') ||
+      feedback.toLowerCase().includes('credential') ||
+      feedback.toLowerCase().includes('hardcoded') ||
+      feedback.toLowerCase().includes('environment') ||
+      feedback.toLowerCase().includes('env')
     ) {
       if (process.env.DEBUG) console.log('Checking for hardcoded secrets...')
       // This would scan files for potential secrets
@@ -604,7 +795,7 @@ async function runPRAutomation() {
       return
     }
 
-    // Select the highest priority PR
+    // Select the highest priority PR (oldest as per spec)
     const targetPR = openPRs[0]
     if (process.env.DEBUG)
       console.log(`🎯 Selected PR #${targetPR.number} for processing:`)
