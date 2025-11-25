@@ -1,3 +1,5 @@
+import { visualizer } from 'rollup-plugin-visualizer'
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: false }, // Disable in production for performance
@@ -393,7 +395,7 @@ export default defineNuxtConfig({
     plugins:
       process.env.ANALYZE_BUNDLE === 'true'
         ? [
-            require('rollup-plugin-visualizer')({
+            visualizer({
               filename: './dist/stats.html',
               open: false,
               gzipSize: true,
