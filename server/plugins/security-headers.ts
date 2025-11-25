@@ -4,7 +4,7 @@ import { randomBytes } from 'node:crypto'
 // Comprehensive security headers plugin
 export default defineNitroPlugin(nitroApp => {
   // Skip security headers in test environment to avoid conflicts during testing
-  if (process.env.NODE_ENV === 'test') {
+  if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
     return
   }
 
@@ -76,8 +76,15 @@ export default defineNitroPlugin(nitroApp => {
   // Apply security headers for all requests (not just HTML responses)
   nitroApp.hooks.hook('afterResponse', (response, { event }) => {
     try {
-      // Check if response object is available
-      if (!event || !event.node || !event.node.res) {
+      // Check if response object is available and we're not in test environment
+      if (
+        !event ||
+        !event.node ||
+        !event.node.res ||
+        process.env.NODE_ENV === 'test' ||
+        typeof globalThis.__vitest_worker__ !== 'undefined' ||
+        typeof process.env.VITEST !== 'undefined'
+      ) {
         return
       }
 
