@@ -87,6 +87,9 @@ export default defineEventHandler(async event => {
       url: body.url.trim(),
       category: body.category.trim(),
       tags: Array.isArray(body.tags) ? body.tags : [],
+      hierarchicalTags: Array.isArray(body.hierarchicalTags)
+        ? body.hierarchicalTags
+        : [],
       status: 'pending', // Default status
       submittedAt: new Date().toISOString(),
       submittedBy: 'anonymous', // In a real app, this would be the user ID

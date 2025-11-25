@@ -10,6 +10,7 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
     pricingModels: [],
     difficultyLevels: [],
     technologies: [],
+    hierarchicalTags: [],
   })
 
   // Sort option
@@ -63,6 +64,31 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
           filterOptions.value.technologies!.includes(tech)
         )
       )
+    }
+
+    // Apply hierarchical tags filter
+    if (
+      filterOptions.value.hierarchicalTags &&
+      filterOptions.value.hierarchicalTags.length > 0
+    ) {
+      result = result.filter(resource => {
+        // For now, check if resource has any hierarchical tags that match the filter
+        // In a more complete implementation, we would check for parent-child relationships
+        if (
+          Object.prototype.hasOwnProperty.call(resource, 'hierarchicalTags') &&
+          Array.isArray((resource as any).hierarchicalTags)
+        ) {
+          const resourceHierarchicalTags = (resource as any)
+            .hierarchicalTags as string[]
+          return resourceHierarchicalTags.some(tag =>
+            filterOptions.value.hierarchicalTags!.includes(tag)
+          )
+        }
+        // If resource doesn't have hierarchical tags, check regular tags for matching
+        return resource.tags.some(tag =>
+          filterOptions.value.hierarchicalTags!.includes(tag)
+        )
+      })
     }
 
     // Apply sorting
@@ -133,6 +159,17 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
     }
   }
 
+  const toggleHierarchicalTag = (tagId: string) => {
+    if (!filterOptions.value.hierarchicalTags)
+      filterOptions.value.hierarchicalTags = []
+    const index = filterOptions.value.hierarchicalTags.indexOf(tagId)
+    if (index > -1) {
+      filterOptions.value.hierarchicalTags.splice(index, 1)
+    } else {
+      filterOptions.value.hierarchicalTags.push(tagId)
+    }
+  }
+
   const setSortOption = (option: SortOption) => {
     sortOption.value = option
   }
@@ -158,6 +195,7 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
     togglePricingModel,
     toggleDifficultyLevel,
     toggleTechnology,
+    toggleHierarchicalTag,
     setSortOption,
     resetFilters,
   }

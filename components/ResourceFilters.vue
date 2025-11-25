@@ -19,7 +19,7 @@
         class="space-y-2 max-h-40 overflow-y-auto"
       >
         <label
-          v-for="(category, index) in categories"
+          v-for="category in categories"
           :key="category"
           class="flex items-center"
           :tabindex="0"
@@ -48,7 +48,7 @@
         class="space-y-2 max-h-40 overflow-y-auto"
       >
         <label
-          v-for="(pricingModel, index) in pricingModels"
+          v-for="pricingModel in pricingModels"
           :key="pricingModel"
           class="flex items-center"
           :tabindex="0"
@@ -77,7 +77,7 @@
         class="space-y-2 max-h-40 overflow-y-auto"
       >
         <label
-          v-for="(difficulty, index) in difficultyLevels"
+          v-for="difficulty in difficultyLevels"
           :key="difficulty"
           class="flex items-center"
           :tabindex="0"
@@ -98,7 +98,7 @@
     </div>
 
     <!-- Technology Filter -->
-    <div>
+    <div class="mb-6">
       <h4 class="text-sm font-medium text-gray-900 mb-3">Technology</h4>
       <div
         role="group"
@@ -106,7 +106,7 @@
         class="space-y-2 max-h-40 overflow-y-auto"
       >
         <label
-          v-for="(technology, index) in technologies"
+          v-for="technology in technologies"
           :key="technology"
           class="flex items-center"
           :tabindex="0"
@@ -125,10 +125,22 @@
         </label>
       </div>
     </div>
+
+    <!-- Hierarchical Tags Filter -->
+    <div>
+      <h4 class="text-sm font-medium text-gray-900 mb-3">Tags</h4>
+      <TagSelector
+        v-model="selectedHierarchicalTags"
+        @update:model-value="onUpdateTags"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+import TagSelector from '~/components/TagSelector.vue'
+
 interface Props {
   categories: string[]
   pricingModels: string[]
@@ -138,6 +150,7 @@ interface Props {
   selectedPricingModels: string[]
   selectedDifficultyLevels: string[]
   selectedTechnologies: string[]
+  selectedTags?: string[] // Added for hierarchical tags
 }
 
 interface Emits {
@@ -145,11 +158,17 @@ interface Emits {
   (event: 'toggle-pricing-model', pricingModel: string): void
   (event: 'toggle-difficulty-level', difficulty: string): void
   (event: 'toggle-technology', technology: string): void
+  (event: 'toggle-tag', tag: string): void // Added for hierarchical tags
   (event: 'reset-filters'): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  selectedTags: () => [],
+})
 const emit = defineEmits<Emits>()
+
+// Local state for hierarchical tags
+const selectedHierarchicalTags = ref<string[]>(props.selectedTags || [])
 
 const toggleCategory = (category: string) => {
   emit('toggle-category', category)
@@ -167,7 +186,19 @@ const toggleTechnology = (technology: string) => {
   emit('toggle-technology', technology)
 }
 
+// Handle hierarchical tag selection changes
+const onUpdateTags = (tags: string[]) => {
+  selectedHierarchicalTags.value = tags
+  // Emit individual events for each tag added/removed
+  // For now, we'll just emit the complete list
+  tags.forEach(tag => {
+    emit('toggle-tag', tag)
+  })
+}
+
 const onResetFilters = () => {
+  // Reset hierarchical tags as well
+  selectedHierarchicalTags.value = []
   emit('reset-filters')
 }
 </script>

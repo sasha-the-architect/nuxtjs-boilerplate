@@ -36,6 +36,7 @@ export const useResources = () => {
     togglePricingModel,
     toggleDifficultyLevel,
     toggleTechnology,
+    toggleHierarchicalTag,
     setSortOption,
     resetFilters,
   } = useResourceFilters(resources.value)
@@ -132,6 +133,7 @@ export const useResources = () => {
     togglePricingModel,
     toggleDifficultyLevel,
     toggleTechnology,
+    toggleHierarchicalTag,
     setSortOption,
     resetFilters,
     highlightSearchTerms,

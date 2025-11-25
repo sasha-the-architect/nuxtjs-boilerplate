@@ -15,6 +15,7 @@ import { logError } from '~/utils/errorLogger'
  * - pricing: Filter by pricing model
  * - difficulty: Filter by difficulty level
  * - tags: Filter by tags (comma-separated)
+ * - hierarchicalTags: Filter by hierarchical tag IDs (comma-separated)
  */
 export default defineEventHandler(async event => {
   try {
@@ -65,6 +66,7 @@ export default defineEventHandler(async event => {
     const pricing = query.pricing as string | undefined
     const difficulty = query.difficulty as string | undefined
     const tagsParam = query.tags as string | undefined
+    const hierarchicalTagsParam = query.hierarchicalTags as string | undefined
 
     // Apply filters
     if (category) {
@@ -100,6 +102,37 @@ export default defineEventHandler(async event => {
         return {
           success: false,
           message: 'Invalid tags parameter. Must be a comma-separated string.',
+          error: 'Bad Request',
+        }
+      }
+    }
+
+    // Apply hierarchical tags filter if provided
+    if (hierarchicalTagsParam) {
+      // Validate hierarchical tags parameter
+      if (typeof hierarchicalTagsParam === 'string') {
+        const hierarchicalTagIds = hierarchicalTagsParam
+          .split(',')
+          .map(tag => tag.trim())
+
+        // For now, we'll filter based on matching any of the provided tag IDs
+        // In a complete implementation, this would check parent-child relationships
+        resources = resources.filter(resource => {
+          return resource.tags.some(
+            tag =>
+              hierarchicalTagIds.includes(tag) ||
+              hierarchicalTagIds.some(hierarchicalTagId =>
+                tag.toLowerCase().includes(hierarchicalTagId.toLowerCase())
+              )
+          )
+        })
+      } else {
+        // Invalid hierarchical tags parameter format
+        setResponseStatus(event, 400)
+        return {
+          success: false,
+          message:
+            'Invalid hierarchicalTags parameter. Must be a comma-separated string.',
           error: 'Bad Request',
         }
       }

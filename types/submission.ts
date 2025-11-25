@@ -5,6 +5,7 @@ export interface FormData {
   url: string
   category: string
   tags: string[]
+  hierarchicalTags?: string[]
 }
 
 export interface Submission {
@@ -14,6 +15,7 @@ export interface Submission {
   url: string
   category: string
   tags: string[]
+  hierarchicalTags?: string[]
   status: string
   submittedAt: string
   submittedBy: string

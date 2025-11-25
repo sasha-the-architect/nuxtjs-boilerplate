@@ -130,12 +130,27 @@
               id="tags"
               v-model="tagsInput"
               type="text"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500"
-              placeholder="Enter tags separated by commas"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500 mb-4"
+              placeholder="Enter tags separated by commas (legacy flat tags)"
             />
             <p class="mt-1 text-sm text-gray-500">
               Add relevant tags to help categorize this resource (e.g., "api,
               free-tier, openai")
+            </p>
+          </div>
+
+          <!-- Hierarchical Tags Selection -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Hierarchical Tags (Optional)
+            </label>
+            <TagSelector
+              v-model="hierarchicalTags"
+              placeholder="Select hierarchical tags..."
+            />
+            <p class="mt-1 text-sm text-gray-500">
+              Select from our hierarchical tag structure to categorize this
+              resource
             </p>
           </div>
 
@@ -237,15 +252,19 @@
 </template>
 
 <script setup lang="ts">
+import TagSelector from '~/components/TagSelector.vue'
+
 const formData = reactive({
   title: '',
   description: '',
   url: '',
   category: '',
   tags: [],
+  hierarchicalTags: [],
 })
 
 const tagsInput = ref('')
+const hierarchicalTags = ref<string[]>([]) // For hierarchical tag selection
 const errors = ref<Record<string, string>>({})
 const isSubmitting = ref(false)
 const submitSuccess = ref(false)
@@ -300,6 +319,9 @@ const submitResource = async () => {
     formData.tags = []
   }
 
+  // Add hierarchical tags if selected
+  formData.hierarchicalTags = hierarchicalTags.value
+
   isSubmitting.value = true
   submitError.value = ''
   submitSuccess.value = false
@@ -313,6 +335,7 @@ const submitResource = async () => {
         url: formData.url.trim(),
         category: formData.category,
         tags: formData.tags,
+        hierarchicalTags: formData.hierarchicalTags,
       },
     })
 
@@ -323,6 +346,7 @@ const submitResource = async () => {
       formData.url = ''
       formData.category = ''
       tagsInput.value = ''
+      hierarchicalTags.value = [] // Reset hierarchical tags as well
       submitSuccess.value = true
 
       // Reset success message after 5 seconds

@@ -222,7 +222,7 @@
               <!-- Tags -->
               <div class="mb-8">
                 <h3 class="text-lg font-medium text-gray-900 mb-3">Tags</h3>
-                <div class="flex flex-wrap gap-2">
+                <div class="flex flex-wrap gap-2 mb-3">
                   <span
                     v-for="tag in resource.tags"
                     :key="tag"
@@ -230,6 +230,28 @@
                   >
                     {{ tag }}
                   </span>
+                </div>
+
+                <!-- Hierarchical Tags if available -->
+                <div
+                  v-if="
+                    resource.hierarchicalTags &&
+                    resource.hierarchicalTags.length > 0
+                  "
+                  class="mt-4"
+                >
+                  <h4 class="text-md font-medium text-gray-700 mb-2">
+                    Hierarchical Categories
+                  </h4>
+                  <div class="flex flex-wrap gap-2">
+                    <span
+                      v-for="hierarchicalTag in resource.hierarchicalTags"
+                      :key="hierarchicalTag"
+                      class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                    >
+                      {{ getHierarchicalTagName(hierarchicalTag) }}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -287,9 +309,10 @@
 import { useResources, type Resource } from '~/composables/useResources'
 import ResourceCard from '~/components/ResourceCard.vue'
 import SocialShare from '~/components/SocialShare.vue'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRequestURL } from '#imports'
+import { useHierarchicalTags } from '~/composables/useHierarchicalTags'
 
 const route = useRoute()
 
@@ -318,6 +341,15 @@ const formatDate = (dateString: string) => {
     day: 'numeric',
   }
   return new Date(dateString).toLocaleDateString(undefined, options)
+}
+
+// Get hierarchical tags service
+const { findTagById } = useHierarchicalTags()
+
+// Function to get hierarchical tag name by ID
+const getHierarchicalTagName = (tagId: string): string => {
+  const tag = findTagById(tagId)
+  return tag ? tag.name : tagId // Return tag name or ID if not found
 }
 
 // Additional methods from the original script...

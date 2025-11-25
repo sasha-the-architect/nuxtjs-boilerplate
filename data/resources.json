@@ -13,6 +13,7 @@
     "pricingModel": "Free Tier",
     "difficulty": "Intermediate",
     "tags": ["AI", "API", "GPT", "OpenAI"],
+    "hierarchicalTags": ["ai", "nlp"],
     "technology": ["AI", "Machine Learning"],
     "dateAdded": "2025-01-01",
     "popularity": 5
@@ -31,6 +32,7 @@
     "pricingModel": "Free Tier",
     "difficulty": "Intermediate",
     "tags": ["AI", "API", "Machine Learning", "NLP"],
+    "hierarchicalTags": ["ai", "nlp"],
     "technology": ["AI", "Machine Learning"],
     "dateAdded": "2025-01-01",
     "popularity": 4
@@ -49,6 +51,7 @@
     "pricingModel": "Free Tier",
     "difficulty": "Beginner",
     "tags": ["AI", "API", "Google", "Gemini"],
+    "hierarchicalTags": ["ai", "nlp"],
     "technology": ["AI", "Machine Learning"],
     "dateAdded": "2025-01-01",
     "popularity": 4
@@ -67,6 +70,7 @@
     "pricingModel": "Free Tier",
     "difficulty": "Intermediate",
     "tags": ["AI", "API", "Claude", "Anthropic"],
+    "hierarchicalTags": ["ai", "nlp"],
     "technology": ["AI", "Machine Learning"],
     "dateAdded": "2025-01-01",
     "popularity": 4
@@ -85,6 +89,7 @@
     "pricingModel": "Free Tier",
     "difficulty": "Advanced",
     "tags": ["Cloud", "VPS", "AWS"],
+    "hierarchicalTags": ["cloud", "aws"],
     "technology": ["Cloud", "Infrastructure"],
     "dateAdded": "2025-01-01",
     "popularity": 5
@@ -103,6 +108,7 @@
     "pricingModel": "Free Tier",
     "difficulty": "Advanced",
     "tags": ["Cloud", "VPS", "Google"],
+    "hierarchicalTags": ["cloud", "gcp"],
     "technology": ["Cloud", "Infrastructure"],
     "dateAdded": "2025-01-01",
     "popularity": 4
@@ -121,6 +127,7 @@
     "pricingModel": "Free Tier",
     "difficulty": "Advanced",
     "tags": ["Cloud", "VPS", "Azure"],
+    "hierarchicalTags": ["cloud", "azure"],
     "technology": ["Cloud", "Infrastructure"],
     "dateAdded": "2025-01-01",
     "popularity": 4
@@ -135,6 +142,7 @@
     "pricingModel": "Free Tier",
     "difficulty": "Beginner",
     "tags": ["Web", "Hosting", "Static"],
+    "hierarchicalTags": ["programming", "frontend"],
     "technology": ["Web", "Frontend"],
     "dateAdded": "2025-01-01",
     "popularity": 5
@@ -149,6 +157,7 @@
     "pricingModel": "Free Tier",
     "difficulty": "Beginner",
     "tags": ["Web", "Hosting", "Static"],
+    "hierarchicalTags": ["programming", "frontend"],
     "technology": ["Web", "Frontend"],
     "dateAdded": "2025-01-01",
     "popularity": 5
@@ -163,6 +172,7 @@
     "pricingModel": "Free",
     "difficulty": "Beginner",
     "tags": ["Web", "Hosting", "Static", "Git"],
+    "hierarchicalTags": ["programming"],
     "technology": ["Web", "Frontend"],
     "dateAdded": "2025-01-01",
     "popularity": 4
@@ -177,6 +187,7 @@
     "pricingModel": "Free Tier",
     "difficulty": "Intermediate",
     "tags": ["Database", "NoSQL", "MongoDB"],
+    "hierarchicalTags": ["programming"],
     "technology": ["Database", "NoSQL"],
     "dateAdded": "2025-01-01",
     "popularity": 4
@@ -191,6 +202,7 @@
     "pricingModel": "Free Tier",
     "difficulty": "Beginner",
     "tags": ["Database", "Realtime", "Google"],
+    "hierarchicalTags": ["programming", "cloud"],
     "technology": ["Database", "Realtime"],
     "dateAdded": "2025-01-01",
     "popularity": 5
@@ -205,6 +217,7 @@
     "pricingModel": "Free Tier",
     "difficulty": "Intermediate",
     "tags": ["Database", "SQL", "MySQL"],
+    "hierarchicalTags": ["programming"],
     "technology": ["Database", "SQL"],
     "dateAdded": "2025-01-01",
     "popularity": 3
@@ -219,6 +232,7 @@
     "pricingModel": "Free Tier",
     "difficulty": "Beginner",
     "tags": ["CDN", "Performance", "Security"],
+    "hierarchicalTags": ["programming"],
     "technology": ["CDN", "Performance"],
     "dateAdded": "2025-01-01",
     "popularity": 5
@@ -233,6 +247,7 @@
     "pricingModel": "Free",
     "difficulty": "Beginner",
     "tags": ["CDN", "JS", "CDN"],
+    "hierarchicalTags": ["programming", "frontend"],
     "technology": ["CDN", "Frontend"],
     "dateAdded": "2025-01-01",
     "popularity": 4
@@ -247,6 +262,7 @@
     "pricingModel": "Free",
     "difficulty": "Beginner",
     "tags": ["CDN", "Package", "NPM"],
+    "hierarchicalTags": ["programming", "frontend"],
     "technology": ["CDN", "Frontend"],
     "dateAdded": "2025-01-01",
     "popularity": 3

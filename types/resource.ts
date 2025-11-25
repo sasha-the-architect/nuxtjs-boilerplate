@@ -8,7 +8,25 @@ export interface Resource {
   category: string
   pricingModel: string
   difficulty: string
-  tags: readonly string[]
+  tags: readonly string[] // Keep for backward compatibility
+  technology: readonly string[]
+  dateAdded: string
+  popularity: number
+  icon?: string
+}
+
+// Extended resource interface for hierarchical tags
+export interface ResourceWithHierarchicalTags {
+  id: string
+  title: string
+  description: string
+  benefits: readonly string[]
+  url: string
+  category: string
+  pricingModel: string
+  difficulty: string
+  tags: readonly string[] // Original flat tags
+  hierarchicalTags?: readonly string[] // Hierarchical tag identifiers
   technology: readonly string[]
   dateAdded: string
   popularity: number
@@ -21,6 +39,7 @@ export interface FilterOptions {
   pricingModels?: string[]
   difficultyLevels?: string[]
   technologies?: string[]
+  hierarchicalTags?: string[]
 }
 
 export type SortOption =
