@@ -9,6 +9,13 @@ const mockNuxtLink = {
   props: ['to'],
 }
 
+// Mock SocialShare component
+const mockSocialShare = {
+  name: 'SocialShare',
+  template: '<div class="social-share">Social Share</div>',
+  props: ['title', 'description', 'url', 'resourceType'],
+}
+
 describe('ResourceCard', () => {
   const defaultProps = {
     title: 'Test Resource',
@@ -23,6 +30,7 @@ describe('ResourceCard', () => {
       global: {
         components: {
           NuxtLink: mockNuxtLink,
+          SocialShare: mockSocialShare,
         },
       },
     })
@@ -42,6 +50,7 @@ describe('ResourceCard', () => {
       global: {
         components: {
           NuxtLink: mockNuxtLink,
+          SocialShare: mockSocialShare,
         },
       },
     })
@@ -55,6 +64,7 @@ describe('ResourceCard', () => {
       global: {
         components: {
           NuxtLink: mockNuxtLink,
+          SocialShare: mockSocialShare,
         },
       },
     })
@@ -72,6 +82,7 @@ describe('ResourceCard', () => {
       global: {
         components: {
           NuxtLink: mockNuxtLink,
+          SocialShare: mockSocialShare,
         },
       },
     })

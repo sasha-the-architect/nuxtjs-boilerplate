@@ -89,6 +89,14 @@
               :description="description"
               :url="url"
             />
+            <!-- Social Share button -->
+            <SocialShare
+              v-if="id"
+              :title="title"
+              :description="description"
+              :url="`${currentUrl}/resources/${id}`"
+              resource-type="resource"
+            />
             <!-- Slot for additional actions -->
             <slot name="actions"></slot>
           </div>
@@ -128,10 +136,11 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useHead } from '#imports'
+import { useHead, useRequestURL } from '#imports'
 import DOMPurify from 'dompurify'
 import OptimizedImage from '~/components/OptimizedImage.vue'
 import BookmarkButton from '~/components/BookmarkButton.vue'
+import SocialShare from '~/components/SocialShare.vue'
 
 interface Props {
   title: string
@@ -271,6 +280,23 @@ const handleLinkClick = (event: Event) => {
     }
   }
 }
+
+// Get current URL for social sharing
+const currentUrl = computed(() => {
+  if (process.client) {
+    return window.location.origin
+  }
+  // In server-side rendering, use the request URL if available
+  try {
+    const requestURL = useRequestURL()
+    return `${requestURL.protocol}//${requestURL.host}`
+  } catch {
+    // Fallback to a default URL in case useRequestURL is not available
+    return typeof window !== 'undefined'
+      ? window.location.origin
+      : 'https://example.com'
+  }
+})
 
 // Add structured data for the resource
 const resourceSchema = computed(() => {
