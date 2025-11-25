@@ -48,7 +48,7 @@ The following environment variables are now used for configuring URLs:
 - `pages/submit.vue`
 - `server/api/sitemap.get.ts`
 - `server/routes/sitemap.xml.get.ts`
-- `server/middleware/security.ts`
+
 - `server/plugins/security-headers.ts`
 - `components/ResourceCard.vue`
 

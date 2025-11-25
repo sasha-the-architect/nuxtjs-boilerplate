@@ -13,13 +13,13 @@ permissions:
 
 # global lock: only 1 instance of this workflow running across events
 concurrency:
-  group: ${{ github.repository }}-global-workflow
+  group: global-workflow-lock
   cancel-in-progress: false
 
 jobs:
   opencode:
     name: OC
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 40
     permissions:
       id-token: write
@@ -38,7 +38,7 @@ jobs:
       
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -57,11 +57,13 @@ jobs:
         if: steps.check_issues.outputs.no_issues == 'true'
         run: echo "No open issues, skipping workflow."
 
-      - name: Install OpenCode CLI
+      - name: Install OpenCode CLI (cached if already installed)
         if: steps.check_issues.outputs.no_issues == 'false'
         run: |
-          curl -fsSL https://opencode.ai/install | bash
-          echo "$HOME/.opencode/bin" >> $GITHUB_PATH
+          if ! command -v opencode >/dev/null 2>&1; then
+            curl -fsSL https://opencode.ai/install | bash
+          fi
+          echo "$HOME/.opencode/bin" >> "$GITHUB_PATH"
 
       - name: Run OpenCode1
         if: steps.check_issues.outputs.no_issues == 'false'

@@ -40,6 +40,7 @@
       </div>
 
       <!-- Error State -->
+<<<<<<< HEAD
       <div v-else-if="hasError" class="text-center py-12 mt-16">
         <div class="mb-6">
           <svg
@@ -66,6 +67,14 @@
         >
           Retry
         </button>
+=======
+      <div v-else-if="error" class="mt-16">
+        <ErrorMessage
+          :message="errorMessage || error"
+          variant="error"
+          :action="{ label: 'Retry', handler: retryResources }"
+        />
+>>>>>>> origin/main
       </div>
 
       <!-- Resources Grid -->
@@ -116,6 +125,7 @@
         <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
           <ResourceCard
             v-for="resource in filteredResources"
+            :id="resource.id"
             :key="resource.id"
             :title="resource.title"
             :description="resource.description"
@@ -211,7 +221,11 @@ const {
   filteredResources,
   loading,
   error,
+<<<<<<< HEAD
   hasError,
+=======
+  errorMessage,
+>>>>>>> origin/main
   categories,
   filterOptions,
   sortOption,

@@ -109,7 +109,7 @@ jobs:
 
     steps:
       - name: Checkout repository (PR branch)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           # Checkout ke head branch PR supaya bisa di-push
@@ -125,7 +125,7 @@ jobs:
       # ⬆⬆⬆
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: "pnpm"
@@ -217,14 +217,14 @@ jobs:
 
     steps:
       - name: Checkout repository (PR branch)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: ${{ needs.select_pr.outputs.pr_head_ref }}
           persist-credentials: true
 
       - name: Download build log
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: build-log
           path: ./artifacts

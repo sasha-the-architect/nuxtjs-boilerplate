@@ -1,4 +1,4 @@
-# Free Stuff on the Internet
+# Free Stuff on the Internet - Refactored
 
 A comprehensive directory of free resources for developers, students, and tech enthusiasts.
 

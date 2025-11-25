@@ -10,13 +10,11 @@ export default defineEventHandler(event => {
   event.node.res.setHeader('X-Frame-Options', 'DENY')
   event.node.res.setHeader('X-XSS-Protection', '0') // Modern CSP makes this redundant
   event.node.res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
-  // Add HSTS header for production environments
-  if (process.env.NODE_ENV === 'production') {
-    event.node.res.setHeader(
-      'Strict-Transport-Security',
-      'max-age=31536000; includeSubDomains; preload'
-    )
-  }
+  // Add HSTS header for transport security
+  event.node.res.setHeader(
+    'Strict-Transport-Security',
+    'max-age=31536000; includeSubDomains; preload'
+  )
   event.node.res.setHeader(
     'Permissions-Policy',
     'geolocation=(), microphone=(), camera=()'

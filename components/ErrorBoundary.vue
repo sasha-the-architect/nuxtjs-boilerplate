@@ -20,12 +20,23 @@
       </div>
       <h2 class="error-title">Something went wrong</h2>
       <p class="error-message">
+<<<<<<< HEAD
         {{ error?.message || 'An unexpected error occurred' }}
       </p>
       <p v-if="showDetails" class="error-details">
         <small>Component: {{ componentStack }}</small>
+=======
+        {{ errorMessage }}
+>>>>>>> origin/main
       </p>
+      <div v-if="showDetails" class="error-details">
+        <details class="error-details-container">
+          <summary class="error-details-summary">Error Details</summary>
+          <pre class="error-stack">{{ errorStack }}</pre>
+        </details>
+      </div>
       <div class="error-actions">
+<<<<<<< HEAD
         <button class="retry-button" :disabled="retrying" @click="handleRetry">
           <span v-if="retrying">Retrying...</span>
           <span v-else>Try Again</span>
@@ -37,6 +48,21 @@
           @click="toggleDetails"
         >
           {{ showDetails ? 'Hide Details' : 'Show Details' }}
+=======
+        <button
+          class="retry-button"
+          :aria-label="`Retry ${fallbackComponentName || 'component'}`"
+          @click="resetError"
+        >
+          Try Again
+        </button>
+        <button
+          class="home-button"
+          aria-label="Go to home page"
+          @click="goHome"
+        >
+          Go Home
+>>>>>>> origin/main
         </button>
       </div>
     </div>
@@ -45,25 +71,53 @@
 </template>
 
 <script setup lang="ts">
+<<<<<<< HEAD
 import { onErrorCaptured, ref } from 'vue'
 import { useErrorHandling } from '~/composables/useErrorHandling'
+=======
+import { onErrorCaptured, ref, computed } from 'vue'
+import { logError } from '~/utils/errorLogger'
+>>>>>>> origin/main
 
 interface ErrorInfo {
   componentStack: string
 }
 
+<<<<<<< HEAD
 const { error, hasError, clearError } = useErrorHandling()
 const componentStack = ref('')
 const showDetails = ref(false)
 const retrying = ref(false)
+=======
+interface Props {
+  componentName?: string
+  showDetails?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  componentName: undefined,
+  showDetails: false,
+})
+
+const error = ref<Error | null>(null)
+const errorInfo = ref<ErrorInfo | null>(null)
+>>>>>>> origin/main
 
 const emit = defineEmits<{
   error: [error: Error, info: ErrorInfo]
   retry: []
 }>()
 
+const hasError = computed(() => error.value !== null)
+const errorMessage = computed(
+  () => error.value?.message || 'An unexpected error occurred'
+)
+const errorStack = computed(() => error.value?.stack || '')
+const fallbackComponentName = computed(() => props.componentName || 'component')
+
 const throwError = (err: Error, info: ErrorInfo) => {
   error.value = err
+<<<<<<< HEAD
   componentStack.value = info.componentStack
   emit('error', err, info)
 }
@@ -77,6 +131,18 @@ const handleRetry = async () => {
   } finally {
     retrying.value = false
   }
+=======
+  errorInfo.value = info
+  logError(`ErrorBoundary caught error: ${err.message}`, err, 'ErrorBoundary', {
+    componentStack: info.componentStack,
+  })
+  emit('error', err, info)
+}
+
+const resetError = () => {
+  error.value = null
+  errorInfo.value = null
+>>>>>>> origin/main
 }
 
 const goHome = () => {

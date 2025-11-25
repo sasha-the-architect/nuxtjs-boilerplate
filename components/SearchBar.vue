@@ -22,6 +22,7 @@
       </div>
       <input
         id="search-input"
+        ref="searchInputRef"
         type="search"
         :value="modelValue"
         class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
@@ -29,6 +30,9 @@
         aria-label="Search resources"
         aria-describedby="search-results-info"
         @input="handleInput"
+        @keydown="handleKeyDown"
+        @focus="handleFocus"
+        @blur="handleBlur"
       />
       <div
         v-if="modelValue"
@@ -57,6 +61,21 @@
         </button>
       </div>
     </div>
+
+    <!-- Search Suggestions Dropdown -->
+    <SearchSuggestions
+      v-if="
+        showSuggestions && (suggestions.length > 0 || searchHistory.length > 0)
+      "
+      :suggestions="suggestions"
+      :search-history="searchHistory"
+      :visible="showSuggestions"
+      @select-suggestion="handleSuggestionSelect"
+      @select-history="handleHistorySelect"
+      @clear-history="handleClearHistory"
+      @navigate="handleNavigate"
+    />
+
     <!-- ARIA live region for search results information -->
     <div
       id="search-results-info"
@@ -70,8 +89,13 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import SearchSuggestions from '~/components/SearchSuggestions.vue'
+import { useResources } from '~/composables/useResources'
+
 interface Props {
   modelValue: string
+  debounceTime?: number
 }
 
 interface Emits {
@@ -82,14 +106,119 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+// Use the resources composable
+const {
+  getSuggestions,
+  getSearchHistory,
+  addSearchToHistory,
+  clearSearchHistory,
+} = useResources()
+
+// Refs
+const searchInputRef = ref<HTMLInputElement>()
+const showSuggestions = ref(false)
+const suggestions = ref<any[]>([])
+const searchHistory = ref<string[]>([])
+const debouncedQuery = ref('')
+const inputTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
+
+// Load search history on component mount
+onMounted(() => {
+  searchHistory.value = getSearchHistory()
+})
+
+// Handle input with debounce
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement
-  emit('update:modelValue', target.value)
-  emit('search', target.value)
+  const value = target.value
+
+  // Update the model value immediately
+  emit('update:modelValue', value)
+
+  // Debounce the search to avoid constant updates
+  if (inputTimeout.value) {
+    clearTimeout(inputTimeout.value)
+  }
+
+  inputTimeout.value = setTimeout(() => {
+    debouncedQuery.value = value
+    updateSuggestions(value)
+    emit('search', value)
+  }, props.debounceTime || 300)
+}
+
+// Update suggestions based on input
+const updateSuggestions = (query: string) => {
+  if (query && query.length > 1) {
+    // Get search suggestions
+    suggestions.value = getSuggestions(query, 5).map((resource: any) => ({
+      id: resource.id,
+      title: resource.title,
+      description:
+        resource.description.substring(0, 100) +
+        (resource.description.length > 100 ? '...' : ''),
+      url: resource.url,
+    }))
+  } else {
+    suggestions.value = []
+  }
 }
 
 const clearSearch = () => {
   emit('update:modelValue', '')
   emit('search', '')
+  suggestions.value = []
+  showSuggestions.value = false
 }
+
+const handleFocus = () => {
+  // Update search history when input is focused
+  searchHistory.value = getSearchHistory()
+  showSuggestions.value = true
+}
+
+const handleBlur = () => {
+  // Use a timeout to allow for click events on suggestions
+  setTimeout(() => {
+    showSuggestions.value = false
+  }, 200)
+}
+
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    showSuggestions.value = false
+  } else if (event.key === 'Enter') {
+    if (props.modelValue) {
+      addSearchToHistory(props.modelValue)
+    }
+  }
+}
+
+const handleSuggestionSelect = (suggestion: any) => {
+  emit('update:modelValue', suggestion.title)
+  emit('search', suggestion.title)
+  addSearchToHistory(suggestion.title)
+  showSuggestions.value = false
+}
+
+const handleHistorySelect = (history: string) => {
+  emit('update:modelValue', history)
+  emit('search', history)
+  showSuggestions.value = false
+}
+
+const handleClearHistory = () => {
+  clearSearchHistory()
+  searchHistory.value = []
+}
+
+const handleNavigate = (direction: 'up' | 'down') => {
+  // This is handled by the SearchSuggestions component
+  // but we can add additional logic here if needed
+}
+
+// Expose focus method to parent components
+defineExpose({
+  focus: () => searchInputRef.value?.focus(),
+})
 </script>

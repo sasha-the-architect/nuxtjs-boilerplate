@@ -1,7 +1,9 @@
 <template>
-  <NuxtLayout>
-    <NuxtPage />
-  </NuxtLayout>
+  <ErrorBoundary>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+  </ErrorBoundary>
 </template>
 
 <script setup lang="ts">
@@ -12,6 +14,9 @@
 // Set default meta tags for the entire application
 const runtimeConfig = useRuntimeConfig()
 
+// Import ErrorBoundary component for global error handling
+import ErrorBoundary from '~/components/ErrorBoundary.vue'
+
 useSeoMeta({
   title: 'Free Stuff on the Internet - Free Resources for Developers',
   ogTitle: 'Free Stuff on the Internet - Free Resources for Developers',
@@ -19,8 +24,15 @@ useSeoMeta({
     'Discover amazing free resources available on the internet - from AI tools to hosting services.',
   ogDescription:
     'Discover amazing free resources available on the internet - from AI tools to hosting services.',
-  ogImage: '/og-image.jpg',
+  ogImage: `${runtimeConfig.public.canonicalUrl}/og-image.jpg`,
+  ogImageWidth: '1200',
+  ogImageHeight: '630',
+  ogImageType: 'image/jpg',
+  ogUrl: runtimeConfig.public.canonicalUrl,
+  ogType: 'website',
   twitterCard: 'summary_large_image',
+  twitterSite: '@yourTwitterHandle', // Replace with actual Twitter handle if available
+  twitterCreator: '@yourTwitterHandle', // Replace with actual Twitter handle if available
 })
 
 // Add structured data for the website using JSON-LD
@@ -94,10 +106,35 @@ onMounted(() => {
   window.addEventListener('keydown', handleKeyDown)
   window.addEventListener('mousedown', handleMouseDown)
 
+  // PWA installation prompt
+  let deferredPrompt: Event | null = null
+
+  window.addEventListener('beforeinstallprompt', e => {
+    // Prevent the mini-infobar from appearing on mobile
+    e.preventDefault()
+    // Stash the event so it can be triggered later
+    deferredPrompt = e
+    // Show the install button or notification
+    // console.log('PWA installation prompt available')
+  })
+
+  // Handle online/offline status
+  window.addEventListener('online', () => {
+    // console.log('Back online')
+  })
+
+  window.addEventListener('offline', () => {
+    // console.log('Offline')
+    // Optionally redirect to offline page or show notification
+  })
+
   // Cleanup event listeners
   onUnmounted(() => {
     window.removeEventListener('keydown', handleKeyDown)
     window.removeEventListener('mousedown', handleMouseDown)
+    window.removeEventListener('beforeinstallprompt', e => {
+      // We can't remove the specific deferredPrompt function since it's in a closure
+    })
   })
 })
 </script>

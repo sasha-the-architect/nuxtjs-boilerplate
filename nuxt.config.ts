@@ -3,26 +3,55 @@ export default defineNuxtConfig({
   devtools: { enabled: false }, // Disable in production for performance
   css: ['~/assets/css/main.css'],
   modules: ['@nuxtjs/tailwindcss', '@nuxt/image', '@vite-pwa/nuxt'],
+
+  // Runtime configuration for environment variables
+  runtimeConfig: {
+    public: {
+      canonicalUrl:
+        process.env.CANONICAL_URL ||
+        'https://free-stuff-on-the-internet.vercel.app/',
+    },
+  },
+
+  // PWA Configuration - merged from both branches
   pwa: {
     strategies: 'generateSW',
     registerType: 'autoUpdate',
     manifest: {
       name: 'Free Stuff on the Internet',
-      short_name: 'Free Stuff',
+      short_name: 'Free Resources',
       description:
         'Discover amazing free resources available on the internet - from AI tools to hosting services.',
-      theme_color: '#ffffff',
-      background_color: '#ffffff',
-      display: 'standalone',
-      icon: 'public/android-chrome-192x192.png',
+      theme_color: '#4f46e5',
       lang: 'en',
-      categories: ['utilities', 'developer-tools'],
-      screenshots: [
+      display: 'standalone',
+      orientation: 'any',
+      background_color: '#ffffff',
+      id: '/',
+      start_url: '/',
+      scope: '/',
+      icons: [
         {
-          src: '/og-image.jpg',
-          sizes: '1200x630',
-          type: 'image/jpeg',
-          platform: 'wide',
+          src: 'pwa/icon-192x192.png',
+          sizes: '192x192',
+          type: 'image/png',
+        },
+        {
+          src: 'pwa/icon-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+        },
+        {
+          src: 'pwa/maskable-icon-192x192.png',
+          sizes: '192x192',
+          type: 'image/png',
+          purpose: 'maskable',
+        },
+        {
+          src: 'pwa/maskable-icon-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'maskable',
         },
       ],
     },
@@ -44,7 +73,7 @@ export default defineNuxtConfig({
         },
         {
           // Cache resources data
-          urlPattern: '.*resources\\\\.json',
+          urlPattern: '.*resources\\.json',
           handler: 'CacheFirst',
           options: {
             cacheName: 'resources-cache',
@@ -56,7 +85,7 @@ export default defineNuxtConfig({
         },
         {
           // Cache static assets
-          urlPattern: '^https://fonts\\\\.(?:googleapis|gstatic)\\\\.com/.*',
+          urlPattern: '^https://fonts\\.(?:googleapis|gstatic)\\.com/.*',
           handler: 'CacheFirst',
           options: {
             cacheName: 'google-fonts-cache',
@@ -69,13 +98,69 @@ export default defineNuxtConfig({
         {
           // Cache Nuxt build assets
           urlPattern:
-            '^/_nuxt/.*\\\\.(js|css|png|svg|jpg|jpeg|gif|webp|woff|woff2)',
+            '^/_nuxt/.*\\.(js|css|png|svg|jpg|jpeg|gif|webp|woff|woff2)',
           handler: 'CacheFirst',
           options: {
             cacheName: 'nuxt-assets-cache',
             expiration: {
               maxEntries: 50,
               maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+            },
+          },
+        },
+        {
+          urlPattern: 'https://.*\\.githubusercontent\\.com/.*',
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'github-cdn-cache',
+            expiration: {
+              maxEntries: 10,
+              maxAgeSeconds: 60 * 60 * 24 * 7, // 1 week
+            },
+            cacheableResponse: {
+              statuses: [0, 200],
+            },
+          },
+        },
+        {
+          urlPattern: 'https://fonts.googleapis.com/.*',
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'google-fonts-cache',
+            expiration: {
+              maxEntries: 10,
+              maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+            },
+            cacheableResponse: {
+              statuses: [0, 200],
+            },
+          },
+        },
+        {
+          urlPattern: 'https://fonts.gstatic.com/.*',
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'font-files-cache',
+            expiration: {
+              maxEntries: 10,
+              maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+            },
+            cacheableResponse: {
+              statuses: [0, 200],
+            },
+          },
+        },
+        {
+          urlPattern: '^https://.*\\.(png|jpe?g|gif|svg|webp)$',
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'image-cache',
+            expiration: {
+              maxEntries: 20,
+              maxAgeSeconds: 60 * 60 * 24 * 7, // 1 week
+            },
+            cacheableResponse: {
+              statuses: [0, 200],
             },
           },
         },
@@ -133,10 +218,16 @@ export default defineNuxtConfig({
           href: 'https://fonts.gstatic.com',
           crossorigin: 'anonymous',
         },
+        // Prefetch resources that might be needed later
+        { rel: 'prefetch', href: '/api/resources.json' },
+        { rel: 'prefetch', href: '/api/submissions' },
         // Add preloading for critical resources
         { rel: 'preload', href: '/favicon.ico', as: 'image' },
         // Preload critical CSS
         { rel: 'preload', href: '/_nuxt/', as: 'fetch', crossorigin: true },
+        // DNS prefetch for external resources
+        { rel: 'dns-prefetch', href: 'https://fonts.googleapis.com' },
+        { rel: 'dns-prefetch', href: 'https://fonts.gstatic.com' },
         // Add canonical URL - will be set dynamically in app.vue
       ],
       script: [
@@ -200,117 +291,60 @@ export default defineNuxtConfig({
     },
   },
 
+  // Define consistent security headers to avoid duplication
   routeRules: {
     // Add security headers globally
     '/**': {
       headers: {
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '1; mode=block',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
-      },
-    },
-    // Main routes with prerender and security headers
-    '/': {
-      prerender: true,
-      headers: {
-        'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
         'X-XSS-Protection': '0',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
         'Strict-Transport-Security':
           'max-age=31536000; includeSubDomains; preload',
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+      },
+    },
+    // Main routes with prerender and additional caching
+    '/': {
+      prerender: true,
+      headers: {
+        'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
       },
     },
     '/ai-keys': {
       prerender: true,
       headers: {
         'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '0',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
       },
     },
     '/about': {
       prerender: true,
       headers: {
         'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '0',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
       },
     },
     '/search': {
       prerender: true,
       headers: {
         'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '0',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
       },
     },
     '/submit': {
       prerender: true,
       headers: {
         'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '0',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
       },
     },
     // Add caching headers for better performance
     '/api/**': {
       headers: {
         'cache-control': 'max-age=300, public, s-maxage=300', // 5 minutes
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '0',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
       },
     },
     // Cache static assets
     '/_nuxt/**': {
       headers: {
         'cache-control': 'max-age=31536000, immutable',
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '1; mode=block',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
       },
     },
   },
@@ -356,7 +390,8 @@ export default defineNuxtConfig({
             // Split vendor chunks to improve caching
             'vendor-vue': ['vue', '@vue/reactivity', 'vue-router'],
             'vendor-search': ['fuse.js'],
-            'vendor-utils': ['zod'],
+            'vendor-security': ['dompurify', 'xss'],
+            'vendor-web-vitals': ['web-vitals'],
           },
           // Optimize chunk naming for better caching
           chunkFileNames: '_nuxt/[name].[hash].js',
@@ -366,6 +401,19 @@ export default defineNuxtConfig({
         external: ['@nuxt/kit'],
       },
     },
+    plugins: [
+      // Add bundle analyzer for performance monitoring (only when ANALYZE_BUNDLE is true)
+      ...(process.env.ANALYZE_BUNDLE === 'true'
+        ? [
+            require('rollup-plugin-visualizer').default({
+              filename: './dist/stats.html',
+              open: false,
+              gzipSize: true,
+              brotliSize: true,
+            }),
+          ]
+        : []),
+    ],
     // Optimize build speed
     esbuild: {
       logLevel: 'silent', // Reduce build noise
@@ -386,12 +434,13 @@ export default defineNuxtConfig({
       exclude: [],
     },
   },
+
   // Additional build optimization settings
   build: {
     // Enable compression
     compress: true,
     // Optimize for faster builds
-    transpile: ['vue'],
+    transpile: ['vue', 'entities', 'estree-walker'],
     // Enable parallel builds
     parallel: true,
     // Add more detailed build information

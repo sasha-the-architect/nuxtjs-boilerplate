@@ -1,43 +1,25 @@
+<<<<<<< HEAD
 import { ref, computed, readonly } from 'vue'
 import Fuse from 'fuse.js'
 import DOMPurify from 'dompurify'
 import { useErrorHandling } from '~/composables/useErrorHandling'
 import { useLoading } from '~/composables/useLoading'
+=======
+import { computed, readonly } from 'vue'
+import { useResourceData } from './useResourceData'
+import { useResourceFilters } from './useResourceFilters'
+import { useResourceSearch } from './useResourceSearch'
+import { useResourceSort } from './useResourceSort'
+import { useSearchHistory } from './useSearchHistory'
+import type { Resource, SortOption, FilterOptions } from '~/types/resource'
+>>>>>>> origin/main
 
-// Define TypeScript interfaces
-export interface Resource {
-  id: string
-  title: string
-  description: string
-  benefits: string[]
-  url: string
-  category: string
-  pricingModel: string
-  difficulty: string
-  tags: string[]
-  technology: string[]
-  dateAdded: string
-  popularity: number
-  icon?: string
-}
+// Re-export types for convenience
+export type { Resource, SortOption, FilterOptions }
 
-export interface FilterOptions {
-  searchQuery?: string
-  categories?: string[]
-  pricingModels?: string[]
-  difficultyLevels?: string[]
-  technologies?: string[]
-}
-
-// Define available sorting options
-export type SortOption =
-  | 'alphabetical-asc'
-  | 'alphabetical-desc'
-  | 'popularity-desc'
-  | 'date-added-desc'
-
-// Main composable for managing resources
+// Main composable that combines all resource functionality
 export const useResources = () => {
+<<<<<<< HEAD
   const resources = ref<Resource[]>([])
   const fuse = ref<Fuse<Resource> | null>(null)
   const retryCount = ref(0)
@@ -365,13 +347,124 @@ export const useResources = () => {
     error: readonly(error),
     hasError: readonly(hasError),
     retryCount: readonly(retryCount),
+=======
+  // Use the data composable for resource loading
+  const {
+    resources,
+    loading,
+    error,
+    retryCount,
+>>>>>>> origin/main
     maxRetries,
+    lastError,
     categories,
     pricingModels,
     difficultyLevels,
     technologies,
-    filterOptions: readonly(filterOptions),
-    sortOption: readonly(sortOption),
+    retryResources,
+  } = useResourceData()
+
+  // Use the filters composable
+  const {
+    filterOptions,
+    sortOption,
+    filteredResources,
+    updateSearchQuery,
+    toggleCategory,
+    togglePricingModel,
+    toggleDifficultyLevel,
+    toggleTechnology,
+    setSortOption,
+    resetFilters,
+  } = useResourceFilters(resources.value)
+
+  // Use the search composable
+  const { fuse, searchResources, getSuggestions, highlightSearchTerms } =
+    useResourceSearch(resources.value)
+
+  // Use the sort composable
+  const { sortedResources } = useResourceSort(
+    computed(() => {
+      // When there's a search query, filter the search results
+      if (
+        filterOptions.value.searchQuery &&
+        filterOptions.value.searchQuery.trim() !== ''
+      ) {
+        const searchResults = searchResources(filterOptions.value.searchQuery)
+        let result = [...searchResults]
+
+        // Apply category filter
+        if (
+          filterOptions.value.categories &&
+          filterOptions.value.categories.length > 0
+        ) {
+          result = result.filter(resource =>
+            filterOptions.value.categories!.includes(resource.category)
+          )
+        }
+
+        // Apply pricing model filter
+        if (
+          filterOptions.value.pricingModels &&
+          filterOptions.value.pricingModels.length > 0
+        ) {
+          result = result.filter(resource =>
+            filterOptions.value.pricingModels!.includes(resource.pricingModel)
+          )
+        }
+
+        // Apply difficulty level filter
+        if (
+          filterOptions.value.difficultyLevels &&
+          filterOptions.value.difficultyLevels.length > 0
+        ) {
+          result = result.filter(resource =>
+            filterOptions.value.difficultyLevels!.includes(resource.difficulty)
+          )
+        }
+
+        // Apply technology filter
+        if (
+          filterOptions.value.technologies &&
+          filterOptions.value.technologies.length > 0
+        ) {
+          result = result.filter(resource =>
+            resource.technology.some(tech =>
+              filterOptions.value.technologies!.includes(tech)
+            )
+          )
+        }
+
+        return result
+      } else {
+        // Use the filtered resources from the filters composable when no search query
+        return [...filteredResources.value]
+      }
+    }),
+    sortOption
+  )
+
+  // Use the search history composable
+  const { getSearchHistory, addSearchToHistory, clearSearchHistory } =
+    useSearchHistory()
+
+  // Combined filtered and sorted resources
+  const combinedFilteredResources = sortedResources
+
+  return {
+    resources,
+    filteredResources: combinedFilteredResources,
+    loading,
+    error,
+    retryCount,
+    maxRetries,
+    lastError,
+    categories,
+    pricingModels,
+    difficultyLevels,
+    technologies,
+    filterOptions,
+    sortOption,
     updateSearchQuery,
     toggleCategory,
     togglePricingModel,
@@ -381,6 +474,13 @@ export const useResources = () => {
     resetFilters,
     highlightSearchTerms,
     retryResources,
+<<<<<<< HEAD
     loadResources,
+=======
+    getSuggestions,
+    getSearchHistory,
+    addSearchToHistory,
+    clearSearchHistory,
+>>>>>>> origin/main
   }
 }

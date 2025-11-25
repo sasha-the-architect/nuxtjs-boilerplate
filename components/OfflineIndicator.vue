@@ -24,6 +24,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onUnmounted } from 'vue'
+
 const isOffline = ref(false)
 
 // Check initial connection status

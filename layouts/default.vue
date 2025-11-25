@@ -53,6 +53,13 @@
               AI Keys
             </NuxtLink>
             <NuxtLink
+              to="/favorites"
+              class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
+              active-class="bg-gray-100"
+            >
+              Favorites
+            </NuxtLink>
+            <NuxtLink
               to="/about"
               class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               active-class="bg-gray-100"
@@ -62,39 +69,6 @@
             <NuxtLink
               to="/submit"
               class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium font-medium bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
-              active-class="bg-gray-200"
-              >Submit</NuxtLink
-            >
-            <NuxtLink
-              to="/"
-              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
-              active-class="bg-gray-100"
-            >
-              Home
-            </NuxtLink>
-            <NuxtLink
-              to="/search"
-              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
-              active-class="bg-gray-100"
-              >Search</NuxtLink
-            >
-            <NuxtLink
-              to="/ai-keys"
-              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
-              active-class="bg-gray-100"
-            >
-              AI Keys
-            </NuxtLink>
-            <NuxtLink
-              to="/about"
-              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
-              active-class="bg-gray-100"
-            >
-              About
-            </NuxtLink>
-            <NuxtLink
-              to="/submit"
-              class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium font-medium bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               active-class="bg-gray-200"
               >Submit</NuxtLink
             >
@@ -116,10 +90,15 @@
     </footer>
 
     <!-- PWA Install Prompt -->
-    <PWAInstallPrompt />
+    <client-only>
+      <PWAInstallPrompt />
+    </client-only>
 
     <!-- Offline Indicator -->
     <OfflineIndicator />
+
+    <!-- Toast Notifications -->
+    <ToastNotification />
   </div>
 </template>
 
@@ -130,6 +109,7 @@ import { useResources } from '~/composables/useResources'
 import SearchBar from '~/components/SearchBar.vue'
 import PWAInstallPrompt from '~/components/PWAInstallPrompt.vue'
 import OfflineIndicator from '~/components/OfflineIndicator.vue'
+import ToastNotification from '~/components/ToastNotification.vue'
 
 // Use the resources composable to enable global search
 const { filterOptions, updateSearchQuery } = useResources()

@@ -1,18 +1,18 @@
-import { defineConfig } from 'vitest/config'
-import vue from '@vitejs/plugin-vue'
-import { resolve } from 'path'
+import { defineVitestConfig } from '@nuxt/test-utils/config'
 
-export default defineConfig({
-  plugins: [vue()],
+export default defineVitestConfig({
   test: {
-    environment: 'happy-dom',
+    globals: true,
+    environment: 'nuxt',
+    setupFiles: ['./test-setup.ts'],
     environmentOptions: {
-      happyDOM: {
-        url: 'http://localhost:3000',
+      nuxt: {
+        rootDir: '.',
+        overrides: {
+          // Add any necessary nuxt config overrides for testing
+        },
       },
     },
-    globals: true,
-    setupFiles: ['./test-setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -28,20 +28,12 @@ export default defineConfig({
       ],
       thresholds: {
         global: {
-          branches: 70,
-          functions: 70,
-          lines: 70,
-          statements: 70,
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80,
         },
       },
-    },
-  },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, '.'),
-      '~': resolve(__dirname, '.'),
-      '~~': resolve(__dirname, '.'),
-      '@@': resolve(__dirname, '.'),
     },
   },
 })

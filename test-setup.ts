@@ -1,154 +1,141 @@
-import { beforeAll, afterEach, afterAll, vi } from 'vitest'
-import { config } from '@vue/test-utils'
-import { ref, computed } from 'vue'
-import { createRouter, createMemoryHistory } from 'vue-router'
+// Test setup file for Vitest
+import { vi, expect } from 'vitest'
+import '@testing-library/jest-dom'
 
-// Create a mock router for testing
-const router = createRouter({
-  history: createMemoryHistory(),
-  routes: [
-    { path: '/', name: 'index', component: { template: '<div />' } },
-    { path: '/search', name: 'search', component: { template: '<div />' } },
-    { path: '/about', name: 'about', component: { template: '<div />' } },
-    { path: '/submit', name: 'submit', component: { template: '<div />' } },
-  ],
-})
+// Mock window.matchMedia
+if (typeof window !== 'undefined' && !window.matchMedia) {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(), // deprecated
+      removeListener: vi.fn(), // deprecated
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  })
+}
 
-// Mock vue-router composables specifically for Nuxt
-vi.mock('vue-router', async () => {
-  const actual = await vi.importActual('vue-router')
+// Mock ResizeObserver if it doesn't exist
+if (
+  typeof window !== 'undefined' &&
+  typeof window.ResizeObserver === 'undefined'
+) {
+  class VitestResizeObserver {
+    observe = vi.fn()
+    unobserve = vi.fn()
+    disconnect = vi.fn()
+  }
+
+  // @ts-ignore
+  window.ResizeObserver = VitestResizeObserver
+}
+
+// Mock IntersectionObserver if it doesn't exist
+if (
+  typeof window !== 'undefined' &&
+  typeof window.IntersectionObserver === 'undefined'
+) {
+  class VitestIntersectionObserver {
+    observe = vi.fn()
+    unobserve = vi.fn()
+    disconnect = vi.fn()
+  }
+
+  // @ts-ignore
+  window.IntersectionObserver = VitestIntersectionObserver
+}
+
+// Mock DOMPurify
+vi.mock('dompurify', () => {
   return {
-    ...actual,
-    useRoute: () => ({
-      path: '/',
-      query: {},
-      params: {},
-      hash: '',
-      name: 'index',
-      meta: {},
-    }),
-    useRouter: () => ({
-      push: vi.fn(),
-      replace: vi.fn(),
-      go: vi.fn(),
-      back: vi.fn(),
-      forward: vi.fn(),
-      currentRoute: ref({
-        path: '/',
-        query: {},
-        params: {},
-        hash: '',
-        name: 'index',
-        meta: {},
-      }),
-    }),
+    default: {
+      sanitize: (html: string) => {
+        // Basic sanitization for testing - just return the input for now
+        // In real tests you'd want proper sanitization
+        return html
+          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+          .replace(/javascript:/gi, '')
+          .replace(/on\w+\s*=/gi, '')
+      },
+    },
   }
 })
 
-// Mock Nuxt composables
-config.global.mocks = {
-  $nuxt: {
-    $router: {
-      push: vi.fn(),
-      replace: vi.fn(),
-      go: vi.fn(),
-      back: vi.fn(),
-      forward: vi.fn(),
+// Mock process for Node environment
+if (typeof global !== 'undefined') {
+  Object.defineProperty(global, 'process', {
+    value: {
+      ...process,
+      env: {
+        ...process.env,
+        NODE_ENV: 'test',
+      },
     },
-    $route: {
-      path: '/',
-      query: {},
-      params: {},
-      hash: '',
-      name: 'index',
-      meta: {},
-    },
-  },
-  useHead: vi.fn(),
-  useSeoMeta: vi.fn(),
-  useRuntimeConfig: vi.fn(() => ({})),
+    writable: true,
+  })
 }
 
-// Mock Nuxt composables
-global.useHead = vi.fn()
-global.useSeoMeta = vi.fn()
-global.definePageMeta = vi.fn()
-global.defineNuxtConfig = vi.fn()
-global.defineNuxtRouteMiddleware = vi.fn()
-global.useRuntimeConfig = vi.fn(() => ({
-  public: {
-    siteUrl: 'https://example.com',
-  },
-}))
-global.useState = vi.fn((key, defaultValue) => ref(defaultValue))
-global.useFetch = vi.fn(() => ({
-  data: ref(null),
-  pending: ref(false),
-  error: ref(null),
-  refresh: vi.fn(),
-}))
-global.useAsyncData = vi.fn(() => ({
-  data: ref(null),
-  pending: ref(false),
-  error: ref(null),
-  refresh: vi.fn(),
-}))
-global.navigateTo = vi.fn()
-global.$fetch = vi.fn()
-global.useRoute = () => ({
-  path: '/',
-  query: {},
-  params: {},
-  hash: '',
-  name: 'index',
-  meta: {},
-})
-global.useRouter = () => ({
-  push: vi.fn(),
-  replace: vi.fn(),
-  go: vi.fn(),
-  back: vi.fn(),
-  forward: vi.fn(),
-})
+// Mock console to prevent test errors from console logs
+if (typeof global !== 'undefined') {
+  Object.defineProperty(global, 'console', {
+    value: {
+      ...console,
+      error: vi.fn(),
+      warn: vi.fn(),
+      log: vi.fn(),
+      info: vi.fn(),
+      debug: vi.fn(),
+    },
+    writable: true,
+  })
+}
 
-// Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(), // deprecated
-    removeListener: vi.fn(), // deprecated
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-})
+// Mock fetch API if needed
+if (typeof global !== 'undefined' && !global.fetch) {
+  global.fetch = vi.fn(() =>
+    Promise.resolve({
+      json: () => Promise.resolve({}),
+      text: () => Promise.resolve(''),
+      ok: true,
+      status: 200,
+    })
+  ) as any
+}
 
-// Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}))
+// Mock URL constructor
+if (typeof vi !== 'undefined') {
+  vi.stubGlobal('URL', {
+    prototype: {
+      href: '',
+      origin: '',
+      protocol: '',
+      host: '',
+      hostname: '',
+      port: '',
+      pathname: '',
+      search: '',
+      hash: '',
+    },
+    createObjectURL: vi.fn(),
+    revokeObjectURL: vi.fn(),
+  })
+}
 
-// Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}))
-
-beforeAll(() => {
-  // Global test setup
-})
-
-afterEach(() => {
-  // Clean up after each test
-  vi.clearAllMocks()
-})
-
-afterAll(() => {
-  // Global cleanup
-})
+// Mock localStorage if needed
+if (typeof window !== 'undefined') {
+  const vitestLocalStorageMock = {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+    length: 0,
+    key: vi.fn(),
+  }
+  Object.defineProperty(window, 'localStorage', {
+    value: vitestLocalStorageMock,
+  })
+}

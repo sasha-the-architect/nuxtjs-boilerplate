@@ -29,14 +29,14 @@ jobs:
       pull-requests: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       # Node.js (opsional; auto-deteksi)
       - name: Setup Node
         if: hashFiles('package-lock.json') != '' || hashFiles('pnpm-lock.yaml') != '' || hashFiles('yarn.lock') != ''
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 'lts/*'
           cache: ${{ hashFiles('pnpm-lock.yaml') != '' && 'pnpm' || (hashFiles('yarn.lock') != '' && 'yarn' || 'npm') }}
@@ -56,7 +56,7 @@ jobs:
       # Python (opsional; auto-deteksi)
       - name: Setup Python
         if: hashFiles('requirements*.txt') != '' || hashFiles('pyproject.toml') != ''
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
       - name: Install deps (Python)
@@ -99,7 +99,7 @@ jobs:
 
       - name: Checkout PR head (non-fork)
         if: steps.forkcheck.outputs.fork != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
@@ -136,7 +136,7 @@ jobs:
     steps:
       - name: Kumpulkan PR terbuka non-fork
         id: collect
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const prs = await github.paginate(github.rest.pulls.list, {
@@ -170,7 +170,7 @@ jobs:
 
       - name: Checkout PR head
         if: matrix.pr.number != 0
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ matrix.pr.head_repo_full_name }}
           ref: ${{ matrix.pr.head_ref }}
@@ -216,7 +216,7 @@ jobs:
 
       - name: Checkout PR head
         if: steps.pr.outputs.head_repo_fork != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ steps.pr.outputs.head_repo_full_name }}
           ref: ${{ steps.pr.outputs.head_ref }}
