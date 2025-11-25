@@ -75,4 +75,12 @@ If encountering vitest conflicts:
 2. Check package-lock.json for conflicting entries
 3. Verify packageManager field matches the package manager being used
 
+### ESLint and Test Framework Issues
+
+If encountering ESLint or test framework issues:
+
+1. Run `npm install` to ensure all dependencies are properly installed and resolved
+2. Verify that all required packages are present in package-lock.json
+3. Check for missing peer dependencies that might be causing conflicts
+
 This strategy ensures the build system remains stable and prevents the development blocking issues mentioned in issue #126.
