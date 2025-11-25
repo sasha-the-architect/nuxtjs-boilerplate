@@ -54,24 +54,27 @@ if (resourceCardContent.includes('DOMPurify.sanitize')) {
   }
 }
 
-// Check if security middleware exists
-const middlewarePath = path.join(__dirname, 'server/middleware/security.ts')
-if (fs.existsSync(middlewarePath)) {
+// Check if security headers plugin exists
+const securityPluginPath = path.join(
+  __dirname,
+  'server/plugins/security-headers.ts'
+)
+if (fs.existsSync(securityPluginPath)) {
   if (
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
     // eslint-disable-next-line no-console
-    console.log('✓ Security middleware file exists')
+    console.log('✓ Security headers plugin exists')
   }
-  const middlewareContent = fs.readFileSync(middlewarePath, 'utf8')
-  if (middlewareContent.includes('Content-Security-Policy')) {
+  const securityPluginContent = fs.readFileSync(securityPluginPath, 'utf8')
+  if (securityPluginContent.includes('Content-Security-Policy')) {
     if (
       process.env.NODE_ENV !== 'production' ||
       process.env.VALIDATION_LOGS === 'true'
     ) {
       // eslint-disable-next-line no-console
-      console.log('✓ CSP header configuration found in security middleware')
+      console.log('✓ CSP header configuration found in security headers plugin')
     }
   } else {
     if (
@@ -79,7 +82,9 @@ if (fs.existsSync(middlewarePath)) {
       process.env.VALIDATION_LOGS === 'true'
     ) {
       // eslint-disable-next-line no-console
-      console.log('✗ CSP header configuration NOT found in security middleware')
+      console.log(
+        '✗ CSP header configuration NOT found in security headers plugin'
+      )
     }
   }
 } else {
@@ -88,7 +93,7 @@ if (fs.existsSync(middlewarePath)) {
     process.env.VALIDATION_LOGS === 'true'
   ) {
     // eslint-disable-next-line no-console
-    console.log('✗ Security middleware file does NOT exist')
+    console.log('✗ Security headers plugin does NOT exist')
   }
 }
 

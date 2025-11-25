@@ -393,8 +393,7 @@ export default defineNuxtConfig({
     plugins:
       process.env.ANALYZE_BUNDLE === 'true'
         ? [
-            // Add bundle analyzer for performance monitoring
-            require('rollup-plugin-visualizer').default({
+            require('rollup-plugin-visualizer')({
               filename: './dist/stats.html',
               open: false,
               gzipSize: true,
