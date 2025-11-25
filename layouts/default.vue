@@ -53,6 +53,13 @@
               AI Keys
             </NuxtLink>
             <NuxtLink
+              to="/favorites"
+              class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
+              active-class="bg-gray-100"
+            >
+              Favorites
+            </NuxtLink>
+            <NuxtLink
               to="/about"
               class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               active-class="bg-gray-100"

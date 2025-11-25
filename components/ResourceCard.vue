@@ -68,7 +68,7 @@
             </li>
           </ul>
         </div>
-        <div class="mt-3">
+        <div class="mt-4 flex items-center justify-between">
           <a
             :href="url"
             :target="newTab ? '_blank' : '_self'"
@@ -80,6 +80,18 @@
             {{ buttonLabel }}
             <span v-if="newTab" class="ml-1 text-xs">(new tab)</span>
           </a>
+          <div class="flex items-center space-x-2">
+            <!-- Bookmark button -->
+            <BookmarkButton
+              v-if="id"
+              :resource-id="id"
+              :title="title"
+              :description="description"
+              :url="url"
+            />
+            <!-- Slot for additional actions -->
+            <slot name="actions"></slot>
+          </div>
         </div>
       </div>
     </div>
@@ -119,6 +131,7 @@ import { computed, ref } from 'vue'
 import { useHead } from '#imports'
 import DOMPurify from 'dompurify'
 import OptimizedImage from '~/components/OptimizedImage.vue'
+import BookmarkButton from '~/components/BookmarkButton.vue'
 
 interface Props {
   title: string
