@@ -86,6 +86,7 @@ export default defineEventHandler(async event => {
     const pricing = query.pricing as string | undefined
     const difficulty = query.difficulty as string | undefined
     const search = query.search as string | undefined
+    const tags = query.tags as string | undefined
     const sort = query.sort as string | undefined
 
     // Validate sort parameter
@@ -133,6 +134,24 @@ export default defineEventHandler(async event => {
           resource.description.toLowerCase().includes(searchTerm) ||
           resource.tags.some(tag => tag.toLowerCase().includes(searchTerm))
       )
+    }
+
+    if (tags) {
+      // Validate tags parameter - ensure it's a string before splitting
+      if (typeof tags === 'string') {
+        const tagList = tags.split(',').map(tag => tag.trim().toLowerCase())
+        resources = resources.filter(resource =>
+          resource.tags.some(tag => tagList.includes(tag.toLowerCase()))
+        )
+      } else {
+        // Invalid tags parameter format
+        setResponseStatus(event, 400)
+        return {
+          success: false,
+          message: 'Invalid tags parameter. Must be a comma-separated string.',
+          error: 'Bad Request',
+        }
+      }
     }
 
     // Apply sorting

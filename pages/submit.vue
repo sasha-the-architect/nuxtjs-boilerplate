@@ -126,16 +126,13 @@
             >
               Tags (Optional)
             </label>
-            <input
-              id="tags"
-              v-model="tagsInput"
-              type="text"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500"
-              placeholder="Enter tags separated by commas"
+            <TagSelector
+              v-model="selectedTags"
+              :all-tags="allTags"
+              :hierarchical-tags="hierarchicalTags"
             />
             <p class="mt-1 text-sm text-gray-500">
-              Add relevant tags to help categorize this resource (e.g., "api,
-              free-tier, openai")
+              Add relevant tags to help categorize this resource
             </p>
           </div>
 
@@ -237,6 +234,9 @@
 </template>
 
 <script setup lang="ts">
+import type { HierarchicalTag } from '~/types/resource'
+import TagSelector from '~/components/TagSelector.vue'
+
 const formData = reactive({
   title: '',
   description: '',
@@ -245,11 +245,52 @@ const formData = reactive({
   tags: [],
 })
 
+// For tag selection
+const selectedTags = ref<string[]>([])
+const allTags = ref<string[]>([])
+const hierarchicalTags = ref<HierarchicalTag[]>([])
+
 const tagsInput = ref('')
 const errors = ref<Record<string, string>>({})
 const isSubmitting = ref(false)
 const submitSuccess = ref(false)
 const submitError = ref('')
+
+// Load all available tags from the resources data
+onMounted(async () => {
+  try {
+    const resourcesModule = await import('~/data/resources.json')
+    const resources = resourcesModule.default || resourcesModule
+    // Extract all unique tags from existing resources
+    const uniqueTags = new Set<string>()
+    resources.forEach((resource: any) => {
+      resource.tags.forEach((tag: string) => uniqueTags.add(tag))
+    })
+    allTags.value = Array.from(uniqueTags)
+  } catch (error) {
+    // Fallback - use some common tags
+    allTags.value = [
+      'AI',
+      'API',
+      'Free Tier',
+      'Open Source',
+      'Web Development',
+      'Database',
+      'Hosting',
+      'Cloud',
+      'Tools',
+    ]
+  }
+})
+
+// Watch for changes in selectedTags to update formData
+watch(
+  selectedTags,
+  newTags => {
+    formData.tags = newTags
+  },
+  { deep: true }
+)
 
 const validateForm = (): boolean => {
   errors.value = {}
@@ -290,15 +331,8 @@ const submitResource = async () => {
     return
   }
 
-  // Process tags from comma-separated string
-  if (tagsInput.value.trim()) {
-    formData.tags = tagsInput.value
-      .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0)
-  } else {
-    formData.tags = []
-  }
+  // Set the tags from the selected tags
+  formData.tags = selectedTags.value
 
   isSubmitting.value = true
   submitError.value = ''
@@ -322,7 +356,7 @@ const submitResource = async () => {
       formData.description = ''
       formData.url = ''
       formData.category = ''
-      tagsInput.value = ''
+      selectedTags.value = []
       submitSuccess.value = true
 
       // Reset success message after 5 seconds

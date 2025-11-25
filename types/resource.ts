@@ -15,12 +15,25 @@ export interface Resource {
   icon?: string
 }
 
+// Define the hierarchical tag structure
+export interface HierarchicalTag {
+  id: string
+  name: string
+  description?: string
+  parentId?: string
+  children?: HierarchicalTag[]
+  synonyms?: string[]
+  aliases?: string[]
+  metadata?: Record<string, any>
+}
+
 export interface FilterOptions {
   searchQuery?: string
   categories?: string[]
   pricingModels?: string[]
   difficultyLevels?: string[]
   technologies?: string[]
+  tags?: string[] // Add tags to filter options
 }
 
 export type SortOption =
