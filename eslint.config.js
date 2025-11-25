@@ -247,6 +247,13 @@ export default [
       'vue/one-component-per-file': 'off', // Allow multiple components in test files
     },
   },
+  {
+    // For plugin files (especially error handlers)
+    files: ['plugins/**/*.{js,ts,vue}'],
+    rules: {
+      'no-console': 'off', // Allow console statements in plugin files for error handling
+    },
+  },
   // Apply prettier config to disable conflicting rules
   configPrettier,
   {
