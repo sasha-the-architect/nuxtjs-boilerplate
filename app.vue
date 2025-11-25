@@ -24,8 +24,15 @@ useSeoMeta({
     'Discover amazing free resources available on the internet - from AI tools to hosting services.',
   ogDescription:
     'Discover amazing free resources available on the internet - from AI tools to hosting services.',
-  ogImage: '/og-image.jpg',
+  ogImage: `${runtimeConfig.public.canonicalUrl}/og-image.jpg`,
+  ogImageWidth: '1200',
+  ogImageHeight: '630',
+  ogImageType: 'image/jpg',
+  ogUrl: runtimeConfig.public.canonicalUrl,
+  ogType: 'website',
   twitterCard: 'summary_large_image',
+  twitterSite: '@yourTwitterHandle', // Replace with actual Twitter handle if available
+  twitterCreator: '@yourTwitterHandle', // Replace with actual Twitter handle if available
 })
 
 // Add structured data for the website using JSON-LD

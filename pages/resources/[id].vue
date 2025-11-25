@@ -252,12 +252,99 @@
               <!-- Share Section -->
               <div class="mb-8">
                 <h3 class="text-lg font-medium text-gray-900 mb-3">Share</h3>
-                <SocialShare
-                  :title="resource.title"
-                  :description="resource.description"
-                  :url="currentUrl"
-                  resource-type="resource-detail"
-                />
+                <div class="flex flex-wrap gap-3">
+                  <a
+                    :href="shareUrls.twitter"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                    aria-label="Share on Twitter"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"
+                      />
+                    </svg>
+                  </a>
+                  <a
+                    :href="shareUrls.facebook"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="p-2 rounded-full bg-blue-700 text-white hover:bg-blue-800 transition-colors"
+                    aria-label="Share on Facebook"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                      />
+                    </svg>
+                  </a>
+                  <a
+                    :href="shareUrls.linkedin"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="p-2 rounded-full bg-blue-800 text-white hover:bg-blue-900 transition-colors"
+                    aria-label="Share on LinkedIn"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
+                      />
+                    </svg>
+                  </a>
+                  <a
+                    :href="shareUrls.reddit"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="p-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                    aria-label="Share on Reddit"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"
+                      />
+                    </svg>
+                  </a>
+                  <button
+                    class="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors"
+                    aria-label="Copy link to clipboard"
+                    @click="copyToClipboard"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                      />
+                      <path
+                        d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h4a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -269,13 +356,13 @@
         <h2 class="text-2xl font-bold text-gray-900 mb-6">Related Resources</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <ResourceCard
-            v-for="resource in relatedResources"
-            :key="resource.id"
-            :title="resource.title"
-            :description="resource.description"
-            :benefits="resource.benefits"
-            :url="resource.url"
-            :button-label="getButtonLabel(resource.category)"
+            v-for="relatedResource in relatedResources"
+            :key="relatedResource.id"
+            :title="relatedResource.title"
+            :description="relatedResource.description"
+            :benefits="relatedResource.benefits"
+            :url="relatedResource.url"
+            :button-label="getButtonLabel(relatedResource.category)"
           />
         </div>
       </div>
@@ -286,31 +373,29 @@
 <script setup lang="ts">
 import { useResources, type Resource } from '~/composables/useResources'
 import ResourceCard from '~/components/ResourceCard.vue'
-import SocialShare from '~/components/SocialShare.vue'
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useRequestURL } from '#imports'
+import { useRuntimeConfig, useSeoMeta } from '#imports'
+import { generateResourceShareUrls } from '~/utils/shareUtils'
 
 const route = useRoute()
+const {
+  resources,
+  loading: resourcesLoading,
+  error: resourcesError,
+} = useResources()
+const loading = ref(true)
+const error = ref<string | null>(null)
+const resource = ref<Resource | null>(null)
+const relatedResources = ref<Resource[]>([])
 
-// Get current URL for social sharing
+// Get current URL for sharing
 const currentUrl = computed(() => {
-  if (process.client) {
-    return window.location.href
-  }
-  // In server-side rendering, use the request URL if available
-  try {
-    const requestURL = useRequestURL()
-    return requestURL.href
-  } catch {
-    // Fallback to a default URL in case useRequestURL is not available
-    return typeof window !== 'undefined'
-      ? window.location.href
-      : 'https://example.com/resources/' + route.params.id
-  }
+  const runtimeConfig = useRuntimeConfig()
+  return `${runtimeConfig.public.canonicalUrl}/resources/${route.params.id}`
 })
 
-// Add date formatting function
+// Format date function
 const formatDate = (dateString: string) => {
   const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
@@ -320,16 +405,112 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString(undefined, options)
 }
 
-// Additional methods from the original script...
+// Get button label based on category
 const getButtonLabel = (category: string) => {
-  if (!category) return 'Get Free Access'
-  const categoryLower = category.toLowerCase()
-  if (categoryLower.includes('ai') || categoryLower.includes('tool'))
-    return 'Try AI Tool'
-  if (categoryLower.includes('hosting') || categoryLower.includes('server'))
-    return 'Get Hosting'
-  if (categoryLower.includes('database') || categoryLower.includes('db'))
-    return 'Connect Database'
-  return 'Get Free Access'
+  const categoryLabels: Record<string, string> = {
+    'AI Tools': 'Try AI Tool',
+    Hosting: 'Get Hosting',
+    Databases: 'Connect Database',
+    CDN: 'Use CDN',
+    VPS: 'Get VPS',
+    Analytics: 'Use Analytics',
+    APIs: 'Use API',
+    'Developer Tools': 'Use Tool',
+    Design: 'Use Design Tool',
+    Productivity: 'Boost Productivity',
+  }
+  return categoryLabels[category] || 'Get Resource'
+}
+
+// Fetch resource by ID
+onMounted(async () => {
+  try {
+    // Wait for resources to load
+    if (resourcesLoading.value) {
+      // We need to wait until resources are loaded
+      const checkResources = () => {
+        if (!resourcesLoading.value) {
+          const resourceId = route.params.id as string
+          resource.value =
+            resources.value.find(r => r.id === resourceId) || null
+          if (!resource.value) {
+            error.value = 'Resource not found'
+          } else {
+            // Get related resources (same category, exclude current)
+            relatedResources.value = resources.value
+              .filter(
+                r =>
+                  r.category === resource.value?.category &&
+                  r.id !== resource.value?.id
+              )
+              .slice(0, 3) // Limit to 3 related resources
+          }
+          loading.value = false
+        } else {
+          setTimeout(checkResources, 100)
+        }
+      }
+      checkResources()
+    } else {
+      const resourceId = route.params.id as string
+      resource.value = resources.value.find(r => r.id === resourceId) || null
+      if (!resource.value) {
+        error.value = 'Resource not found'
+      } else {
+        // Get related resources (same category, exclude current)
+        relatedResources.value = resources.value
+          .filter(
+            r =>
+              r.category === resource.value?.category &&
+              r.id !== resource.value?.id
+          )
+          .slice(0, 3) // Limit to 3 related resources
+      }
+      loading.value = false
+    }
+  } catch (err) {
+    error.value = 'Failed to load resource'
+    loading.value = false
+  }
+})
+
+// Copy URL to clipboard
+const copyToClipboard = async () => {
+  try {
+    await navigator.clipboard.writeText(currentUrl.value)
+    // We could add a toast notification here in the future
+  } catch (err) {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea')
+    textArea.value = currentUrl.value
+    document.body.appendChild(textArea)
+    textArea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textArea)
+  }
+}
+
+// Generate share URLs with UTM parameters
+const shareUrls = computed(() => {
+  if (!resource.value) return {}
+  return generateResourceShareUrls(
+    currentUrl.value,
+    resource.value.title,
+    resource.value.description
+  )
+})
+
+// Set dynamic meta tags for the resource
+const { title, description } = resource.value || {}
+if (title && description) {
+  useSeoMeta({
+    title: `${title} - Free Resources for Developers`,
+    ogTitle: `${title} - Free Resources for Developers`,
+    description: `${description} - Discover this and other amazing free resources on Free Stuff on the Internet.`,
+    ogDescription: `${description} - Discover this and other amazing free resources on Free Stuff on the Internet.`,
+    ogUrl: currentUrl.value,
+    ogType: 'website',
+    twitterCard: 'summary_large_image',
+  })
 }
 </script>
