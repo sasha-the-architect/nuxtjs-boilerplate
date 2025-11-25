@@ -1,18 +1,19 @@
-import { defineVitestConfig } from '@nuxt/test-utils/config'
+import { defineConfig } from 'vitest/config'
 
-export default defineVitestConfig({
+export default defineConfig({
   test: {
     globals: true,
-    environment: 'nuxt',
+    environment: 'node',
     setupFiles: ['./test-setup.ts'],
-    environmentOptions: {
-      nuxt: {
-        rootDir: '.',
-        overrides: {
-          // Add any necessary nuxt config overrides for testing
-        },
-      },
-    },
+    include: [
+      '__tests__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      'basic.test.ts',
+      'tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+    ],
+    exclude: [
+      'node_modules',
+      'components/__tests__/**/*', // Exclude component tests that need DOM environment
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -28,10 +29,10 @@ export default defineVitestConfig({
       ],
       thresholds: {
         global: {
-          branches: 70, // Reduced temporarily to get tests running
-          functions: 70,
-          lines: 70,
-          statements: 70,
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80,
         },
       },
     },

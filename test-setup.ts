@@ -1,5 +1,9 @@
-// Minimal test setup file for Vitest - avoids interfering with Nuxt environment
+// Comprehensive test setup file for Vitest
 import { vi } from 'vitest'
+
+// Set test environment early
+process.env.NODE_ENV = 'test'
+process.env.VITEST = 'true'
 
 // Mock DOMPurify
 vi.mock('dompurify', async importOriginal => {
@@ -19,7 +23,58 @@ vi.mock('dompurify', async importOriginal => {
   }
 })
 
-// Only set process.env.NODE_ENV if it's not already set by Nuxt
-if (typeof process !== 'undefined' && process.env) {
-  process.env.NODE_ENV = process.env.NODE_ENV || 'test'
+// Mock window and document if they don't exist
+if (typeof window === 'undefined') {
+  global.window = {} as any
+}
+if (typeof document === 'undefined') {
+  global.document = {} as any
+}
+
+// Mock window properties if they don't exist
+if (typeof window !== 'undefined' && !window.matchMedia) {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(), // deprecated
+      removeListener: vi.fn(), // deprecated
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  })
+}
+
+// Mock navigator if it doesn't exist
+if (typeof navigator === 'undefined') {
+  global.navigator = {
+    clipboard: {
+      writeText: vi.fn().mockResolvedValue(undefined),
+    },
+  } as any
+} else {
+  // If navigator exists but clipboard doesn't, add it
+  if (!navigator.clipboard) {
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+    })
+  }
+}
+
+// Mock IntersectionObserver if needed
+class MockIntersectionObserver {
+  observe = vi.fn()
+  unobserve = vi.fn()
+  disconnect = vi.fn()
+}
+if (typeof window !== 'undefined' && !window.IntersectionObserver) {
+  Object.defineProperty(window, 'IntersectionObserver', {
+    writable: true,
+    value: MockIntersectionObserver,
+  })
 }
