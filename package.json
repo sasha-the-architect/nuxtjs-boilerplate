@@ -20,7 +20,9 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --run --coverage",
     "test:watch": "vitest --watch",
-    "analyze": "ANALYZE_BUNDLE=true nuxt build"
+    "analyze": "ANALYZE_BUNDLE=true nuxt build",
+    "triage-issues": "node scripts/issue-triage.js",
+    "triage": "node scripts/issue-triage.js && node scripts/pr-automation.js"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

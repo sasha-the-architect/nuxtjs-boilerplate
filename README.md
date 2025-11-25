@@ -66,6 +66,23 @@ The application will be available at <http://localhost:3000>
 - **Deployment**: Vercel/Netlify ready
 - **Performance**: Optimized for Core Web Vitals
 
+## 📋 Issue Triage and Automation
+
+This project includes automated issue triage and PR handling systems to maintain repository health:
+
+- **Issue Triage**: Automated categorization and prioritization of GitHub issues
+- **PR Automation**: Automated processing of pull requests with comment handling and validation
+
+### Automation Scripts
+
+```bash
+# Run issue triage system
+npm run triage-issues
+
+# Run both issue triage and PR automation
+npm run triage
+```
+
 ## 🚀 Quick Start
 
 ```bash
