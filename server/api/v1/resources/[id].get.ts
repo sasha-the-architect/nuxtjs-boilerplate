@@ -1,4 +1,4 @@
-import { createError, setResponseStatus } from 'h3'
+import { createError, getQuery, setResponseStatus } from 'h3'
 import { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
 
@@ -53,9 +53,25 @@ export default defineEventHandler(async event => {
       throw error
     }
 
+    // Check if link health data should be included
+    const query = getQuery(event)
+    const includeLinkHealth =
+      query.includeLinkHealth === 'true' || query.includeLinkHealth === '1'
+
+    // Prepare response data
+    let responseData = resource
+    if (!includeLinkHealth) {
+      // Remove linkHealth if not explicitly requested to keep response smaller
+      const { linkHealth, ...resourceWithoutHealth } = resource
+      responseData = resourceWithoutHealth
+    } else {
+      // If explicitly requested, ensure we return the full resource with health data
+      responseData = resource
+    }
+
     return {
       success: true,
-      data: resource,
+      data: responseData,
     }
   } catch (error: any) {
     if (error.statusCode) {

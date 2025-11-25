@@ -65,6 +65,8 @@ export default defineEventHandler(async event => {
     const difficulty = query.difficulty as string | undefined
     const search = query.search as string | undefined
     const sort = query.sort as string | undefined
+    const includeLinkHealth =
+      query.includeLinkHealth === 'true' || query.includeLinkHealth === '1'
 
     // Validate sort parameter
     const validSortOptions = [
@@ -135,7 +137,17 @@ export default defineEventHandler(async event => {
 
     // Apply pagination
     const total = resources.length
-    const paginatedResources = resources.slice(offset, offset + limit)
+    let paginatedResources = resources.slice(offset, offset + limit)
+
+    // Optionally include link health data
+    if (includeLinkHealth) {
+      // In a real implementation, this would fetch actual link health data from a database
+      // For now, we'll return the existing linkHealth if available (or null if not set)
+      paginatedResources = paginatedResources.map(resource => ({
+        ...resource,
+        linkHealth: resource.linkHealth || null,
+      }))
+    }
 
     // Set success response
     setResponseStatus(event, 200)

@@ -13,6 +13,16 @@ export interface Resource {
   dateAdded: string
   popularity: number
   icon?: string
+  // Link validation properties
+  linkHealth?: LinkHealth
+}
+
+export interface LinkHealth {
+  status: 'valid' | 'invalid' | 'unknown' | 'checking'
+  lastChecked: string
+  statusCode?: number
+  responseTime?: number
+  error?: string
 }
 
 export interface FilterOptions {
