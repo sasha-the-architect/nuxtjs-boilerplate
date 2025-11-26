@@ -1,6 +1,7 @@
 import { getQuery, setResponseHeader, setResponseStatus } from 'h3'
 import { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
+import { apiCache, getCacheTTL } from '~/utils/cache'
 
 /**
  * GET /api/v1/resources
@@ -18,12 +19,24 @@ import { logError } from '~/utils/errorLogger'
  */
 export default defineEventHandler(async event => {
   try {
+    // Create cache key based on all query parameters
+    const query = getQuery(event)
+    const cacheKey = `resources:${JSON.stringify(query)}`
+
+    // Try to get from cache first
+    const cachedResult = apiCache.get(cacheKey)
+    if (cachedResult) {
+      // Add cache hit header
+      setResponseHeader(event, 'X-Cache', 'HIT')
+      return cachedResult
+    }
+
+    // Add cache miss header
+    setResponseHeader(event, 'X-Cache', 'MISS')
+
     // Import resources from JSON
     const resourcesModule = await import('~/data/resources.json')
     let resources: Resource[] = resourcesModule.default || resourcesModule
-
-    // Parse query parameters with validation
-    const query = getQuery(event)
 
     // Validate and parse limit parameter
     let limit = 20 // default
@@ -137,9 +150,8 @@ export default defineEventHandler(async event => {
     const total = resources.length
     const paginatedResources = resources.slice(offset, offset + limit)
 
-    // Set success response
-    setResponseStatus(event, 200)
-    return {
+    // Prepare result
+    const result = {
       success: true,
       data: paginatedResources,
       pagination: {
@@ -150,6 +162,14 @@ export default defineEventHandler(async event => {
         hasPrev: offset > 0,
       },
     }
+
+    // Cache the result with appropriate TTL
+    const ttl = getCacheTTL(cacheKey)
+    apiCache.set(cacheKey, result, ttl)
+
+    // Set success response
+    setResponseStatus(event, 200)
+    return result
   } catch (error: any) {
     // Log error using our error logging service
     logError(
