@@ -1,6 +1,7 @@
-import { getQuery, setResponseStatus } from 'h3'
+import { getQuery, setResponseStatus, setResponseHeader } from 'h3'
 import { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
+import { ServerCache } from '~/server/utils/cache'
 
 /**
  * GET /api/v1/search
@@ -18,6 +19,21 @@ import { logError } from '~/utils/errorLogger'
  */
 export default defineEventHandler(async event => {
   try {
+    // Check cache first
+    const cache = ServerCache.getInstance()
+    const cacheKey = ServerCache.getApiCacheKey(event, 'api:v1:search')
+
+    // Try to get from cache
+    const cachedResult = await cache.get(cacheKey)
+    if (cachedResult) {
+      // Set cache hit header
+      setResponseHeader(event, 'X-Cache', 'HIT')
+      return cachedResult
+    }
+
+    // Set cache miss header
+    setResponseHeader(event, 'X-Cache', 'MISS')
+
     // Import resources from JSON
     const resourcesModule = await import('~/data/resources.json')
     let resources: Resource[] = resourcesModule.default || resourcesModule
@@ -129,9 +145,8 @@ export default defineEventHandler(async event => {
     const total = resources.length
     const paginatedResources = resources.slice(offset, offset + limit)
 
-    // Set success response status
-    setResponseStatus(event, 200)
-    return {
+    // Prepare the response object
+    const response = {
       success: true,
       data: paginatedResources,
       pagination: {
@@ -142,6 +157,18 @@ export default defineEventHandler(async event => {
         hasPrev: offset > 0,
       },
     }
+
+    // Cache the response for 2 minutes (120 seconds) since search results can change frequently
+    if (limit <= 100) {
+      // Only cache if request is valid
+      const cache = ServerCache.getInstance()
+      const cacheKey = ServerCache.getApiCacheKey(event, 'api:v1:search')
+      await cache.set(cacheKey, response, { ttl: 120 }) // Cache for 2 minutes
+    }
+
+    // Set success response status
+    setResponseStatus(event, 200)
+    return response
   } catch (error: any) {
     // Log error using our error logging service
     logError(

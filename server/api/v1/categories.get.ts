@@ -1,5 +1,7 @@
+import { setResponseHeader } from 'h3'
 import { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
+import { ServerCache } from '~/server/utils/cache'
 
 /**
  * GET /api/v1/categories
@@ -8,6 +10,21 @@ import { logError } from '~/utils/errorLogger'
  */
 export default defineEventHandler(async event => {
   try {
+    // Check cache first
+    const cache = ServerCache.getInstance()
+    const cacheKey = ServerCache.getApiCacheKey(event, 'api:v1:categories')
+
+    // Try to get from cache
+    const cachedResult = await cache.get(cacheKey)
+    if (cachedResult) {
+      // Set cache hit header
+      setResponseHeader(event, 'X-Cache', 'HIT')
+      return cachedResult
+    }
+
+    // Set cache miss header
+    setResponseHeader(event, 'X-Cache', 'MISS')
+
     // Import resources from JSON
     const resourcesModule = await import('~/data/resources.json')
     const resources: Resource[] = resourcesModule.default || resourcesModule
@@ -27,10 +44,15 @@ export default defineEventHandler(async event => {
       })
     )
 
-    return {
+    const response = {
       success: true,
       data: categories,
     }
+
+    // Cache the response for 1 hour (3600 seconds) since categories rarely change
+    await cache.set(cacheKey, response, { ttl: 3600 }) // Cache for 1 hour
+
+    return response
   } catch (error: any) {
     // Log error using our error logging service
     logError(

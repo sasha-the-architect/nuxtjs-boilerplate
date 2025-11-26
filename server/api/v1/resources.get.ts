@@ -1,6 +1,7 @@
 import { getQuery, setResponseHeader, setResponseStatus } from 'h3'
 import { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
+import { ServerCache } from '~/server/utils/cache'
 
 /**
  * GET /api/v1/resources
@@ -18,6 +19,21 @@ import { logError } from '~/utils/errorLogger'
  */
 export default defineEventHandler(async event => {
   try {
+    // Check cache first
+    const cache = ServerCache.getInstance()
+    const cacheKey = ServerCache.getApiCacheKey(event, 'api:v1:resources')
+
+    // Try to get from cache
+    const cachedResult = await cache.get(cacheKey)
+    if (cachedResult) {
+      // Set cache hit header
+      setResponseHeader(event, 'X-Cache', 'HIT')
+      return cachedResult
+    }
+
+    // Set cache miss header
+    setResponseHeader(event, 'X-Cache', 'MISS')
+
     // Import resources from JSON
     const resourcesModule = await import('~/data/resources.json')
     let resources: Resource[] = resourcesModule.default || resourcesModule
@@ -137,9 +153,8 @@ export default defineEventHandler(async event => {
     const total = resources.length
     const paginatedResources = resources.slice(offset, offset + limit)
 
-    // Set success response
-    setResponseStatus(event, 200)
-    return {
+    // Prepare the response object
+    const response = {
       success: true,
       data: paginatedResources,
       pagination: {
@@ -150,6 +165,18 @@ export default defineEventHandler(async event => {
         hasPrev: offset > 0,
       },
     }
+
+    // Cache the response for 5 minutes (300 seconds) if it's a valid request
+    if (limit <= 100) {
+      // Only cache if request is valid
+      const cache = ServerCache.getInstance()
+      const cacheKey = ServerCache.getApiCacheKey(event, 'api:v1:resources')
+      await cache.set(cacheKey, response, { ttl: 300 }) // Cache for 5 minutes
+    }
+
+    // Set success response
+    setResponseStatus(event, 200)
+    return response
   } catch (error: any) {
     // Log error using our error logging service
     logError(

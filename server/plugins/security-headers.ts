@@ -74,21 +74,35 @@ export default defineNitroPlugin(nitroApp => {
       // Apply cache control headers based on route patterns
       const path = event.path || ''
 
-      // For API routes, set appropriate cache control
-      if (path.startsWith('/api/')) {
+      // For API routes, set appropriate cache control based on endpoint
+      if (path && path.startsWith('/api/')) {
         if (
           event.node.res.setHeader &&
           (!event.node.res.hasHeader ||
             !event.node.res.getHeader('cache-control'))
         ) {
-          event.node.res.setHeader(
-            'cache-control',
-            'max-age=300, public, s-maxage=300' // 5 minutes
-          )
+          // Different cache strategies for different API endpoints
+          let cacheControl = 'max-age=300, public, s-maxage=300' // 5 minutes default
+
+          if (path.indexOf('/api/v1/categories') !== -1) {
+            // Categories change infrequently, cache longer
+            cacheControl = 'max-age=3600, public, s-maxage=3600' // 1 hour
+          } else if (path.indexOf('/api/v1/search') !== -1) {
+            // Search results can change, cache shorter
+            cacheControl = 'max-age=120, public, s-maxage=120' // 2 minutes
+          } else if (path.indexOf('/api/v1/resources') !== -1) {
+            // Resources list can be cached for medium duration
+            cacheControl = 'max-age=300, public, s-maxage=300' // 5 minutes
+          } else if (path.indexOf('/submissions') !== -1) {
+            // Submissions are dynamic, cache shorter
+            cacheControl = 'max-age=60, public, s-maxage=60' // 1 minute
+          }
+
+          event.node.res.setHeader('cache-control', cacheControl)
         }
       }
       // For static assets in _nuxt, set long cache control
-      else if (path.includes('/_nuxt/')) {
+      else if (path && path.indexOf('/_nuxt/') !== -1) {
         if (
           event.node.res.setHeader &&
           (!event.node.res.hasHeader ||
@@ -102,7 +116,11 @@ export default defineNitroPlugin(nitroApp => {
       }
       // For main routes, set moderate cache control
       else if (
-        ['/', '/ai-keys', '/about', '/search', '/submit'].includes(path)
+        path === '/' ||
+        path === '/ai-keys' ||
+        path === '/about' ||
+        path === '/search' ||
+        path === '/submit'
       ) {
         if (
           event.node.res.setHeader &&
