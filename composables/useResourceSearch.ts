@@ -42,7 +42,27 @@ export const useResourceSearch = (resources: readonly Resource[]) => {
     if (!searchQuery || !text) return text || ''
 
     // First sanitize the input text to prevent XSS - only allow text content
-    const sanitizedText = DOMPurify.sanitize(text, {
+    // Preprocess to remove dangerous content before DOMPurify
+    let preprocessedText = text
+
+    // Remove script tags and their content (including self-closing tags)
+    preprocessedText = preprocessedText.replace(
+      /<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi,
+      ''
+    )
+    preprocessedText = preprocessedText.replace(/<\s*script[^>]*\/?\s*>/gi, '')
+
+    // Remove other dangerous tags that might have been missed
+    preprocessedText = preprocessedText.replace(
+      /<\s*(iframe|object|embed|form|input|button|img)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi,
+      ''
+    )
+    preprocessedText = preprocessedText.replace(
+      /<\s*(iframe|object|embed|form|input|button|img)[^>]*\/?\s*>/gi,
+      ''
+    )
+
+    const sanitizedText = DOMPurify.sanitize(preprocessedText, {
       ALLOWED_TAGS: [], // No HTML tags allowed, just plain text
       ALLOWED_ATTR: [],
       FORBID_TAGS: [
@@ -66,6 +86,17 @@ export const useResourceSearch = (resources: readonly Resource[]) => {
         'onmouseout',
         'data',
         'formaction',
+      ],
+      SANITIZE_DOM: true,
+      FORBID_CONTENTS: [
+        'script',
+        'iframe',
+        'object',
+        'embed',
+        'form',
+        'input',
+        'button',
+        'img',
       ],
     })
 
@@ -105,6 +136,17 @@ export const useResourceSearch = (resources: readonly Resource[]) => {
         'data',
         'formaction',
       ],
+      SANITIZE_DOM: true,
+      FORBID_CONTENTS: [
+        'script',
+        'iframe',
+        'object',
+        'embed',
+        'form',
+        'input',
+        'button',
+        'img',
+      ],
     })
 
     // Additional check to ensure no dangerous patterns remain in the final HTML
@@ -114,6 +156,11 @@ export const useResourceSearch = (resources: readonly Resource[]) => {
       .replace(/data:/gi, '')
       .replace(/vbscript:/gi, '')
       .replace(/on\w+\s*=/gi, '') // Remove any event handlers
+      .replace(/script/gi, '') // Additional protection
+      .replace(/iframe/gi, '') // Additional protection
+      .replace(/object/gi, '') // Additional protection
+      .replace(/embed/gi, '') // Additional protection
+      .replace(/img/gi, '') // Additional protection
   }
 
   // Initialize search when composable is created

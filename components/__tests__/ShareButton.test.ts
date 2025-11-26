@@ -89,12 +89,17 @@ describe('ShareButton', () => {
   })
 
   it('copies URL to clipboard when copy button is clicked', async () => {
-    // Mock the clipboard API
+    // Mock the clipboard API using a more robust approach
     const writeTextMock = vi.fn()
-    Object.assign(navigator, {
-      clipboard: {
-        writeText: writeTextMock,
-      },
+
+    // Create a mock navigator with clipboard that has writeText method
+    const mockClipboard = {
+      writeText: writeTextMock,
+    }
+
+    Object.defineProperty(navigator, 'clipboard', {
+      value: mockClipboard,
+      writable: true,
     })
 
     const wrapper = mount(ShareButton, {

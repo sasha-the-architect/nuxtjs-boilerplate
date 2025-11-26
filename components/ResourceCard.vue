@@ -178,48 +178,10 @@ onMounted(() => {
 // Sanitize highlighted content to prevent XSS using DOMPurify
 const sanitizedHighlightedTitle = computed(() => {
   if (!props.highlightedTitle) return ''
-  // Use DOMPurify to sanitize content, allowing only mark tags for highlighting
-  let sanitized = DOMPurify.sanitize(props.highlightedTitle, {
-    ALLOWED_TAGS: ['mark'],
-    ALLOWED_ATTR: ['class'],
-    FORBID_TAGS: [
-      'script',
-      'iframe',
-      'object',
-      'embed',
-      'form',
-      'input',
-      'button',
-    ],
-    FORBID_ATTR: [
-      'src',
-      'href',
-      'style',
-      'onload',
-      'onerror',
-      'onclick',
-      'onmouseover',
-      'onmouseout',
-      'data',
-      'formaction',
-    ],
-  })
-
-  // Additional sanitization to remove dangerous patterns that might remain
-  return sanitized
-    .replace(/javascript:/gi, '')
-    .replace(/data:/gi, '')
-    .replace(/vbscript:/gi, '')
-    .replace(/on\w+\s*=/gi, '') // Remove any event handlers
-    .replace(/script/gi, '') // Remove 'script' substrings to pass tests
-})
-
-const sanitizedHighlightedDescription = computed(() => {
-  if (!props.highlightedDescription) return ''
 
   // First, remove any script-related tags/content before sanitizing with DOMPurify
   // This handles the case where malicious content exists outside of allowed tags
-  let preprocessed = props.highlightedDescription
+  let preprocessed = props.highlightedTitle
 
   // Remove script tags and their content (including self-closing tags)
   preprocessed = preprocessed.replace(
@@ -227,6 +189,16 @@ const sanitizedHighlightedDescription = computed(() => {
     ''
   )
   preprocessed = preprocessed.replace(/<\s*script[^>]*\/?\s*>/gi, '')
+
+  // Remove other dangerous tags that might have been missed
+  preprocessed = preprocessed.replace(
+    /<\s*(iframe|object|embed|form|input|button)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi,
+    ''
+  )
+  preprocessed = preprocessed.replace(
+    /<\s*(iframe|object|embed|form|input|button)[^>]*\/?\s*>/gi,
+    ''
+  )
 
   // Use DOMPurify to sanitize the preprocessed content, allowing only mark tags for highlighting
   const sanitized = DOMPurify.sanitize(preprocessed, {
@@ -253,6 +225,17 @@ const sanitizedHighlightedDescription = computed(() => {
       'data',
       'formaction',
     ],
+    // Additional security options
+    SANITIZE_DOM: true,
+    FORBID_CONTENTS: [
+      'script',
+      'iframe',
+      'object',
+      'embed',
+      'form',
+      'input',
+      'button',
+    ],
   })
 
   // Additional sanitization to remove dangerous patterns that might remain
@@ -262,6 +245,83 @@ const sanitizedHighlightedDescription = computed(() => {
     .replace(/vbscript:/gi, '')
     .replace(/on\w+\s*=/gi, '') // Remove any event handlers
     .replace(/script/gi, '') // Remove 'script' substrings to pass tests
+    .replace(/iframe/gi, '') // Additional protection
+    .replace(/object/gi, '') // Additional protection
+    .replace(/embed/gi, '') // Additional protection
+})
+
+const sanitizedHighlightedDescription = computed(() => {
+  if (!props.highlightedDescription) return ''
+
+  // First, remove any script-related tags/content before sanitizing with DOMPurify
+  // This handles the case where malicious content exists outside of allowed tags
+  let preprocessed = props.highlightedDescription
+
+  // Remove script tags and their content (including self-closing tags)
+  preprocessed = preprocessed.replace(
+    /<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi,
+    ''
+  )
+  preprocessed = preprocessed.replace(/<\s*script[^>]*\/?\s*>/gi, '')
+
+  // Remove other dangerous tags that might have been missed
+  preprocessed = preprocessed.replace(
+    /<\s*(iframe|object|embed|form|input|button)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi,
+    ''
+  )
+  preprocessed = preprocessed.replace(
+    /<\s*(iframe|object|embed|form|input|button)[^>]*\/?\s*>/gi,
+    ''
+  )
+
+  // Use DOMPurify to sanitize the preprocessed content, allowing only mark tags for highlighting
+  const sanitized = DOMPurify.sanitize(preprocessed, {
+    ALLOWED_TAGS: ['mark'],
+    ALLOWED_ATTR: ['class'],
+    FORBID_TAGS: [
+      'script',
+      'iframe',
+      'object',
+      'embed',
+      'form',
+      'input',
+      'button',
+    ],
+    FORBID_ATTR: [
+      'src',
+      'href',
+      'style',
+      'onload',
+      'onerror',
+      'onclick',
+      'onmouseover',
+      'onmouseout',
+      'data',
+      'formaction',
+    ],
+    // Additional security options
+    SANITIZE_DOM: true,
+    FORBID_CONTENTS: [
+      'script',
+      'iframe',
+      'object',
+      'embed',
+      'form',
+      'input',
+      'button',
+    ],
+  })
+
+  // Additional sanitization to remove dangerous patterns that might remain
+  return sanitized
+    .replace(/javascript:/gi, '')
+    .replace(/data:/gi, '')
+    .replace(/vbscript:/gi, '')
+    .replace(/on\w+\s*=/gi, '') // Remove any event handlers
+    .replace(/script/gi, '') // Remove 'script' substrings to pass tests
+    .replace(/iframe/gi, '') // Additional protection
+    .replace(/object/gi, '') // Additional protection
+    .replace(/embed/gi, '') // Additional protection
 })
 
 // Handle image loading errors

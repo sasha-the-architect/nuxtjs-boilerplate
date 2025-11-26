@@ -50,8 +50,11 @@ export async function trackPageView(
     url,
     properties: {
       title,
-      referrer: document.referrer,
-      userAgent: navigator.userAgent,
+      referrer: typeof document !== 'undefined' ? document.referrer : '',
+      userAgent:
+        typeof navigator !== 'undefined'
+          ? navigator.userAgent
+          : 'test-environment',
     },
   })
 }

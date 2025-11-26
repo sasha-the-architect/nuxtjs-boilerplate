@@ -216,6 +216,7 @@ export function getRateLimiterForPath(path: string): RateLimiter {
   } else if (
     path.includes('/api/v1/resources') ||
     path.includes('/api/categories') ||
+    path.includes('/api/v1/categories') ||
     path.includes('/api/submissions')
   ) {
     return rateLimitConfigs.heavy

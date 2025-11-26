@@ -35,8 +35,8 @@
           </div>
           <div class="flex items-end">
             <button
-              @click="fetchAnalyticsData"
               class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              @click="fetchAnalyticsData"
             >
               Update
             </button>
@@ -60,8 +60,8 @@
           <p class="text-lg font-medium">Error loading analytics data</p>
           <p class="mt-2">{{ error }}</p>
           <button
-            @click="fetchAnalyticsData"
             class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            @click="fetchAnalyticsData"
           >
             Retry
           </button>
@@ -184,12 +184,12 @@
         <div class="bg-white p-6 rounded-lg shadow">
           <h2 class="text-lg font-medium text-gray-900 mb-4">Daily Activity</h2>
           <div
-            class="h-64 flex items-center justify-center"
             v-if="!analyticsData?.data?.dailyTrends?.length"
+            class="h-64 flex items-center justify-center"
           >
             <p class="text-gray-500">No data available</p>
           </div>
-          <div class="h-64" v-else>
+          <div v-else class="h-64">
             <!-- Simple bar chart visualization -->
             <div class="flex items-end h-48 space-x-1">
               <div

@@ -11,17 +11,6 @@ export default defineVitestConfig({
         url: 'http://localhost:3000',
         includeRuntimeGlobals: true,
       },
-      nuxt: {
-        rootDir: '.',
-        overrides: {
-          // Add any necessary nuxt config overrides for testing
-          runtimeConfig: {
-            public: {
-              canonicalUrl: 'http://localhost:3000',
-            },
-          },
-        },
-      },
     },
     coverage: {
       provider: 'v8',
