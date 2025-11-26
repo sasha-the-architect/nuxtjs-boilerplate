@@ -7,7 +7,7 @@ vi.mock('dompurify', async importOriginal => {
   return {
     ...actual,
     default: {
-      sanitize: (html: string) => {
+      sanitize: html => {
         // Basic sanitization for testing - just return the input for now
         // In real tests you'd want proper sanitization
         return html

@@ -8,18 +8,26 @@ export default defineNitroPlugin(nitroApp => {
     return
   }
 
-  // Apply security headers for HTML responses
-  nitroApp.hooks.hook('render:html', (html, { event }) => {
+  // Apply security headers for all requests
+  nitroApp.hooks.hook('afterResponse', (response, { event }) => {
     try {
       // Check if response object is available
       if (!event || !event.node || !event.node.res) {
         return
       }
 
-      // Generate a unique nonce for each request to allow inline scripts/styles when needed
+      // Only apply security headers if not already set to avoid duplication
+      if (
+        event.node.res.hasHeader &&
+        event.node.res.getHeader('Content-Security-Policy')
+      ) {
+        return // Headers already set in render:html hook
+      }
+
+      // Generate a unique nonce for each request
       const nonce = randomBytes(16).toString('base64')
 
-      // Set Content Security Policy - more restrictive without 'unsafe-inline' and 'unsafe-eval'
+      // Set Content Security Policy
       if (event.node.res.setHeader) {
         event.node.res.setHeader(
           'Content-Security-Policy',
@@ -35,13 +43,11 @@ export default defineNitroPlugin(nitroApp => {
             `form-action 'self'; ` +
             `upgrade-insecure-requests;`
         )
-      }
 
-      // Additional security headers
-      if (event.node.res.setHeader) {
+        // Additional security headers
         event.node.res.setHeader('X-Content-Type-Options', 'nosniff')
         event.node.res.setHeader('X-Frame-Options', 'DENY')
-        event.node.res.setHeader('X-XSS-Protection', '0') // Modern CSP makes this redundant, and legacy X-XSS-Protection can cause issues
+        event.node.res.setHeader('X-XSS-Protection', '0') // Modern CSP makes this redundant
         event.node.res.setHeader(
           'Referrer-Policy',
           'strict-origin-when-cross-origin'
@@ -63,114 +69,6 @@ export default defineNitroPlugin(nitroApp => {
           'Access-Control-Allow-Headers',
           'Content-Type, Authorization'
         )
-      }
-    } catch (error) {
-      // In production, we might want to log this properly
-      if (process.env.NODE_ENV !== 'production') {
-        // eslint-disable-next-line no-console
-        console.warn('Failed to set security headers in render:html:', error)
-      }
-    }
-  })
-
-  // Apply security headers for all requests (not just HTML responses)
-  nitroApp.hooks.hook('afterResponse', (response, { event }) => {
-    try {
-      // Check if response object is available
-      if (!event || !event.node || !event.node.res) {
-        return
-      }
-
-      // Generate a unique nonce for each request
-      const nonce = randomBytes(16).toString('base64')
-
-      // Set Content Security Policy for all responses if not already set
-      if (
-        event.node.res.setHeader &&
-        (!event.node.res.hasHeader ||
-          !event.node.res.getHeader('Content-Security-Policy'))
-      ) {
-        event.node.res.setHeader(
-          'Content-Security-Policy',
-          `default-src 'self'; ` +
-            `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https:; ` +
-            `style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com; ` +
-            `font-src 'self' https://fonts.gstatic.com; ` +
-            `img-src 'self' data: blob: https:; ` +
-            `connect-src 'self' https:; ` +
-            `frame-ancestors 'none'; ` +
-            `object-src 'none'; ` +
-            `base-uri 'self'; ` +
-            `form-action 'self'; ` +
-            `upgrade-insecure-requests;`
-        )
-      }
-
-      // Apply security headers if not already set
-      if (event.node.res.setHeader) {
-        if (
-          !event.node.res.hasHeader ||
-          !event.node.res.getHeader('X-Content-Type-Options')
-        ) {
-          event.node.res.setHeader('X-Content-Type-Options', 'nosniff')
-        }
-        if (
-          !event.node.res.hasHeader ||
-          !event.node.res.getHeader('X-Frame-Options')
-        ) {
-          event.node.res.setHeader('X-Frame-Options', 'DENY')
-        }
-        if (
-          !event.node.res.hasHeader ||
-          !event.node.res.getHeader('X-XSS-Protection')
-        ) {
-          event.node.res.setHeader('X-XSS-Protection', '0') // Modern CSP makes this redundant
-        }
-        if (
-          !event.node.res.hasHeader ||
-          !event.node.res.getHeader('Referrer-Policy')
-        ) {
-          event.node.res.setHeader(
-            'Referrer-Policy',
-            'strict-origin-when-cross-origin'
-          )
-        }
-        if (
-          !event.node.res.hasHeader ||
-          !event.node.res.getHeader('Strict-Transport-Security')
-        ) {
-          event.node.res.setHeader(
-            'Strict-Transport-Security',
-            'max-age=31536000; includeSubDomains; preload'
-          )
-        }
-        if (
-          !event.node.res.hasHeader ||
-          !event.node.res.getHeader('Permissions-Policy')
-        ) {
-          event.node.res.setHeader(
-            'Permissions-Policy',
-            'geolocation=(), microphone=(), camera=()'
-          )
-        }
-        if (
-          !event.node.res.hasHeader ||
-          !event.node.res.getHeader('Access-Control-Allow-Methods')
-        ) {
-          event.node.res.setHeader(
-            'Access-Control-Allow-Methods',
-            'GET, HEAD, POST, OPTIONS'
-          )
-        }
-        if (
-          !event.node.res.hasHeader ||
-          !event.node.res.getHeader('Access-Control-Allow-Headers')
-        ) {
-          event.node.res.setHeader(
-            'Access-Control-Allow-Headers',
-            'Content-Type, Authorization'
-          )
-        }
       }
 
       // Apply cache control headers based on route patterns
