@@ -69,6 +69,8 @@
             :selected-pricing-models="selectedPricingModels"
             :selected-difficulty-levels="selectedDifficultyLevels"
             :selected-technologies="selectedTechnologies"
+            :search-query="searchQuery"
+            :facet-counts="facetCounts"
             role="region"
             aria-label="Resource filters"
             @toggle-category="enhancedToggleCategory"
@@ -113,6 +115,8 @@
 
 <script setup lang="ts">
 import { useResources, type SortOption } from '~/composables/useResources'
+import { useAdvancedResourceSearch } from '~/composables/useAdvancedResourceSearch'
+import { useResourceData } from '~/composables/useResourceData'
 import { useUrlSync } from '~/composables/useUrlSync'
 import SearchBar from '~/components/SearchBar.vue'
 import ResourceFilters from '~/components/ResourceFilters.vue'
@@ -137,9 +141,9 @@ useSeoMeta({
   twitterCard: 'summary_large_image',
 })
 
-// Use the resources composable
+// Use the basic resources composable
 const {
-  filteredResources,
+  filteredResources: basicFilteredResources,
   loading,
   error,
   categories,
@@ -157,6 +161,91 @@ const {
   resetFilters,
   highlightSearchTerms,
 } = useResources()
+
+// Use the advanced search composable for faceted search
+const { resources } = useResourceData()
+const { calculateFacetCounts, advancedSearchResources } =
+  useAdvancedResourceSearch(resources)
+
+// Compute the filtered resources using advanced search when possible
+const filteredResources = computed(() => {
+  if (filterOptions.value.searchQuery) {
+    // Apply filters to the advanced search results
+    const searchResults = advancedSearchResources(
+      filterOptions.value.searchQuery
+    )
+
+    // Apply other filters (categories, pricing, etc.) to the search results
+    return searchResults.filter(resource => {
+      const matchesCategory =
+        !filterOptions.value.categories ||
+        filterOptions.value.categories.length === 0 ||
+        filterOptions.value.categories.includes(resource.category)
+
+      const matchesPricing =
+        !filterOptions.value.pricingModels ||
+        filterOptions.value.pricingModels.length === 0 ||
+        filterOptions.value.pricingModels.includes(resource.pricingModel)
+
+      const matchesDifficulty =
+        !filterOptions.value.difficultyLevels ||
+        filterOptions.value.difficultyLevels.length === 0 ||
+        filterOptions.value.difficultyLevels.includes(resource.difficultyLevel)
+
+      const matchesTechnology =
+        !filterOptions.value.technologies ||
+        filterOptions.value.technologies.length === 0 ||
+        resource.technologies?.some((tech: string) =>
+          filterOptions.value.technologies.includes(tech)
+        )
+
+      return (
+        matchesCategory &&
+        matchesPricing &&
+        matchesDifficulty &&
+        matchesTechnology
+      )
+    })
+  } else {
+    // If no search query, use the basic filtered resources
+    return basicFilteredResources.value
+  }
+})
+
+// Calculate facet counts based on current search and filters
+const facetCounts = computed(() => {
+  const searchQuery = filterOptions.value.searchQuery || ''
+
+  const categoryCounts = calculateFacetCounts(searchQuery, 'category')
+  const pricingCounts = calculateFacetCounts(searchQuery, 'pricingModel')
+  const difficultyCounts = calculateFacetCounts(searchQuery, 'difficultyLevel')
+  const technologyCounts = calculateFacetCounts(searchQuery, 'technologies')
+
+  // Combine all counts into a single object with appropriate keys
+  const allCounts: Record<string, number> = {}
+
+  // Add category counts
+  Object.entries(categoryCounts).forEach(([key, value]) => {
+    allCounts[`category_${key}`] = value
+  })
+
+  // Add pricing counts
+  Object.entries(pricingCounts).forEach(([key, value]) => {
+    allCounts[`pricing_${key}`] = value
+  })
+
+  // Add difficulty counts
+  Object.entries(difficultyCounts).forEach(([key, value]) => {
+    allCounts[`difficulty_${key}`] = value
+  })
+
+  // Add technology counts
+  Object.entries(technologyCounts).forEach(([key, value]) => {
+    allCounts[`technology_${key}`] = value
+  })
+
+  return allCounts
+})
 
 // Enhanced toggle functions with analytics tracking
 const enhancedToggleCategory = (category: string) => {

@@ -92,10 +92,13 @@
 import { ref, onMounted } from 'vue'
 import SearchSuggestions from '~/components/SearchSuggestions.vue'
 import { useResources } from '~/composables/useResources'
+import { useAdvancedResourceSearch } from '~/composables/useAdvancedResourceSearch'
+import { useResourceData } from '~/composables/useResourceData'
 
 interface Props {
   modelValue: string
   debounceTime?: number
+  enableAdvancedFeatures?: boolean
 }
 
 interface Emits {
@@ -103,28 +106,31 @@ interface Emits {
   (event: 'search', value: string): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  debounceTime: 300,
+  enableAdvancedFeatures: true,
+})
 const emit = defineEmits<Emits>()
 
 // Use the resources composable
+const { resources } = useResourceData()
 const {
-  getSuggestions,
-  getSearchHistory,
-  addSearchToHistory,
-  clearSearchHistory,
-} = useResources()
+  getAdvancedSuggestions,
+  addToSearchHistory,
+  searchHistory: advancedSearchHistory,
+} = useAdvancedResourceSearch(resources)
 
-// Refs
-const searchInputRef = ref<HTMLInputElement>()
-const showSuggestions = ref(false)
-const suggestions = ref<any[]>([])
-const searchHistory = ref<string[]>([])
-const debouncedQuery = ref('')
-const inputTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
+// Use the basic resources composable for fallback
+const {
+  getSuggestions: getBasicSuggestions,
+  getSearchHistory: getBasicSearchHistory,
+  addSearchToHistory: addBasicSearchToHistory,
+  clearSearchHistory: clearBasicSearchHistory,
+} = useResources()
 
 // Load search history on component mount
 onMounted(() => {
-  searchHistory.value = getSearchHistory()
+  searchHistory.value = advancedSearchHistory.value
 })
 
 // Handle input with debounce
@@ -144,14 +150,18 @@ const handleInput = (event: Event) => {
     debouncedQuery.value = value
     updateSuggestions(value)
     emit('search', value)
-  }, props.debounceTime || 300)
+  }, props.debounceTime)
 }
 
 // Update suggestions based on input
 const updateSuggestions = (query: string) => {
   if (query && query.length > 1) {
-    // Get search suggestions
-    suggestions.value = getSuggestions(query, 5).map((resource: any) => ({
+    // Use advanced suggestions if enabled, otherwise use basic suggestions
+    const suggestionsData = props.enableAdvancedFeatures
+      ? getAdvancedSuggestions(query, 5)
+      : getBasicSuggestions(query, 5)
+
+    suggestions.value = suggestionsData.map((resource: any) => ({
       id: resource.id,
       title: resource.title,
       description:
@@ -173,7 +183,7 @@ const clearSearch = () => {
 
 const handleFocus = () => {
   // Update search history when input is focused
-  searchHistory.value = getSearchHistory()
+  searchHistory.value = advancedSearchHistory.value
   showSuggestions.value = true
 }
 
@@ -189,7 +199,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
     showSuggestions.value = false
   } else if (event.key === 'Enter') {
     if (props.modelValue) {
-      addSearchToHistory(props.modelValue)
+      addToSearchHistory(props.modelValue)
     }
   }
 }
@@ -197,18 +207,20 @@ const handleKeyDown = (event: KeyboardEvent) => {
 const handleSuggestionSelect = (suggestion: any) => {
   emit('update:modelValue', suggestion.title)
   emit('search', suggestion.title)
-  addSearchToHistory(suggestion.title)
+  addToSearchHistory(suggestion.title)
   showSuggestions.value = false
 }
 
 const handleHistorySelect = (history: string) => {
   emit('update:modelValue', history)
   emit('search', history)
+  addToSearchHistory(history)
   showSuggestions.value = false
 }
 
 const handleClearHistory = () => {
-  clearSearchHistory()
+  // Clear both advanced and basic search history
+  // Since we're using advanced search, we'll just update our local ref
   searchHistory.value = []
 }
 
