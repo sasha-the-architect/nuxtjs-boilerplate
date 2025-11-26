@@ -6,16 +6,30 @@ interface CacheEntry {
   ttl: number // Time to live in seconds
 }
 
+interface CacheStats {
+  hits: number
+  misses: number
+  total: number
+  hitRate: number
+}
+
 class CacheManager {
   private memoryCache: Map<string, CacheEntry>
   private maxMemorySize: number
   private cleanupInterval: number
+  private stats: CacheStats
 
   constructor(maxMemorySize = 1000, cleanupInterval = 300000) {
     // 5 minutes default
     this.memoryCache = new Map()
     this.maxMemorySize = maxMemorySize
     this.cleanupInterval = cleanupInterval
+    this.stats = {
+      hits: 0,
+      misses: 0,
+      total: 0,
+      hitRate: 0,
+    }
     this.startCleanup()
   }
 
@@ -33,7 +47,7 @@ class CacheManager {
    */
   private cleanupExpired() {
     const now = Date.now()
-    for (const [key, entry] of this.memoryCache.entries()) {
+    for (const [key, entry] of Array.from(this.memoryCache.entries())) {
       if (now - entry.timestamp > entry.ttl * 1000) {
         this.memoryCache.delete(key)
       }
@@ -45,15 +59,26 @@ class CacheManager {
    */
   async get(key: string): Promise<any | null> {
     const entry = this.memoryCache.get(key)
-    if (!entry) return null
+    if (!entry) {
+      this.stats.misses++
+      this.stats.total++
+      this.updateHitRate()
+      return null
+    }
 
     // Check if entry is expired
     const now = Date.now()
     if (now - entry.timestamp > entry.ttl * 1000) {
       this.memoryCache.delete(key)
+      this.stats.misses++
+      this.stats.total++
+      this.updateHitRate()
       return null
     }
 
+    this.stats.hits++
+    this.stats.total++
+    this.updateHitRate()
     return entry.data
   }
 
@@ -68,10 +93,12 @@ class CacheManager {
 
     // If still full, remove oldest entries
     if (this.memoryCache.size >= this.maxMemorySize) {
-      const iterator = this.memoryCache.keys()
-      for (let i = 0; i < Math.floor(this.maxMemorySize * 0.1); i++) {
-        const key = iterator.next().value
-        if (key) this.memoryCache.delete(key)
+      const keysArray = Array.from(this.memoryCache.keys())
+      const numToRemove = Math.floor(this.maxMemorySize * 0.1)
+      for (let i = 0; i < numToRemove; i++) {
+        if (i < keysArray.length) {
+          this.memoryCache.delete(keysArray[i])
+        }
       }
     }
 
@@ -112,6 +139,43 @@ class CacheManager {
     }
 
     return true
+  }
+
+  /**
+   * Get cache statistics
+   */
+  getStats(): CacheStats {
+    return { ...this.stats }
+  }
+
+  /**
+   * Reset cache statistics
+   */
+  resetStats(): void {
+    this.stats = {
+      hits: 0,
+      misses: 0,
+      total: 0,
+      hitRate: 0,
+    }
+  }
+
+  /**
+   * Update hit rate calculation
+   */
+  private updateHitRate(): void {
+    if (this.stats.total > 0) {
+      this.stats.hitRate = this.stats.hits / this.stats.total
+    } else {
+      this.stats.hitRate = 0
+    }
+  }
+
+  /**
+   * Get cache size
+   */
+  size(): number {
+    return this.memoryCache.size
   }
 }
 

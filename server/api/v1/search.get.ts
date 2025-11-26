@@ -2,6 +2,7 @@ import { getQuery, setResponseStatus } from 'h3'
 import { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
 import { cacheManager } from '../../utils/cache'
+import { apiAnalytics } from '../../utils/api-analytics'
 
 /**
  * GET /api/v1/search
@@ -18,6 +19,8 @@ import { cacheManager } from '../../utils/cache'
  * - tags: Filter by tags (comma-separated)
  */
 export default defineEventHandler(async event => {
+  const startTime = Date.now()
+
   try {
     // Generate cache key based on query parameters
     const query = getQuery(event)
@@ -27,6 +30,9 @@ export default defineEventHandler(async event => {
     const cachedResult = await cacheManager.get(cacheKey)
     if (cachedResult) {
       event.node.res?.setHeader('X-Cache', 'HIT')
+      // Track performance metrics
+      const responseTime = Date.now() - startTime
+      await apiAnalytics.trackMetrics(event, responseTime)
       return cachedResult
     }
 
@@ -160,6 +166,11 @@ export default defineEventHandler(async event => {
 
     // Set success response status
     setResponseStatus(event, 200)
+
+    // Track performance metrics
+    const responseTime = Date.now() - startTime
+    await apiAnalytics.trackMetrics(event, responseTime)
+
     return response
   } catch (error: any) {
     // Log error using our error logging service
@@ -172,6 +183,10 @@ export default defineEventHandler(async event => {
         errorType: error?.constructor?.name,
       }
     )
+
+    // Track performance metrics for error case
+    const responseTime = Date.now() - startTime
+    await apiAnalytics.trackMetrics(event, responseTime)
 
     // Set error response status
     setResponseStatus(event, 500)
