@@ -20,7 +20,8 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --run --coverage",
     "test:watch": "vitest --watch",
-    "analyze": "ANALYZE_BUNDLE=true nuxt build"
+    "analyze": "ANALYZE_BUNDLE=true nuxt build",
+    "validate-urls": "tsx scripts/run-url-validation.ts"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -58,6 +59,7 @@
     "stylelint-config-css-modules": "^4.3.0",
     "stylelint-config-recommended": "^17.0.0",
     "stylelint-config-standard": "^39.0.1",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4",
     "vitest-environment-nuxt": "^1.0.1",

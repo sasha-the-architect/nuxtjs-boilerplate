@@ -13,6 +13,12 @@ export interface Resource {
   dateAdded: string
   popularity: number
   icon?: string
+  // URL health tracking fields
+  lastChecked?: string
+  statusCode?: number
+  isHealthy?: boolean
+  responseTime?: number
+  healthCheckError?: string
 }
 
 export interface FilterOptions {
