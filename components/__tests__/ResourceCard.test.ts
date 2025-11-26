@@ -22,6 +22,7 @@ describe('ResourceCard', () => {
     description: 'Test description',
     benefits: ['Benefit 1', 'Benefit 2'],
     url: 'https://example.com',
+    category: 'AI Tools',
   }
 
   it('renders correctly with required props', () => {

@@ -137,6 +137,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useHead, useRuntimeConfig } from '#imports'
 import DOMPurify from 'dompurify'
+import { sanitizeAndHighlight } from '~/utils/sanitize'
 import OptimizedImage from '~/components/OptimizedImage.vue'
 import BookmarkButton from '~/components/BookmarkButton.vue'
 import ShareButton from '~/components/ShareButton.vue'
@@ -154,6 +155,7 @@ interface Props {
   buttonLabel?: string
   highlightedTitle?: string
   highlightedDescription?: string
+  searchQuery?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -164,6 +166,7 @@ const props = withDefaults(defineProps<Props>(), {
   highlightedTitle: undefined,
   highlightedDescription: undefined,
   icon: undefined,
+  searchQuery: undefined,
 })
 
 const hasError = ref(false)
@@ -175,153 +178,21 @@ onMounted(() => {
   }
 })
 
-// Sanitize highlighted content to prevent XSS using DOMPurify
+// Sanitize highlighted content to prevent XSS using shared sanitization function
 const sanitizedHighlightedTitle = computed(() => {
   if (!props.highlightedTitle) return ''
-
-  // First, remove any script-related tags/content before sanitizing with DOMPurify
-  // This handles the case where malicious content exists outside of allowed tags
-  let preprocessed = props.highlightedTitle
-
-  // Remove script tags and their content (including self-closing tags)
-  preprocessed = preprocessed.replace(
-    /<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi,
-    ''
+  return sanitizeAndHighlight(
+    props.highlightedTitle,
+    props.searchQuery || props.title
   )
-  preprocessed = preprocessed.replace(/<\s*script[^>]*\/?\s*>/gi, '')
-
-  // Remove other dangerous tags that might have been missed
-  preprocessed = preprocessed.replace(
-    /<\s*(iframe|object|embed|form|input|button)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi,
-    ''
-  )
-  preprocessed = preprocessed.replace(
-    /<\s*(iframe|object|embed|form|input|button)[^>]*\/?\s*>/gi,
-    ''
-  )
-
-  // Use DOMPurify to sanitize the preprocessed content, allowing only mark tags for highlighting
-  const sanitized = DOMPurify.sanitize(preprocessed, {
-    ALLOWED_TAGS: ['mark'],
-    ALLOWED_ATTR: ['class'],
-    FORBID_TAGS: [
-      'script',
-      'iframe',
-      'object',
-      'embed',
-      'form',
-      'input',
-      'button',
-    ],
-    FORBID_ATTR: [
-      'src',
-      'href',
-      'style',
-      'onload',
-      'onerror',
-      'onclick',
-      'onmouseover',
-      'onmouseout',
-      'data',
-      'formaction',
-    ],
-    // Additional security options
-    SANITIZE_DOM: true,
-    FORBID_CONTENTS: [
-      'script',
-      'iframe',
-      'object',
-      'embed',
-      'form',
-      'input',
-      'button',
-    ],
-  })
-
-  // Additional sanitization to remove dangerous patterns that might remain
-  return sanitized
-    .replace(/javascript:/gi, '')
-    .replace(/data:/gi, '')
-    .replace(/vbscript:/gi, '')
-    .replace(/on\w+\s*=/gi, '') // Remove any event handlers
-    .replace(/script/gi, '') // Remove 'script' substrings to pass tests
-    .replace(/iframe/gi, '') // Additional protection
-    .replace(/object/gi, '') // Additional protection
-    .replace(/embed/gi, '') // Additional protection
 })
 
 const sanitizedHighlightedDescription = computed(() => {
   if (!props.highlightedDescription) return ''
-
-  // First, remove any script-related tags/content before sanitizing with DOMPurify
-  // This handles the case where malicious content exists outside of allowed tags
-  let preprocessed = props.highlightedDescription
-
-  // Remove script tags and their content (including self-closing tags)
-  preprocessed = preprocessed.replace(
-    /<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi,
-    ''
+  return sanitizeAndHighlight(
+    props.highlightedDescription,
+    props.searchQuery || props.description
   )
-  preprocessed = preprocessed.replace(/<\s*script[^>]*\/?\s*>/gi, '')
-
-  // Remove other dangerous tags that might have been missed
-  preprocessed = preprocessed.replace(
-    /<\s*(iframe|object|embed|form|input|button)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi,
-    ''
-  )
-  preprocessed = preprocessed.replace(
-    /<\s*(iframe|object|embed|form|input|button)[^>]*\/?\s*>/gi,
-    ''
-  )
-
-  // Use DOMPurify to sanitize the preprocessed content, allowing only mark tags for highlighting
-  const sanitized = DOMPurify.sanitize(preprocessed, {
-    ALLOWED_TAGS: ['mark'],
-    ALLOWED_ATTR: ['class'],
-    FORBID_TAGS: [
-      'script',
-      'iframe',
-      'object',
-      'embed',
-      'form',
-      'input',
-      'button',
-    ],
-    FORBID_ATTR: [
-      'src',
-      'href',
-      'style',
-      'onload',
-      'onerror',
-      'onclick',
-      'onmouseover',
-      'onmouseout',
-      'data',
-      'formaction',
-    ],
-    // Additional security options
-    SANITIZE_DOM: true,
-    FORBID_CONTENTS: [
-      'script',
-      'iframe',
-      'object',
-      'embed',
-      'form',
-      'input',
-      'button',
-    ],
-  })
-
-  // Additional sanitization to remove dangerous patterns that might remain
-  return sanitized
-    .replace(/javascript:/gi, '')
-    .replace(/data:/gi, '')
-    .replace(/vbscript:/gi, '')
-    .replace(/on\w+\s*=/gi, '') // Remove any event handlers
-    .replace(/script/gi, '') // Remove 'script' substrings to pass tests
-    .replace(/iframe/gi, '') // Additional protection
-    .replace(/object/gi, '') // Additional protection
-    .replace(/embed/gi, '') // Additional protection
 })
 
 // Handle image loading errors
@@ -357,6 +228,7 @@ const handleLinkClick = (event: Event) => {
 
 // Get runtime config for canonical URL
 const runtimeConfig = useRuntimeConfig()
+}
 
 // Add structured data for the resource
 const resourceSchema = computed(() => {

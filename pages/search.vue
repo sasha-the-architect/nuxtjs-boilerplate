@@ -105,6 +105,7 @@
               :highlighted-description="
                 highlightSearchTerms(resource.description, searchQuery)
               "
+              :search-query="searchQuery"
             />
           </div>
         </div>
