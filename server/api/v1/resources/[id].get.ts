@@ -1,6 +1,15 @@
 import { createError, setResponseStatus } from 'h3'
 import { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
+import {
+  cacheManager,
+  cacheSetWithTags,
+  invalidateCacheByTag,
+} from '../../../utils/enhanced-cache'
+import {
+  rateLimit,
+  getRateLimiterForPath,
+} from '../../../utils/enhanced-rate-limit'
 
 /**
  * GET /api/v1/resources/:id
@@ -9,6 +18,9 @@ import { logError } from '~/utils/errorLogger'
  */
 export default defineEventHandler(async event => {
   try {
+    // Apply rate limiting for individual resource endpoints
+    await rateLimit(event)
+
     // Get the resource ID from the URL parameter
     const id = event.context.params?.id
 
@@ -27,6 +39,17 @@ export default defineEventHandler(async event => {
         }
       )
       throw error
+    }
+
+    // Generate cache key for this specific resource
+    const cacheKey = `resource:${id}`
+
+    // Try to get from cache first
+    const cachedResult = await cacheManager.get(cacheKey)
+    if (cachedResult) {
+      event.node.res?.setHeader('X-Cache', 'HIT')
+      event.node.res?.setHeader('X-Cache-Key', cacheKey)
+      return cachedResult
     }
 
     // Import resources from JSON
@@ -53,10 +76,24 @@ export default defineEventHandler(async event => {
       throw error
     }
 
-    return {
+    // Prepare response
+    const response = {
       success: true,
       data: resource,
     }
+
+    // Cache the result with tags for easier invalidation
+    await cacheSetWithTags(cacheKey, response, 600, [
+      'resource',
+      'api-v1',
+      `resource-${id}`,
+    ]) // Cache for 10 minutes
+
+    // Set cache miss header
+    event.node.res?.setHeader('X-Cache', 'MISS')
+    event.node.res?.setHeader('X-Cache-Key', cacheKey)
+
+    return response
   } catch (error: any) {
     if (error.statusCode) {
       // Log the error but rethrow for H3 to handle properly

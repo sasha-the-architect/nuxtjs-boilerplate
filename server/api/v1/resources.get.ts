@@ -1,7 +1,15 @@
 import { getQuery, setResponseHeader, setResponseStatus } from 'h3'
 import { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
-import { cacheManager } from '../../utils/cache'
+import {
+  cacheManager,
+  cacheSetWithTags,
+  invalidateCacheByTag,
+} from '../../utils/enhanced-cache'
+import {
+  rateLimit,
+  getRateLimiterForPath,
+} from '../../utils/enhanced-rate-limit'
 
 /**
  * GET /api/v1/resources
@@ -19,6 +27,9 @@ import { cacheManager } from '../../utils/cache'
  */
 export default defineEventHandler(async event => {
   try {
+    // Apply rate limiting
+    await rateLimit(event)
+
     // Generate cache key based on query parameters
     const query = getQuery(event)
     const cacheKey = `resources:${JSON.stringify(query)}`
@@ -27,6 +38,7 @@ export default defineEventHandler(async event => {
     const cachedResult = await cacheManager.get(cacheKey)
     if (cachedResult) {
       event.node.res?.setHeader('X-Cache', 'HIT')
+      event.node.res?.setHeader('X-Cache-Key', cacheKey)
       return cachedResult
     }
 
@@ -160,11 +172,16 @@ export default defineEventHandler(async event => {
       },
     }
 
-    // Cache the result for 5 minutes (300 seconds)
-    await cacheManager.set(cacheKey, response, 300)
+    // Cache the result with tags for easier invalidation
+    await cacheSetWithTags(cacheKey, response, 300, [
+      'resources',
+      'api-v1',
+      'list',
+    ])
 
     // Set cache miss header
     event.node.res?.setHeader('X-Cache', 'MISS')
+    event.node.res?.setHeader('X-Cache-Key', cacheKey)
 
     // Set success response
     setResponseStatus(event, 200)

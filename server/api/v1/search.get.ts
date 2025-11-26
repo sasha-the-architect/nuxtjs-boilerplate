@@ -1,7 +1,15 @@
 import { getQuery, setResponseStatus } from 'h3'
 import { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
-import { cacheManager } from '../../utils/cache'
+import {
+  cacheManager,
+  cacheSetWithTags,
+  invalidateCacheByTag,
+} from '../../utils/enhanced-cache'
+import {
+  rateLimit,
+  getRateLimiterForPath,
+} from '../../utils/enhanced-rate-limit'
 
 /**
  * GET /api/v1/search
@@ -19,6 +27,9 @@ import { cacheManager } from '../../utils/cache'
  */
 export default defineEventHandler(async event => {
   try {
+    // Apply rate limiting for search endpoint (which is more restrictive)
+    await rateLimit(event)
+
     // Generate cache key based on query parameters
     const query = getQuery(event)
     const cacheKey = `search:${JSON.stringify(query)}`
@@ -27,6 +38,7 @@ export default defineEventHandler(async event => {
     const cachedResult = await cacheManager.get(cacheKey)
     if (cachedResult) {
       event.node.res?.setHeader('X-Cache', 'HIT')
+      event.node.res?.setHeader('X-Cache-Key', cacheKey)
       return cachedResult
     }
 
@@ -152,11 +164,17 @@ export default defineEventHandler(async event => {
       },
     }
 
-    // Cache the result for 2 minutes (120 seconds) since search queries change frequently
-    await cacheManager.set(cacheKey, response, 120)
+    // Cache the result with tags for easier invalidation
+    // Use shorter TTL for search results since they change more frequently
+    await cacheSetWithTags(cacheKey, response, 120, [
+      'search',
+      'api-v1',
+      'search-results',
+    ])
 
     // Set cache miss header
     event.node.res?.setHeader('X-Cache', 'MISS')
+    event.node.res?.setHeader('X-Cache-Key', cacheKey)
 
     // Set success response status
     setResponseStatus(event, 200)
