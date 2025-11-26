@@ -4,6 +4,8 @@ import { useResourceFilters } from './useResourceFilters'
 import { useResourceSearch } from './useResourceSearch'
 import { useResourceSort } from './useResourceSort'
 import { useSearchHistory } from './useSearchHistory'
+import { useSavedSearches } from './useSavedSearches'
+import { useSearchAnalytics } from './useSearchAnalytics'
 import type { Resource, SortOption, FilterOptions } from '~/types/resource'
 
 // Re-export types for convenience
@@ -110,6 +112,23 @@ export const useResources = () => {
   const { getSearchHistory, addSearchToHistory, clearSearchHistory } =
     useSearchHistory()
 
+  // Use the saved searches composable
+  const {
+    savedSearches,
+    addSavedSearch,
+    removeSavedSearch,
+    clearSavedSearches,
+    getSavedSearches,
+  } = useSavedSearches()
+
+  // Use the search analytics composable
+  const {
+    trackSearch,
+    getPopularSearches,
+    getZeroResultSearches,
+    clearSearchEvents,
+  } = useSearchAnalytics()
+
   // Combined filtered and sorted resources
   const combinedFilteredResources = sortedResources
 
@@ -140,5 +159,16 @@ export const useResources = () => {
     getSearchHistory,
     addSearchToHistory,
     clearSearchHistory,
+    // Saved searches
+    savedSearches,
+    addSavedSearch,
+    removeSavedSearch,
+    clearSavedSearches,
+    getSavedSearches,
+    // Search analytics
+    trackSearch,
+    getPopularSearches,
+    getZeroResultSearches,
+    clearSearchEvents,
   }
 }

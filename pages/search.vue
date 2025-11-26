@@ -69,6 +69,7 @@
             :selected-pricing-models="selectedPricingModels"
             :selected-difficulty-levels="selectedDifficultyLevels"
             :selected-technologies="selectedTechnologies"
+            :filter-counts="filterCounts"
             role="region"
             aria-label="Resource filters"
             @toggle-category="enhancedToggleCategory"
@@ -118,6 +119,7 @@ import SearchBar from '~/components/SearchBar.vue'
 import ResourceFilters from '~/components/ResourceFilters.vue'
 import ResourceSort from '~/components/ResourceSort.vue'
 import ResourceCard from '~/components/ResourceCard.vue'
+import { trackSearch as utilsTrackSearch, trackFilter } from '~/utils/analytics'
 
 definePageMeta({
   layout: 'default',
@@ -148,6 +150,7 @@ const {
   technologies,
   filterOptions,
   sortOption,
+  filterCounts,
   updateSearchQuery,
   toggleCategory,
   togglePricingModel,
@@ -156,6 +159,7 @@ const {
   setSortOption,
   resetFilters,
   highlightSearchTerms,
+  trackSearch,
 } = useResources()
 
 // Enhanced toggle functions with analytics tracking
@@ -198,8 +202,6 @@ const selectedDifficultyLevels = computed(
 const selectedTechnologies = computed(
   () => filterOptions.value.technologies || []
 )
-
-import { trackSearch, trackFilter } from '~/utils/analytics'
 
 // Handle search
 const handleSearch = (query: string) => {

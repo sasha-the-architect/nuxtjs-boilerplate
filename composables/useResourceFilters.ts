@@ -15,6 +15,144 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
   // Sort option
   const sortOption = ref<SortOption>('popularity-desc')
 
+  // Calculate dynamic filter counts for each filter type
+  const filterCounts = computed(() => {
+    const baseResources = [...resources]
+    const counts: {
+      categories: { [key: string]: number }
+      pricingModels: { [key: string]: number }
+      difficultyLevels: { [key: string]: number }
+      technologies: { [key: string]: number }
+    } = {
+      categories: {},
+      pricingModels: {},
+      difficultyLevels: {},
+      technologies: {},
+    }
+
+    // Count available resources for each category
+    baseResources.forEach(resource => {
+      if (!counts.categories[resource.category]) {
+        counts.categories[resource.category] = 0
+      }
+      counts.categories[resource.category]++
+    })
+
+    // Count available resources for each pricing model
+    baseResources.forEach(resource => {
+      if (!counts.pricingModels[resource.pricingModel]) {
+        counts.pricingModels[resource.pricingModel] = 0
+      }
+      counts.pricingModels[resource.pricingModel]++
+    })
+
+    // Count available resources for each difficulty level
+    baseResources.forEach(resource => {
+      if (!counts.difficultyLevels[resource.difficulty]) {
+        counts.difficultyLevels[resource.difficulty] = 0
+      }
+      counts.difficultyLevels[resource.difficulty]++
+    })
+
+    // Count available resources for each technology
+    baseResources.forEach(resource => {
+      resource.technology.forEach(tech => {
+        if (!counts.technologies[tech]) {
+          counts.technologies[tech] = 0
+        }
+        counts.technologies[tech]++
+      })
+    })
+
+    // Now apply current filters to get updated counts
+    let currentResources = [...baseResources]
+
+    // Apply current category filter if any
+    if (
+      filterOptions.value.categories &&
+      filterOptions.value.categories.length > 0
+    ) {
+      currentResources = currentResources.filter(resource =>
+        filterOptions.value.categories!.includes(resource.category)
+      )
+    }
+
+    // Apply current pricing model filter if any
+    if (
+      filterOptions.value.pricingModels &&
+      filterOptions.value.pricingModels.length > 0
+    ) {
+      currentResources = currentResources.filter(resource =>
+        filterOptions.value.pricingModels!.includes(resource.pricingModel)
+      )
+    }
+
+    // Apply current difficulty level filter if any
+    if (
+      filterOptions.value.difficultyLevels &&
+      filterOptions.value.difficultyLevels.length > 0
+    ) {
+      currentResources = currentResources.filter(resource =>
+        filterOptions.value.difficultyLevels!.includes(resource.difficulty)
+      )
+    }
+
+    // Apply current technology filter if any
+    if (
+      filterOptions.value.technologies &&
+      filterOptions.value.technologies.length > 0
+    ) {
+      currentResources = currentResources.filter(resource =>
+        resource.technology.some(tech =>
+          filterOptions.value.technologies!.includes(tech)
+        )
+      )
+    }
+
+    // Recalculate counts based on current filtered resources
+    const filteredCounts: {
+      categories: { [key: string]: number }
+      pricingModels: { [key: string]: number }
+      difficultyLevels: { [key: string]: number }
+      technologies: { [key: string]: number }
+    } = {
+      categories: {},
+      pricingModels: {},
+      difficultyLevels: {},
+      technologies: {},
+    }
+
+    currentResources.forEach(resource => {
+      // Update category counts
+      if (!filteredCounts.categories[resource.category]) {
+        filteredCounts.categories[resource.category] = 0
+      }
+      filteredCounts.categories[resource.category]++
+
+      // Update pricing model counts
+      if (!filteredCounts.pricingModels[resource.pricingModel]) {
+        filteredCounts.pricingModels[resource.pricingModel] = 0
+      }
+      filteredCounts.pricingModels[resource.pricingModel]++
+
+      // Update difficulty level counts
+      if (!filteredCounts.difficultyLevels[resource.difficulty]) {
+        filteredCounts.difficultyLevels[resource.difficulty] = 0
+      }
+      filteredCounts.difficultyLevels[resource.difficulty]++
+
+      // Update technology counts
+      resource.technology.forEach(tech => {
+        if (!filteredCounts.technologies[tech]) {
+          filteredCounts.technologies[tech] = 0
+        }
+        filteredCounts.technologies[tech]++
+      })
+    })
+
+    return filteredCounts
+  })
+
   // Computed filtered and sorted resources
   const filteredResources = computed(() => {
     if (!resources.length) {
@@ -153,6 +291,7 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
     filterOptions: readonly(filterOptions),
     sortOption: readonly(sortOption),
     filteredResources,
+    filterCounts,
     updateSearchQuery,
     toggleCategory,
     togglePricingModel,

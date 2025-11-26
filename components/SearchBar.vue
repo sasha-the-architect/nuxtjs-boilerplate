@@ -112,6 +112,7 @@ const {
   getSearchHistory,
   addSearchToHistory,
   clearSearchHistory,
+  trackSearch,
 } = useResources()
 
 // Refs
@@ -144,6 +145,11 @@ const handleInput = (event: Event) => {
     debouncedQuery.value = value
     updateSuggestions(value)
     emit('search', value)
+
+    // Track the search event after a short delay to ensure results are available
+    setTimeout(() => {
+      // This will be handled by the parent component which has access to filtered resources
+    }, 100)
   }, props.debounceTime || 300)
 }
 
