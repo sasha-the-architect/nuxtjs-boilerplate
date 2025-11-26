@@ -1,6 +1,7 @@
 import { ref, readonly } from 'vue'
 import Fuse from 'fuse.js'
 import DOMPurify from 'dompurify'
+import { filterXSS } from 'xss'
 import type { Resource } from '~/types/resource'
 
 // Composable for managing resource search functionality
@@ -41,9 +42,27 @@ export const useResourceSearch = (resources: readonly Resource[]) => {
   const highlightSearchTerms = (text: string, searchQuery: string): string => {
     if (!searchQuery || !text) return text || ''
 
-    // First sanitize the input text to prevent XSS - only allow text content
-    // Preprocess to remove dangerous content before DOMPurify
-    let preprocessedText = text
+    // First, use the xss library for additional sanitization before DOMPurify
+    // This provides an extra layer of security as a defense-in-depth approach
+    let xssSanitized = filterXSS(text, {
+      whiteList: {}, // No HTML tags allowed initially, just plain text
+      stripIgnoreTag: true, // Remove tags not in the whitelist
+      stripIgnoreTagBody: [
+        'script',
+        'style',
+        'iframe',
+        'object',
+        'embed',
+        'link',
+        'meta',
+        'base',
+      ], // Remove entire content of dangerous tags
+      allowCommentTag: false,
+      css: false, // Disable CSS sanitization for performance
+    })
+
+    // Then preprocess to remove dangerous content before DOMPurify
+    let preprocessedText = xssSanitized
 
     // Remove script tags and their content (including self-closing tags)
     preprocessedText = preprocessedText.replace(
@@ -110,8 +129,29 @@ export const useResourceSearch = (resources: readonly Resource[]) => {
       '<mark class="bg-yellow-200 text-gray-900">$1</mark>'
     )
 
+    // Apply XSS filtering to the highlighted content as an additional security layer
+    let xssHighlighted = filterXSS(highlighted, {
+      whiteList: {
+        // Only allow mark tags for highlighting
+        mark: ['class'],
+      },
+      stripIgnoreTag: true, // Remove tags not in the whitelist
+      stripIgnoreTagBody: [
+        'script',
+        'style',
+        'iframe',
+        'object',
+        'embed',
+        'link',
+        'meta',
+        'base',
+      ], // Remove entire content of dangerous tags
+      allowCommentTag: false,
+      css: false, // Disable CSS sanitization for performance
+    })
+
     // Final sanitization to ensure only safe mark tags with allowed classes are present
-    const fullySanitized = DOMPurify.sanitize(highlighted, {
+    const fullySanitized = DOMPurify.sanitize(xssHighlighted, {
       ALLOWED_TAGS: ['mark'],
       ALLOWED_ATTR: ['class'],
       FORBID_TAGS: [

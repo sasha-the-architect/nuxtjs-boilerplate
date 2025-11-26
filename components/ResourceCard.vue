@@ -137,6 +137,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useHead, useRuntimeConfig } from '#imports'
 import DOMPurify from 'dompurify'
+import { filterXSS } from 'xss'
 import OptimizedImage from '~/components/OptimizedImage.vue'
 import BookmarkButton from '~/components/BookmarkButton.vue'
 import ShareButton from '~/components/ShareButton.vue'
@@ -175,13 +176,34 @@ onMounted(() => {
   }
 })
 
-// Sanitize highlighted content to prevent XSS using DOMPurify
+// Sanitize highlighted content to prevent XSS using multiple layers of security
 const sanitizedHighlightedTitle = computed(() => {
   if (!props.highlightedTitle) return ''
 
-  // First, remove any script-related tags/content before sanitizing with DOMPurify
-  // This handles the case where malicious content exists outside of allowed tags
-  let preprocessed = props.highlightedTitle
+  // First, use the xss library for additional sanitization before DOMPurify
+  // This provides an extra layer of security as a defense-in-depth approach
+  let xssSanitized = filterXSS(props.highlightedTitle, {
+    whiteList: {
+      // Only allow mark tags for highlighting
+      mark: ['class'],
+    },
+    stripIgnoreTag: true, // Remove tags not in the whitelist
+    stripIgnoreTagBody: [
+      'script',
+      'style',
+      'iframe',
+      'object',
+      'embed',
+      'link',
+      'meta',
+      'base',
+    ], // Remove entire content of dangerous tags
+    allowCommentTag: false,
+    css: false, // Disable CSS sanitization for performance
+  })
+
+  // Then, remove any remaining dangerous patterns with regex
+  let preprocessed = xssSanitized
 
   // Remove script tags and their content (including self-closing tags)
   preprocessed = preprocessed.replace(
@@ -200,7 +222,7 @@ const sanitizedHighlightedTitle = computed(() => {
     ''
   )
 
-  // Use DOMPurify to sanitize the preprocessed content, allowing only mark tags for highlighting
+  // Use DOMPurify as the final sanitization layer, allowing only mark tags for highlighting
   const sanitized = DOMPurify.sanitize(preprocessed, {
     ALLOWED_TAGS: ['mark'],
     ALLOWED_ATTR: ['class'],
@@ -253,9 +275,30 @@ const sanitizedHighlightedTitle = computed(() => {
 const sanitizedHighlightedDescription = computed(() => {
   if (!props.highlightedDescription) return ''
 
-  // First, remove any script-related tags/content before sanitizing with DOMPurify
-  // This handles the case where malicious content exists outside of allowed tags
-  let preprocessed = props.highlightedDescription
+  // First, use the xss library for additional sanitization before DOMPurify
+  // This provides an extra layer of security as a defense-in-depth approach
+  let xssSanitized = filterXSS(props.highlightedDescription, {
+    whiteList: {
+      // Only allow mark tags for highlighting
+      mark: ['class'],
+    },
+    stripIgnoreTag: true, // Remove tags not in the whitelist
+    stripIgnoreTagBody: [
+      'script',
+      'style',
+      'iframe',
+      'object',
+      'embed',
+      'link',
+      'meta',
+      'base',
+    ], // Remove entire content of dangerous tags
+    allowCommentTag: false,
+    css: false, // Disable CSS sanitization for performance
+  })
+
+  // Then, remove any remaining dangerous patterns with regex
+  let preprocessed = xssSanitized
 
   // Remove script tags and their content (including self-closing tags)
   preprocessed = preprocessed.replace(
@@ -274,7 +317,7 @@ const sanitizedHighlightedDescription = computed(() => {
     ''
   )
 
-  // Use DOMPurify to sanitize the preprocessed content, allowing only mark tags for highlighting
+  // Use DOMPurify as the final sanitization layer, allowing only mark tags for highlighting
   const sanitized = DOMPurify.sanitize(preprocessed, {
     ALLOWED_TAGS: ['mark'],
     ALLOWED_ATTR: ['class'],
