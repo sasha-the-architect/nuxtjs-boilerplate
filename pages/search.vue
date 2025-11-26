@@ -69,6 +69,8 @@
             :selected-pricing-models="selectedPricingModels"
             :selected-difficulty-levels="selectedDifficultyLevels"
             :selected-technologies="selectedTechnologies"
+            :search-query="searchQuery"
+            :filter-counts="filterCounts"
             role="region"
             aria-label="Resource filters"
             @toggle-category="toggleCategory"
@@ -156,6 +158,8 @@ const {
   setSortOption,
   resetFilters,
   highlightSearchTerms,
+  // Advanced search functions
+  getFacetedCounts,
 } = useResources()
 
 // Set up URL synchronization
@@ -188,6 +192,11 @@ const resetAllFilters = () => {
   resetFilters()
   searchQuery.value = ''
 }
+
+// Get filter counts for the current search query
+const filterCounts = computed(() => {
+  return getFacetedCounts(searchQuery.value, 'all')
+})
 
 // Helper function to get button label based on category
 const getButtonLabel = (category: string) => {

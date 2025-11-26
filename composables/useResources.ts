@@ -4,6 +4,7 @@ import { useResourceFilters } from './useResourceFilters'
 import { useResourceSearch } from './useResourceSearch'
 import { useResourceSort } from './useResourceSort'
 import { useSearchHistory } from './useSearchHistory'
+import { useAdvancedSearch } from './useAdvancedSearch'
 import type { Resource, SortOption, FilterOptions } from '~/types/resource'
 
 // Re-export types for convenience
@@ -40,9 +41,23 @@ export const useResources = () => {
     resetFilters,
   } = useResourceFilters(resources.value)
 
-  // Use the search composable
-  const { fuse, searchResources, getSuggestions, highlightSearchTerms } =
-    useResourceSearch(resources.value)
+  // Use the advanced search composable
+  const {
+    searchResources,
+    getSuggestions,
+    highlightSearchTerms,
+    getFacetedCounts,
+    getAllFilterCounts,
+    getPopularSearches,
+    getZeroResultSearches,
+    getSearchPerformance,
+    getSearchTrends,
+    saveSearch,
+    getSavedSearches,
+    deleteSavedSearch,
+    clearSavedSearches,
+    searchWithTracking,
+  } = useAdvancedSearch(resources.value)
 
   // Use the sort composable
   const { sortedResources } = useResourceSort(
@@ -52,7 +67,9 @@ export const useResources = () => {
         filterOptions.value.searchQuery &&
         filterOptions.value.searchQuery.trim() !== ''
       ) {
-        const searchResults = searchResources(filterOptions.value.searchQuery)
+        const searchResults = searchWithTracking(
+          filterOptions.value.searchQuery
+        )
         let result = [...searchResults]
 
         // Apply category filter
@@ -140,5 +157,17 @@ export const useResources = () => {
     getSearchHistory,
     addSearchToHistory,
     clearSearchHistory,
+    // Advanced search functions
+    getFacetedCounts,
+    getAllFilterCounts,
+    getPopularSearches,
+    getZeroResultSearches,
+    getSearchPerformance,
+    getSearchTrends,
+    saveSearch,
+    getSavedSearches,
+    deleteSavedSearch,
+    clearSavedSearches,
+    searchWithTracking,
   }
 }

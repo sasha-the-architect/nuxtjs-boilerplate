@@ -46,9 +46,14 @@ export default defineNuxtPlugin(() => {
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
         console.error('Unhandled rejection details:', event.reason)
-        logError('Unhandled rejection details', event.reason as Error, 'GlobalErrorHandler', {
-          reason: event.reason,
-        })
+        logError(
+          'Unhandled rejection details',
+          event.reason as Error,
+          'GlobalErrorHandler',
+          {
+            reason: event.reason,
+          }
+        )
       }
     })
   }

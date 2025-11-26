@@ -21,20 +21,25 @@
         <label
           v-for="(category, index) in categories"
           :key="category"
-          class="flex items-center"
+          class="flex items-center justify-between"
           :tabindex="0"
           @keydown.enter.prevent="toggleCategory(category)"
           @keydown.space.prevent="toggleCategory(category)"
         >
-          <input
-            type="checkbox"
-            :value="category"
-            :checked="selectedCategories.includes(category)"
-            class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
-            :aria-label="`Filter by ${category}`"
-            @change="toggleCategory(category)"
-          />
-          <span class="ml-2 text-sm text-gray-800">{{ category }}</span>
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              :value="category"
+              :checked="selectedCategories.includes(category)"
+              class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+              :aria-label="`Filter by ${category}`"
+              @change="toggleCategory(category)"
+            />
+            <span class="ml-2 text-sm text-gray-800">{{ category }}</span>
+          </div>
+          <span class="text-xs text-gray-500 ml-2">
+            {{ getFilterCount('category', category) }}
+          </span>
         </label>
       </div>
     </div>
@@ -50,20 +55,25 @@
         <label
           v-for="(pricingModel, index) in pricingModels"
           :key="pricingModel"
-          class="flex items-center"
+          class="flex items-center justify-between"
           :tabindex="0"
           @keydown.enter.prevent="togglePricingModel(pricingModel)"
           @keydown.space.prevent="togglePricingModel(pricingModel)"
         >
-          <input
-            type="checkbox"
-            :value="pricingModel"
-            :checked="selectedPricingModels.includes(pricingModel)"
-            class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
-            :aria-label="`Filter by ${pricingModel}`"
-            @change="togglePricingModel(pricingModel)"
-          />
-          <span class="ml-2 text-sm text-gray-800">{{ pricingModel }}</span>
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              :value="pricingModel"
+              :checked="selectedPricingModels.includes(pricingModel)"
+              class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+              :aria-label="`Filter by ${pricingModel}`"
+              @change="togglePricingModel(pricingModel)"
+            />
+            <span class="ml-2 text-sm text-gray-800">{{ pricingModel }}</span>
+          </div>
+          <span class="text-xs text-gray-500 ml-2">
+            {{ getFilterCount('pricing', pricingModel) }}
+          </span>
         </label>
       </div>
     </div>
@@ -79,20 +89,25 @@
         <label
           v-for="(difficulty, index) in difficultyLevels"
           :key="difficulty"
-          class="flex items-center"
+          class="flex items-center justify-between"
           :tabindex="0"
           @keydown.enter.prevent="toggleDifficultyLevel(difficulty)"
           @keydown.space.prevent="toggleDifficultyLevel(difficulty)"
         >
-          <input
-            type="checkbox"
-            :value="difficulty"
-            :checked="selectedDifficultyLevels.includes(difficulty)"
-            class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
-            :aria-label="`Filter by ${difficulty}`"
-            @change="toggleDifficultyLevel(difficulty)"
-          />
-          <span class="ml-2 text-sm text-gray-800">{{ difficulty }}</span>
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              :value="difficulty"
+              :checked="selectedDifficultyLevels.includes(difficulty)"
+              class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+              :aria-label="`Filter by ${difficulty}`"
+              @change="toggleDifficultyLevel(difficulty)"
+            />
+            <span class="ml-2 text-sm text-gray-800">{{ difficulty }}</span>
+          </div>
+          <span class="text-xs text-gray-500 ml-2">
+            {{ getFilterCount('difficulty', difficulty) }}
+          </span>
         </label>
       </div>
     </div>
@@ -108,20 +123,25 @@
         <label
           v-for="(technology, index) in technologies"
           :key="technology"
-          class="flex items-center"
+          class="flex items-center justify-between"
           :tabindex="0"
           @keydown.enter.prevent="toggleTechnology(technology)"
           @keydown.space.prevent="toggleTechnology(technology)"
         >
-          <input
-            type="checkbox"
-            :value="technology"
-            :checked="selectedTechnologies.includes(technology)"
-            class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
-            :aria-label="`Filter by ${technology}`"
-            @change="toggleTechnology(technology)"
-          />
-          <span class="ml-2 text-sm text-gray-800">{{ technology }}</span>
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              :value="technology"
+              :checked="selectedTechnologies.includes(technology)"
+              class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+              :aria-label="`Filter by ${technology}`"
+              @change="toggleTechnology(technology)"
+            />
+            <span class="ml-2 text-sm text-gray-800">{{ technology }}</span>
+          </div>
+          <span class="text-xs text-gray-500 ml-2">
+            {{ getFilterCount('technology', technology) }}
+          </span>
         </label>
       </div>
     </div>
@@ -138,6 +158,13 @@ interface Props {
   selectedPricingModels: string[]
   selectedDifficultyLevels: string[]
   selectedTechnologies: string[]
+  searchQuery?: string
+  filterCounts?: {
+    categories: Record<string, number>
+    pricingModels: Record<string, number>
+    difficultyLevels: Record<string, number>
+    technologies: Record<string, number>
+  }
 }
 
 interface Emits {
@@ -148,8 +175,42 @@ interface Emits {
   (event: 'reset-filters'): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  searchQuery: '',
+  filterCounts: () => ({
+    categories: {},
+    pricingModels: {},
+    difficultyLevels: {},
+    technologies: {},
+  }),
+})
+
 const emit = defineEmits<Emits>()
+
+// Function to get the count for a specific filter
+const getFilterCount = (
+  filterType: 'category' | 'pricing' | 'difficulty' | 'technology',
+  value: string
+) => {
+  let counts: Record<string, number> = {}
+
+  switch (filterType) {
+    case 'category':
+      counts = props.filterCounts.categories
+      break
+    case 'pricing':
+      counts = props.filterCounts.pricingModels
+      break
+    case 'difficulty':
+      counts = props.filterCounts.difficultyLevels
+      break
+    case 'technology':
+      counts = props.filterCounts.technologies
+      break
+  }
+
+  return counts[value] || 0
+}
 
 const toggleCategory = (category: string) => {
   emit('toggle-category', category)

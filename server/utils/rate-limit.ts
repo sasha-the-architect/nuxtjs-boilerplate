@@ -26,9 +26,7 @@ class RateLimiter {
   /**
    * Check if a request should be allowed based on token bucket algorithm
    */
-  async isAllowed(
-    key: string
-  ): Promise<{
+  async isAllowed(key: string): Promise<{
     allowed: boolean
     resetTime?: number
     remaining?: number

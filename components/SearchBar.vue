@@ -26,7 +26,11 @@
         type="search"
         :value="modelValue"
         class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
-        placeholder="Search resources by name, description, tags..."
+        :placeholder="
+          hasAdvancedOperators
+            ? 'Advanced search: Using operators (AND, OR, NOT, quotes)'
+            : 'Search resources by name, description, tags...'
+        "
         aria-label="Search resources"
         aria-describedby="search-results-info"
         @input="handleInput"
@@ -65,13 +69,19 @@
     <!-- Search Suggestions Dropdown -->
     <SearchSuggestions
       v-if="
-        showSuggestions && (suggestions.length > 0 || searchHistory.length > 0)
+        showSuggestions &&
+        (suggestions.length > 0 ||
+          searchHistory.length > 0 ||
+          savedSearches.length > 0)
       "
       :suggestions="suggestions"
       :search-history="searchHistory"
+      :saved-searches="savedSearches"
       :visible="showSuggestions"
       @select-suggestion="handleSuggestionSelect"
       @select-history="handleHistorySelect"
+      @select-saved-search="handleSavedSearchSelect"
+      @delete-saved-search="handleDeleteSavedSearch"
       @clear-history="handleClearHistory"
       @navigate="handleNavigate"
     />
@@ -112,6 +122,10 @@ const {
   getSearchHistory,
   addSearchToHistory,
   clearSearchHistory,
+  // Advanced search functions
+  getSavedSearches,
+  saveSearch,
+  deleteSavedSearch,
 } = useResources()
 
 // Refs
@@ -119,12 +133,26 @@ const searchInputRef = ref<HTMLInputElement>()
 const showSuggestions = ref(false)
 const suggestions = ref<any[]>([])
 const searchHistory = ref<string[]>([])
+const savedSearches = ref<any[]>([])
 const debouncedQuery = ref('')
 const inputTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
 
-// Load search history on component mount
+// Check if the current query contains advanced operators
+const hasAdvancedOperators = computed(() => {
+  if (!props.modelValue) return false
+  const query = props.modelValue.toLowerCase()
+  return (
+    query.includes(' and ') ||
+    query.includes(' or ') ||
+    query.includes(' not ') ||
+    (query.match(/"/g) || []).length >= 2
+  )
+})
+
+// Load search history and saved searches on component mount
 onMounted(() => {
   searchHistory.value = getSearchHistory()
+  savedSearches.value = getSavedSearches()
 })
 
 // Handle input with debounce
@@ -205,6 +233,17 @@ const handleHistorySelect = (history: string) => {
   emit('update:modelValue', history)
   emit('search', history)
   showSuggestions.value = false
+}
+
+const handleSavedSearchSelect = (savedSearch: any) => {
+  emit('update:modelValue', savedSearch.query)
+  emit('search', savedSearch.query)
+  showSuggestions.value = false
+}
+
+const handleDeleteSavedSearch = (id: string) => {
+  deleteSavedSearch(id)
+  savedSearches.value = getSavedSearches()
 }
 
 const handleClearHistory = () => {

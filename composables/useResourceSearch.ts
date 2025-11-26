@@ -21,12 +21,117 @@ export const useResourceSearch = (resources: readonly Resource[]) => {
     })
   }
 
-  // Search resources
+  // Parse advanced search query with operators (AND, OR, NOT)
+  const parseAdvancedQuery = (query: string): Resource[] => {
+    if (!query.trim()) return [...resources]
+
+    // Check if query contains advanced operators
+    if (
+      query.includes(' AND ') ||
+      query.includes(' OR ') ||
+      query.includes(' NOT ') ||
+      query.includes('"')
+    ) {
+      return performAdvancedSearch(query)
+    } else {
+      // Use regular Fuse search for simple queries
+      if (!fuse.value) return [...resources]
+      const searchResults = fuse.value.search(query)
+      return searchResults.map(item => item.item)
+    }
+  }
+
+  // Perform advanced search with operators
+  const performAdvancedSearch = (query: string): Resource[] => {
+    // First, parse the query for different search terms and operators
+    const terms = parseQueryTerms(query)
+
+    // Process each term and combine results based on operators
+    let result: Resource[] = []
+    let currentOperator: 'AND' | 'OR' | 'NOT' | null = null
+
+    for (const term of terms) {
+      if (term.type === 'operator') {
+        currentOperator = term.value as 'AND' | 'OR' | 'NOT'
+      } else if (term.type === 'term') {
+        const termResults = searchByTerm(term.value)
+
+        if (result.length === 0) {
+          // First term - just assign the results
+          result = termResults
+        } else {
+          // Combine with existing results based on operator
+          switch (currentOperator) {
+            case 'AND': {
+              result = result.filter(resource =>
+                termResults.some(termRes => termRes.id === resource.id)
+              )
+              break
+            }
+            case 'OR': {
+              const ids = new Set(result.map(r => r.id))
+              termResults.forEach(termRes => {
+                if (!ids.has(termRes.id)) {
+                  result.push(termRes)
+                }
+              })
+              break
+            }
+            case 'NOT': {
+              result = result.filter(
+                resource =>
+                  !termResults.some(termRes => termRes.id === resource.id)
+              )
+              break
+            }
+          }
+        }
+        // Reset operator after processing
+        currentOperator = null
+      }
+    }
+
+    return result
+  }
+
+  // Parse query into terms and operators
+  const parseQueryTerms = (query: string) => {
+    const terms: { type: 'term' | 'operator'; value: string }[] = []
+    const regex = /(".*?"|AND|OR|NOT|[^\s]+)/g
+    let match
+
+    while ((match = regex.exec(query)) !== null) {
+      const token = match[0]
+      if (token === 'AND' || token === 'OR' || token === 'NOT') {
+        terms.push({ type: 'operator', value: token })
+      } else {
+        // Remove quotes if present
+        const cleanToken =
+          token.startsWith('"') && token.endsWith('"')
+            ? token.slice(1, -1)
+            : token
+        terms.push({ type: 'term', value: cleanToken })
+      }
+    }
+
+    return terms
+  }
+
+  // Search by a single term
+  const searchByTerm = (term: string): Resource[] => {
+    if (!fuse.value) return [...resources]
+
+    // Use Fuse.js for the term search
+    const searchResults = fuse.value.search(term)
+    return searchResults.map(item => item.item)
+  }
+
+  // Search resources with advanced query support
   const searchResources = (query: string): Resource[] => {
     if (!query || !fuse.value) return [...resources]
 
-    const searchResults = fuse.value.search(query)
-    return searchResults.map(item => item.item)
+    // Use advanced search if query contains operators
+    return parseAdvancedQuery(query)
   }
 
   // Search suggestions functionality
