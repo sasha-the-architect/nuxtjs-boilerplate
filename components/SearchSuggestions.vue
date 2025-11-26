@@ -1,13 +1,63 @@
 <template>
   <div
-    v-if="suggestions.length > 0 || searchHistory.length > 0"
+    v-if="
+      suggestions.length > 0 ||
+      searchHistory.length > 0 ||
+      (savedSearches && savedSearches.length > 0)
+    "
     class="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md py-1 max-h-96 overflow-auto border border-gray-200"
     role="listbox"
     aria-label="Search suggestions"
     @keydown="handleKeyDown"
   >
+    <!-- Saved Searches Section -->
+    <div v-if="savedSearches && savedSearches.length > 0">
+      <div
+        class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider"
+      >
+        Saved Searches
+      </div>
+      <ul>
+        <li
+          v-for="(savedSearch, index) in savedSearches"
+          :key="'saved-' + savedSearch.id"
+          role="option"
+          :aria-selected="focusedIndex === index"
+          :class="[
+            'px-4 py-2 cursor-pointer hover:bg-gray-100 flex items-center justify-between',
+            focusedIndex === index ? 'bg-gray-100' : '',
+          ]"
+          @click="selectSavedSearch(savedSearch)"
+          @mouseenter="focusedIndex = index"
+        >
+          <div class="flex items-center">
+            <svg
+              class="w-4 h-4 mr-2 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+              ></path>
+            </svg>
+            <span>{{ savedSearch.name }}</span>
+          </div>
+          <span class="text-xs text-gray-400">{{ savedSearch.query }}</span>
+        </li>
+      </ul>
+    </div>
+
     <!-- Search History Section -->
     <div v-if="searchHistory.length > 0">
+      <div
+        v-if="savedSearches && savedSearches.length > 0"
+        class="border-t border-gray-200 my-1"
+      ></div>
       <div
         class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider"
       >
@@ -18,13 +68,19 @@
           v-for="(history, index) in searchHistory"
           :key="'history-' + index"
           role="option"
-          :aria-selected="focusedIndex === index"
+          :aria-selected="
+            focusedIndex === (savedSearches ? savedSearches.length : 0) + index
+          "
           :class="[
             'px-4 py-2 cursor-pointer hover:bg-gray-100',
-            focusedIndex === index ? 'bg-gray-100' : '',
+            focusedIndex === (savedSearches ? savedSearches.length : 0) + index
+              ? 'bg-gray-100'
+              : '',
           ]"
           @click="selectHistory(history)"
-          @mouseenter="focusedIndex = index"
+          @mouseenter="
+            focusedIndex = (savedSearches ? savedSearches.length : 0) + index
+          "
         >
           <div class="flex items-center">
             <svg
@@ -50,7 +106,10 @@
     <!-- Search Suggestions Section -->
     <div v-if="suggestions.length > 0">
       <div
-        v-if="searchHistory.length > 0"
+        v-if="
+          (savedSearches && savedSearches.length > 0) ||
+          searchHistory.length > 0
+        "
         class="border-t border-gray-200 my-1"
       ></div>
       <div
@@ -63,13 +122,28 @@
           v-for="(suggestion, index) in suggestions"
           :key="suggestion.id"
           role="option"
-          :aria-selected="focusedIndex === searchHistory.length + index"
+          :aria-selected="
+            focusedIndex ===
+            (savedSearches ? savedSearches.length : 0) +
+              searchHistory.length +
+              index
+          "
           :class="[
             'px-4 py-2 cursor-pointer hover:bg-gray-100 flex items-start',
-            focusedIndex === searchHistory.length + index ? 'bg-gray-100' : '',
+            focusedIndex ===
+            (savedSearches ? savedSearches.length : 0) +
+              searchHistory.length +
+              index
+              ? 'bg-gray-100'
+              : '',
           ]"
           @click="selectSuggestion(suggestion)"
-          @mouseenter="focusedIndex = searchHistory.length + index"
+          @mouseenter="
+            focusedIndex =
+              (savedSearches ? savedSearches.length : 0) +
+              searchHistory.length +
+              index
+          "
         >
           <svg
             class="w-4 h-4 mr-2 mt-0.5 text-gray-400 flex-shrink-0"
@@ -98,7 +172,12 @@
     </div>
 
     <!-- Clear History Button -->
-    <div v-if="searchHistory.length > 0" class="border-t border-gray-200 mt-1">
+    <div
+      v-if="
+        searchHistory.length > 0 || (savedSearches && savedSearches.length > 0)
+      "
+      class="border-t border-gray-200 mt-1"
+    >
       <button
         class="w-full px-4 py-2 text-left text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center"
         @click="clearHistory"
@@ -136,17 +215,21 @@ interface SuggestionItem {
 interface Props {
   suggestions: SuggestionItem[]
   searchHistory: string[]
+  savedSearches?: any[]
   visible: boolean
 }
 
 interface Emits {
   (event: 'select-suggestion', suggestion: SuggestionItem): void
   (event: 'select-history', history: string): void
+  (event: 'select-saved-search', savedSearch: any): void
   (event: 'clear-history'): void
   (event: 'navigate', direction: 'up' | 'down'): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  savedSearches: () => [],
+})
 const emit = defineEmits<Emits>()
 
 const focusedIndex = ref(-1)
@@ -169,6 +252,10 @@ const selectHistory = (history: string) => {
   emit('select-history', history)
 }
 
+const selectSavedSearch = (savedSearch: any) => {
+  emit('select-saved-search', savedSearch)
+}
+
 const clearHistory = () => {
   emit('clear-history')
 }
@@ -176,7 +263,10 @@ const clearHistory = () => {
 const handleKeyDown = (event: KeyboardEvent) => {
   if (event.key === 'ArrowDown') {
     event.preventDefault()
-    const totalItems = props.searchHistory.length + props.suggestions.length
+    const totalItems =
+      (props.savedSearches?.length || 0) +
+      props.searchHistory.length +
+      props.suggestions.length
     if (focusedIndex.value < totalItems - 1) {
       focusedIndex.value++
     } else {
@@ -188,19 +278,37 @@ const handleKeyDown = (event: KeyboardEvent) => {
     if (focusedIndex.value > 0) {
       focusedIndex.value--
     } else {
-      const totalItems = props.searchHistory.length + props.suggestions.length
+      const totalItems =
+        (props.savedSearches?.length || 0) +
+        props.searchHistory.length +
+        props.suggestions.length
       focusedIndex.value = totalItems - 1
     }
     emit('navigate', 'up')
   } else if (event.key === 'Enter') {
     event.preventDefault()
     if (focusedIndex.value >= 0) {
-      if (focusedIndex.value < props.searchHistory.length) {
+      const savedSearchCount = props.savedSearches?.length || 0
+
+      if (focusedIndex.value < savedSearchCount) {
+        // It's a saved search item
+        if (
+          props.savedSearches &&
+          focusedIndex.value < props.savedSearches.length
+        ) {
+          emit('select-saved-search', props.savedSearches[focusedIndex.value])
+        }
+      } else if (
+        focusedIndex.value <
+        savedSearchCount + props.searchHistory.length
+      ) {
         // It's a history item
-        emit('select-history', props.searchHistory[focusedIndex.value])
+        const historyIndex = focusedIndex.value - savedSearchCount
+        emit('select-history', props.searchHistory[historyIndex])
       } else {
         // It's a suggestion
-        const suggestionIndex = focusedIndex.value - props.searchHistory.length
+        const suggestionIndex =
+          focusedIndex.value - savedSearchCount - props.searchHistory.length
         if (suggestionIndex < props.suggestions.length) {
           emit('select-suggestion', props.suggestions[suggestionIndex])
         }

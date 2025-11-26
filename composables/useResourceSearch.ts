@@ -18,14 +18,59 @@ export const useResourceSearch = (resources: readonly Resource[]) => {
       ],
       threshold: 0.3,
       includeScore: true,
+      // Enable advanced options for phrase matching
+      useExtendedSearch: true,
     })
+  }
+
+  // Parse advanced search query into Fuse.js format
+  const parseAdvancedQuery = (query: string) => {
+    // If the query is empty or too simple, return as is
+    if (!query || query.trim().length < 2) {
+      return query
+    }
+
+    // Handle quoted phrases first
+    const phraseRegex = /"([^"]+)"/g
+    const phrases = []
+    let processedQuery = query
+    let match
+
+    while ((match = phraseRegex.exec(query)) !== null) {
+      phrases.push(match[1])
+    }
+
+    // Process the query to handle AND/OR/NOT operators
+    processedQuery = processedQuery.replace(phraseRegex, 'PHRASE_PLACEHOLDER')
+
+    // Handle AND operator (default behavior in Fuse.js)
+    processedQuery = processedQuery.replace(/\s+AND\s+/gi, ' ')
+
+    // Handle OR operator
+    processedQuery = processedQuery.replace(/\s+OR\s+/gi, '|')
+
+    // Handle NOT operator
+    processedQuery = processedQuery.replace(/\s+NOT\s+/gi, ' !')
+
+    // Replace back the phrase placeholders
+    const phrasePlaceholders = processedQuery.match(/PHRASE_PLACEHOLDER/g)
+    if (phrasePlaceholders && phrases.length > 0) {
+      let phraseIndex = 0
+      processedQuery = processedQuery.replace(/PHRASE_PLACEHOLDER/g, () => {
+        return `"${phrases[phraseIndex++]}"`
+      })
+    }
+
+    return processedQuery.trim()
   }
 
   // Search resources
   const searchResources = (query: string): Resource[] => {
     if (!query || !fuse.value) return [...resources]
 
-    const searchResults = fuse.value.search(query)
+    // Parse the query for advanced search operators
+    const processedQuery = parseAdvancedQuery(query)
+    const searchResults = fuse.value.search(processedQuery)
     return searchResults.map(item => item.item)
   }
 

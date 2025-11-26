@@ -25,7 +25,7 @@
         ref="searchInputRef"
         type="search"
         :value="modelValue"
-        class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
+        class="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
         placeholder="Search resources by name, description, tags..."
         aria-label="Search resources"
         aria-describedby="search-results-info"
@@ -34,6 +34,52 @@
         @focus="handleFocus"
         @blur="handleBlur"
       />
+      <div
+        v-if="modelValue"
+        class="absolute inset-y-0 right-0 flex items-center pr-10"
+      >
+        <!-- Save Search Button -->
+        <button
+          class="text-gray-400 hover:text-gray-600 focus:outline-none mr-2"
+          aria-label="Save this search"
+          @click="saveCurrentSearch"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+            ></path>
+          </svg>
+        </button>
+        <button
+          class="text-gray-400 hover:text-gray-600 focus:outline-none"
+          aria-label="Clear search"
+          @click="clearSearch"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+      </div>
       <div
         v-if="modelValue"
         class="absolute inset-y-0 right-0 flex items-center pr-3"
@@ -65,13 +111,18 @@
     <!-- Search Suggestions Dropdown -->
     <SearchSuggestions
       v-if="
-        showSuggestions && (suggestions.length > 0 || searchHistory.length > 0)
+        showSuggestions &&
+        (suggestions.length > 0 ||
+          searchHistory.length > 0 ||
+          (reactiveSavedSearches && reactiveSavedSearches.length > 0))
       "
       :suggestions="suggestions"
       :search-history="searchHistory"
+      :saved-searches="reactiveSavedSearches"
       :visible="showSuggestions"
       @select-suggestion="handleSuggestionSelect"
       @select-history="handleHistorySelect"
+      @select-saved-search="handleSavedSearchSelect"
       @clear-history="handleClearHistory"
       @navigate="handleNavigate"
     />
@@ -89,9 +140,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import SearchSuggestions from '~/components/SearchSuggestions.vue'
 import { useResources } from '~/composables/useResources'
+import { useAdvancedSearch } from '~/composables/useAdvancedSearch'
 
 interface Props {
   modelValue: string
@@ -113,6 +165,12 @@ const {
   addSearchToHistory,
   clearSearchHistory,
 } = useResources()
+
+// Use advanced search for saved searches
+const { savedSearches, saveSearch } = useAdvancedSearch()
+
+// Make saved searches reactive
+const reactiveSavedSearches = computed(() => savedSearches.value)
 
 // Refs
 const searchInputRef = ref<HTMLInputElement>()
@@ -207,6 +265,12 @@ const handleHistorySelect = (history: string) => {
   showSuggestions.value = false
 }
 
+const handleSavedSearchSelect = (savedSearch: any) => {
+  emit('update:modelValue', savedSearch.query)
+  emit('search', savedSearch.query)
+  showSuggestions.value = false
+}
+
 const handleClearHistory = () => {
   clearSearchHistory()
   searchHistory.value = []
@@ -215,6 +279,19 @@ const handleClearHistory = () => {
 const handleNavigate = (direction: 'up' | 'down') => {
   // This is handled by the SearchSuggestions component
   // but we can add additional logic here if needed
+}
+
+// Save the current search
+const saveCurrentSearch = () => {
+  if (props.modelValue.trim()) {
+    const searchName = prompt(
+      'Enter a name for this saved search:',
+      props.modelValue.substring(0, 30)
+    )
+    if (searchName && searchName.trim()) {
+      saveSearch(searchName.trim(), props.modelValue.trim(), {})
+    }
+  }
 }
 
 // Expose focus method to parent components

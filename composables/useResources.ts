@@ -38,6 +38,9 @@ export const useResources = () => {
     toggleTechnology,
     setSortOption,
     resetFilters,
+    updatePopularityRange,
+    updateDateRange,
+    updateOpenSourceFilter,
   } = useResourceFilters(resources.value)
 
   // Use the search composable
@@ -140,5 +143,10 @@ export const useResources = () => {
     getSearchHistory,
     addSearchToHistory,
     clearSearchHistory,
+    // Advanced filter methods
+    updatePopularityRange,
+    updateDateRange,
+    updateOpenSourceFilter,
   }
+}
 }

@@ -12,6 +12,14 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
     technologies: [],
   })
 
+  // Advanced filter options
+  const advancedFilterOptions = ref({
+    popularityMin: null as number | null,
+    popularityMax: null as number | null,
+    dateRange: null as number | null,
+    openSource: null as boolean | null,
+  })
+
   // Sort option
   const sortOption = ref<SortOption>('popularity-desc')
 
@@ -59,10 +67,68 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
       filterOptions.value.technologies.length > 0
     ) {
       result = result.filter(resource =>
-        resource.technology.some(tech =>
+        resource.technology.some((tech: string) =>
           filterOptions.value.technologies!.includes(tech)
         )
       )
+    }
+
+    // Apply advanced filters
+    // Popularity range filter
+    if (advancedFilterOptions.value.popularityMin !== null) {
+      result = result.filter(
+        resource =>
+          resource.popularity >= advancedFilterOptions.value.popularityMin!
+      )
+    }
+
+    if (advancedFilterOptions.value.popularityMax !== null) {
+      result = result.filter(
+        resource =>
+          resource.popularity <= advancedFilterOptions.value.popularityMax!
+      )
+    }
+
+    // Date range filter
+    if (advancedFilterOptions.value.dateRange !== null) {
+      const cutoffDate = new Date()
+      cutoffDate.setDate(
+        cutoffDate.getDate() - advancedFilterOptions.value.dateRange
+      )
+
+      result = result.filter(resource => {
+        const resourceDate = new Date(resource.dateAdded)
+        return resourceDate >= cutoffDate
+      })
+    }
+
+    // Open source filter
+    if (advancedFilterOptions.value.openSource !== null) {
+      result = result.filter(resource => {
+        const description = resource.description.toLowerCase()
+        const title = resource.title.toLowerCase()
+        const tags = resource.tags.map((t: string) => t.toLowerCase())
+
+        if (advancedFilterOptions.value.openSource) {
+          return (
+            description.includes('open source') ||
+            title.includes('open source') ||
+            tags.some(
+              (t: string) =>
+                t.includes('open-source') || t.includes('open_source')
+            )
+          )
+        } else {
+          return !(
+            description.includes('open source') ||
+            title.includes('open source') ||
+            tags.some(
+              (t: string) =>
+                t.includes('open-source') || t.includes('open_source')
+            )
+          )
+        }
+      })
     }
 
     // Apply sorting
@@ -137,6 +203,20 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
     sortOption.value = option
   }
 
+  // Update advanced filter options
+  const updatePopularityRange = (min: number | null, max: number | null) => {
+    advancedFilterOptions.value.popularityMin = min
+    advancedFilterOptions.value.popularityMax = max
+  }
+
+  const updateDateRange = (days: number | null) => {
+    advancedFilterOptions.value.dateRange = days
+  }
+
+  const updateOpenSourceFilter = (isOpenSource: boolean | null) => {
+    advancedFilterOptions.value.openSource = isOpenSource
+  }
+
   // Reset all filters
   const resetFilters = () => {
     filterOptions.value = {
@@ -145,6 +225,12 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
       pricingModels: [],
       difficultyLevels: [],
       technologies: [],
+    }
+    advancedFilterOptions.value = {
+      popularityMin: null,
+      popularityMax: null,
+      dateRange: null,
+      openSource: null,
     }
     sortOption.value = 'popularity-desc'
   }
@@ -160,5 +246,9 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
     toggleTechnology,
     setSortOption,
     resetFilters,
+    // Advanced filter methods
+    updatePopularityRange,
+    updateDateRange,
+    updateOpenSourceFilter,
   }
 }

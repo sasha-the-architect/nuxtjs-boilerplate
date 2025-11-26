@@ -69,6 +69,7 @@
             :selected-pricing-models="selectedPricingModels"
             :selected-difficulty-levels="selectedDifficultyLevels"
             :selected-technologies="selectedTechnologies"
+            :search-query="searchQuery"
             role="region"
             aria-label="Resource filters"
             @toggle-category="toggleCategory"
@@ -76,6 +77,9 @@
             @toggle-difficulty-level="toggleDifficultyLevel"
             @toggle-technology="toggleTechnology"
             @reset-filters="resetAllFilters"
+            @popularity-range-change="handlePopularityRangeChange"
+            @date-range-change="handleDateRangeChange"
+            @open-source-change="handleOpenSourceChange"
           />
         </div>
 
@@ -114,6 +118,8 @@
 <script setup lang="ts">
 import { useResources, type SortOption } from '~/composables/useResources'
 import { useUrlSync } from '~/composables/useUrlSync'
+import { useAdvancedSearch } from '~/composables/useAdvancedSearch'
+import { ref, watch, nextTick } from 'vue'
 import SearchBar from '~/components/SearchBar.vue'
 import ResourceFilters from '~/components/ResourceFilters.vue'
 import ResourceSort from '~/components/ResourceSort.vue'
@@ -156,7 +162,74 @@ const {
   setSortOption,
   resetFilters,
   highlightSearchTerms,
+  updatePopularityRange,
+  updateDateRange,
+  updateOpenSourceFilter,
 } = useResources()
+
+// Use advanced search for analytics
+const { trackSearch, getPopularSearches, getZeroResultQueries } =
+  useAdvancedSearch()
+
+// Track search performance
+const lastSearchTime = ref<number | null>(null)
+const searchPerformance = ref<
+  { query: string; timeMs: number; resultCount: number }[]
+>([])
+
+// Track search when query changes - improved timing
+let searchStartTime: number | null = null
+
+// Watch for search query changes to start timing
+watch(
+  () => filterOptions.value.searchQuery,
+  newQuery => {
+    if (newQuery !== undefined) {
+      // Start timing the search
+      searchStartTime = Date.now()
+    }
+  },
+  { immediate: false }
+)
+
+// Watch for filteredResources changes to calculate search time
+watch(
+  () => filteredResources.value.length,
+  () => {
+    if (
+      searchStartTime !== null &&
+      filterOptions.value.searchQuery !== undefined
+    ) {
+      // Calculate search time
+      const searchTime = Date.now() - searchStartTime
+      lastSearchTime.value = searchTime
+
+      // Track search in analytics
+      trackSearch(
+        filterOptions.value.searchQuery || '',
+        filteredResources.value.length
+      )
+
+      // Store performance data
+      if (filterOptions.value.searchQuery) {
+        searchPerformance.value.push({
+          query: filterOptions.value.searchQuery,
+          timeMs: searchTime,
+          resultCount: filteredResources.value.length,
+        })
+
+        // Keep only last 50 entries
+        if (searchPerformance.value.length > 50) {
+          searchPerformance.value = searchPerformance.value.slice(-50)
+        }
+      }
+
+      // Reset start time
+      searchStartTime = null
+    }
+  },
+  { immediate: false }
+)
 
 // Set up URL synchronization
 useUrlSync(filterOptions, sortOption)
@@ -187,6 +260,22 @@ const handleSearch = (query: string) => {
 const resetAllFilters = () => {
   resetFilters()
   searchQuery.value = ''
+}
+
+// Advanced filter handlers
+const handlePopularityRangeChange = (
+  min: number | null,
+  max: number | null
+) => {
+  updatePopularityRange(min, max)
+}
+
+const handleDateRangeChange = (days: number | null) => {
+  updateDateRange(days)
+}
+
+const handleOpenSourceChange = (isOpenSource: boolean | null) => {
+  updateOpenSourceFilter(isOpenSource)
 }
 
 // Helper function to get button label based on category
