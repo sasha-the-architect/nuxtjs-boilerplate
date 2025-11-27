@@ -366,6 +366,14 @@
           />
         </div>
       </div>
+
+      <!-- Recommendations Section -->
+      <div class="mt-12">
+        <RecommendationsSection
+          :current-resource="resource"
+          :current-category="resource?.category"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -373,6 +381,7 @@
 <script setup lang="ts">
 import { useResources, type Resource } from '~/composables/useResources'
 import ResourceCard from '~/components/ResourceCard.vue'
+import RecommendationsSection from '~/components/RecommendationsSection.vue'
 import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRuntimeConfig, useSeoMeta } from '#imports'
