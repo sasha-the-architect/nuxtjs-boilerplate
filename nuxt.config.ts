@@ -191,6 +191,61 @@ export default defineNuxtConfig({
     componentIslands: true,
   },
 
+  // Security headers configuration
+  routeRules: {
+    // Main routes with prerender
+    '/': {
+      prerender: true,
+    },
+    '/ai-keys': {
+      prerender: true,
+    },
+    '/about': {
+      prerender: true,
+    },
+    '/search': {
+      prerender: true,
+    },
+    '/submit': {
+      prerender: true,
+    },
+    // API routes
+    '/api/**': {
+      // Cache control handled by security headers plugin
+    },
+    // Static assets
+    '/_nuxt/**': {
+      // Cache control handled by security headers plugin
+    },
+  },
+
+  // Content Security Policy configuration
+  nitro: {
+    // Optimize server-side rendering
+    minify: true,
+    // Enable compression
+    compressPublicAssets: true,
+    // Improve build performance
+    ignore: ['**/.git/**', '**/node_modules/**', '**/dist/**'],
+    // CSP headers via middleware
+    plugins: [
+      '~/server/plugins/security-headers.ts',
+      '~/server/plugins/resource-validation.ts',
+    ],
+    // Security headers configuration
+    headers: {
+      'Content-Security-Policy':
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;",
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '0',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Strict-Transport-Security':
+        'max-age=31536000; includeSubDomains; preload',
+      'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
+    },
+  },
+
   // Image optimization configuration
   image: {
     // Enable native lazy loading for images
@@ -352,6 +407,18 @@ export default defineNuxtConfig({
       '~/server/plugins/security-headers.ts',
       '~/server/plugins/resource-validation.ts',
     ],
+    // Security headers configuration
+    headers: {
+      'Content-Security-Policy':
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;",
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '0',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Strict-Transport-Security':
+        'max-age=31536000; includeSubDomains; preload',
+      'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
+    },
   },
 
   // Optimize bundle size

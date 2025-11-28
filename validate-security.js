@@ -36,13 +36,14 @@ if (resourceCardContent.includes("import DOMPurify from 'dompurify'")) {
   }
 }
 
-if (resourceCardContent.includes('DOMPurify.sanitize')) {
+// Check if centralized sanitization is used in ResourceCard.vue
+if (resourceCardContent.includes('sanitizeAndHighlight')) {
   if (
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
     // eslint-disable-next-line no-console
-    console.log('✓ DOMPurify.sanitize usage found in ResourceCard.vue')
+    console.log('✓ Centralized sanitization usage found in ResourceCard.vue')
   }
 } else {
   if (
@@ -50,7 +51,9 @@ if (resourceCardContent.includes('DOMPurify.sanitize')) {
     process.env.VALIDATION_LOGS === 'true'
   ) {
     // eslint-disable-next-line no-console
-    console.log('✗ DOMPurify.sanitize usage NOT found in ResourceCard.vue')
+    console.log(
+      '✗ Centralized sanitization usage NOT found in ResourceCard.vue'
+    )
   }
 }
 
