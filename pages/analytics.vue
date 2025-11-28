@@ -244,6 +244,11 @@
         </div>
       </div>
 
+      <!-- Search Analytics Section -->
+      <div class="mb-8">
+        <SearchAnalytics :date-range="{ start: startDate, end: endDate }" />
+      </div>
+
       <!-- Additional Analytics Sections -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Events by Type -->
@@ -301,7 +306,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import SearchAnalytics from '~/components/SearchAnalytics.vue'
 
 // Define types
 interface AnalyticsData {
