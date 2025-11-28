@@ -3,7 +3,7 @@
  * Initializes and manages scheduled validation of resource URLs
  */
 
-import { defineNitroPlugin } from 'nitropack'
+import { defineNitroPlugin } from 'nitropack/runtime'
 import { updateAllResourceHealth } from '../utils/resourceHealth'
 
 export default defineNitroPlugin(async nitroApp => {

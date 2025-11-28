@@ -77,30 +77,14 @@ export default defineEventHandler(async event => {
       throw error
     }
 
-     // Convert resource to include hierarchical tags
-     const resourcesWithHierarchicalTags = convertResourcesToHierarchicalTags([
-       resource,
-     ])
-     const resourceWithHierarchicalTags = resourcesWithHierarchicalTags[0]
+    // Convert resource to include hierarchical tags
+    const resourcesWithHierarchicalTags = convertResourcesToHierarchicalTags([
+      resource,
+    ])
+    const resourceWithHierarchicalTags = resourcesWithHierarchicalTags[0]
 
-     // Prepare response
-     const response = {
-       success: true,
-       data: resourceWithHierarchicalTags,
-     }
-
-     // Cache the result with tags for easier invalidation
-     await cacheSetWithTags(cacheKey, response, 600, [
-       'resource',
-       'api-v1',
-       `resource-${id}`,
-     ]) // Cache for 10 minutes
-
-     // Set cache miss header
-     event.node.res?.setHeader('X-Cache', 'MISS')
-     event.node.res?.setHeader('X-Cache-Key', cacheKey)
-
-     return response
+    // Prepare response
+    const response = {
       success: true,
       data: resourceWithHierarchicalTags,
     }

@@ -1,4 +1,4 @@
-import { setResponseStatus } from 'h3'
+import { getQuery, setResponseStatus } from 'h3'
 import { logError } from '~/utils/errorLogger'
 import { getAllHierarchicalTags } from '~/utils/tags'
 import type { Resource } from '~/types/resource'
