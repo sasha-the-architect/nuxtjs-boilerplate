@@ -215,6 +215,55 @@ export default defineNuxtConfig({
   // SEO Configuration - using built-in meta handling
   app: {
     head: {
+      meta: [
+        // This approach is more secure and allows for nonces
+        { name: 'referrer', content: 'no-referrer' },
+        { name: 'theme-color', content: '#ffffff' },
+        { name: 'msapplication-TileColor', content: '#ffffff' },
+        // Add Core Web Vitals meta tags
+        {
+          name: 'viewport',
+          content: 'width=device-width, initial-scale=1, viewport-fit=cover',
+        },
+        // Resource hints
+        { name: 'format-detection', content: 'telephone=no' },
+        // SEO meta tags
+        {
+          name: 'description',
+          content:
+            'Discover amazing free resources available on the internet - from AI tools to hosting services.',
+        },
+        {
+          name: 'keywords',
+          content:
+            'free resources, AI tools, hosting, databases, CDN, VPS, web development',
+        },
+        { name: 'author', content: 'Free Stuff on the Internet' },
+        // Open Graph tags
+        {
+          property: 'og:title',
+          content: 'Free Stuff on the Internet - Free Resources for Developers',
+        },
+        {
+          property: 'og:description',
+          content:
+            'Discover amazing free resources available on the internet - from AI tools to hosting services.',
+        },
+        { property: 'og:type', content: 'website' },
+        // og:url will be set dynamically in app.vue
+        { property: 'og:image', content: '/og-image.jpg' }, // This will be updated later
+        // Twitter card
+        { name: 'twitter:card', content: 'summary_large_image' },
+        {
+          name: 'twitter:title',
+          content: 'Free Stuff on the Internet - Free Resources for Developers',
+        },
+        {
+          name: 'twitter:description',
+          content:
+            'Discover amazing free resources available on the internet - from AI tools to hosting services.',
+        },
+      ],
       link: [
         // Preconnect to external domains
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -228,7 +277,6 @@ export default defineNuxtConfig({
         { rel: 'prefetch', href: '/api/submissions' },
         // Add preloading for critical resources
         { rel: 'preload', href: '/favicon.ico', as: 'image' },
-        // Preload critical CSS
         { rel: 'preload', href: '/_nuxt/', as: 'fetch', crossorigin: true },
         // DNS prefetch for external resources
         { rel: 'dns-prefetch', href: 'https://fonts.googleapis.com' },
