@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import { getQuery } from 'h3'
 
 interface TokenBucket {
   tokens: number
@@ -235,6 +236,23 @@ export async function rateLimit(event: H3Event, key?: string): Promise<void> {
   // Only apply rate limiting to API routes
   if (!event.path?.startsWith('/api/')) {
     return
+  }
+
+  // SECURITY: Check for bypass key in query parameters and block if present
+  // This prevents bypass keys from appearing in server logs
+  const query = getQuery(event)
+  if (
+    query['bypass-key'] ||
+    query['bypassKey'] ||
+    query['admin-key'] ||
+    query['adminKey']
+  ) {
+    const { createError } = await import('h3')
+    throw createError({
+      statusCode: 400,
+      statusMessage:
+        'Bypass keys are not allowed in query parameters for security reasons',
+    })
   }
 
   // Check for bypass key in header only (security: prevent bypass keys in query parameters)
