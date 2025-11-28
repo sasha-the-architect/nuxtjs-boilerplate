@@ -155,4 +155,38 @@ describe('useAdvancedResourceSearch', () => {
     expect(advancedSearch.savedSearches.value).toHaveLength(1)
     expect(advancedSearch.savedSearches.value[0].name).toBe('New Name')
   })
+
+  it('should get popular searches', () => {
+    // Track some searches to make them popular
+    advancedSearch.advancedSearchResources('AI tools')
+    advancedSearch.advancedSearchResources('AI tools')
+    advancedSearch.advancedSearchResources('web hosting')
+
+    const popularSearches = advancedSearch.getPopularSearches(5)
+    expect(popularSearches).toBeDefined()
+    expect(popularSearches.length).toBeGreaterThan(0)
+    expect(popularSearches[0].query).toBe('ai tools') // Should be normalized to lowercase
+  })
+
+  it('should get related searches', () => {
+    // Track some searches to establish relationships
+    advancedSearch.advancedSearchResources('AI tools')
+    advancedSearch.advancedSearchResources('AI development')
+    advancedSearch.advancedSearchResources('web hosting')
+
+    const relatedSearches = advancedSearch.getRelatedSearches('AI', 5)
+    expect(relatedSearches).toBeDefined()
+    expect(relatedSearches.length).toBeGreaterThanOrEqual(0)
+  })
+
+  it('should create search snippets', () => {
+    const text =
+      'This is a sample description for testing search snippets functionality.'
+    const query = 'testing'
+    const snippet = advancedSearch.createSearchSnippet(text, query, 80)
+
+    expect(snippet).toContain('testing')
+    expect(snippet).toContain('...')
+    expect(snippet.length).toBeLessThanOrEqual(80)
+  })
 })

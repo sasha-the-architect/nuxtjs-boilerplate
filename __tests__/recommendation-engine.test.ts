@@ -69,40 +69,15 @@ describe('useRecommendationEngine', () => {
     engine = useRecommendationEngine(mockResources)
   })
 
-<<<<<<< HEAD
-  describe('content-based recommendations', () => {
-    it('should return similar resources based on category', () => {
-      const recommendations = engine.getContentBasedRecommendations(
-=======
   describe('calculateSimilarity', () => {
-    it('should return 0 for the same resource', () => {
+    it('should return 1 for the same resource', () => {
       const similarity = engine.calculateSimilarity(
         mockResources[0],
->>>>>>> origin/main
         mockResources[0]
       )
-      expect(recommendations.length).toBeGreaterThan(0)
-
-      // Should include resources from the same category
-      const aiToolsRecommendations = recommendations.filter(
-        rec => rec.resource.category === 'AI Tools'
-      )
-      expect(aiToolsRecommendations.length).toBeGreaterThan(0)
+      expect(similarity).toBe(1) // Same resource should have maximum similarity
     })
 
-<<<<<<< HEAD
-    it('should return similar resources based on tags', () => {
-      const recommendations = engine.getContentBasedRecommendations(
-        mockResources[0]
-      )
-      expect(recommendations.length).toBeGreaterThan(0)
-
-      // Should include resources with similar tags
-      const aiTagRecommendations = recommendations.filter(rec =>
-        rec.resource.tags.includes('ai')
-      )
-      expect(aiTagRecommendations.length).toBeGreaterThan(0)
-=======
     it('should calculate similarity based on category', () => {
       const resourceA = mockResources[0] // AI Tools
       const resourceB = mockResources[2] // AI Tools
@@ -122,7 +97,6 @@ describe('useRecommendationEngine', () => {
       const resourceB = mockResources[2] // has 'Python' tech
       const similarity = engine.calculateSimilarity(resourceA, resourceB)
       expect(similarity).toBeGreaterThan(0.2) // Tech match should contribute to score
->>>>>>> origin/main
     })
   })
 

@@ -159,7 +159,7 @@
     </div>
 
     <!-- Tags Filter -->
-    <div>
+    <div class="mb-6">
       <h4 class="text-sm font-medium text-gray-900 mb-3">Tags</h4>
       <div
         role="group"
@@ -187,6 +187,90 @@
       </div>
     </div>
 
+    <!-- Benefits Filter -->
+    <div class="mb-6" v-if="allBenefits.length > 0">
+      <h4 class="text-sm font-medium text-gray-900 mb-3">Benefits</h4>
+      <div
+        role="group"
+        :aria-label="'Benefit filters'"
+        class="space-y-2 max-h-40 overflow-y-auto"
+      >
+        <label
+          v-for="(benefit, index) in allBenefits"
+          :key="benefit"
+          class="flex items-center justify-between"
+          :tabindex="0"
+          @keydown.enter.prevent="toggleBenefit(benefit)"
+          @keydown.space.prevent="toggleBenefit(benefit)"
+        >
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              :value="benefit"
+              :checked="selectedBenefits.includes(benefit)"
+              class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+              :aria-label="`Filter by ${benefit} (${getCountForOption(benefit, 'benefits')} results)`"
+              @change="toggleBenefit(benefit)"
+            />
+            <span class="ml-2 text-sm text-gray-800">{{ benefit }}</span>
+          </div>
+          <span
+            class="ml-2 text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-0.5"
+            aria-label="result count"
+          >
+            {{ getCountForOption(benefit, 'benefits') }}
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Date Added Filter -->
+    <div class="mb-6">
+      <h4 class="text-sm font-medium text-gray-900 mb-3">Date Added</h4>
+      <div class="space-y-2">
+        <label class="flex items-center">
+          <input
+            type="radio"
+            value="anytime"
+            :checked="selectedDateRange === 'anytime'"
+            class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
+            @change="onDateRangeChange('anytime')"
+          />
+          <span class="ml-2 text-sm text-gray-800">Any time</span>
+        </label>
+        <label class="flex items-center">
+          <input
+            type="radio"
+            value="lastWeek"
+            :checked="selectedDateRange === 'lastWeek'"
+            class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
+            @change="onDateRangeChange('lastWeek')"
+          />
+          <span class="ml-2 text-sm text-gray-800">Last week</span>
+        </label>
+        <label class="flex items-center">
+          <input
+            type="radio"
+            value="lastMonth"
+            :checked="selectedDateRange === 'lastMonth'"
+            class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
+            @change="onDateRangeChange('lastMonth')"
+          />
+          <span class="ml-2 text-sm text-gray-800">Last month</span>
+        </label>
+        <label class="flex items-center">
+          <input
+            type="radio"
+            value="lastYear"
+            :checked="selectedDateRange === 'lastYear'"
+            class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
+            @change="onDateRangeChange('lastYear')"
+          />
+          <span class="ml-2 text-sm text-gray-800">Last year</span>
+        </label>
+      </div>
+    </div>
+
     <!-- Saved Searches -->
     <SavedSearches
       v-if="savedSearches && savedSearches.length > 0"
@@ -210,11 +294,14 @@ interface Props {
   difficultyLevels: string[]
   technologies: string[]
   tags: string[]
+  benefits: string[]
   selectedCategories: string[]
   selectedPricingModels: string[]
   selectedDifficultyLevels: string[]
   selectedTechnologies: string[]
   selectedTags: string[]
+  selectedBenefits: string[]
+  selectedDateRange: string
   searchQuery?: string
   facetCounts?: FacetCounts
   savedSearches?: Array<{ name: string; query: string; createdAt: Date }>
@@ -226,6 +313,8 @@ interface Emits {
   (event: 'toggle-difficulty-level', difficulty: string): void
   (event: 'toggle-technology', technology: string): void
   (event: 'toggle-tag', tag: string): void
+  (event: 'toggle-benefit', benefit: string): void
+  (event: 'date-range-change', dateRange: string): void
   (event: 'reset-filters'): void
   (
     event: 'use-saved-search',
@@ -237,6 +326,8 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   searchQuery: '',
   facetCounts: () => ({}),
+  selectedBenefits: () => [],
+  selectedDateRange: 'anytime',
 })
 const emit = defineEmits<Emits>()
 
@@ -260,9 +351,29 @@ const toggleTag = (tag: string) => {
   emit('toggle-tag', tag)
 }
 
+const toggleBenefit = (benefit: string) => {
+  emit('toggle-benefit', benefit)
+}
+
+const onDateRangeChange = (dateRange: string) => {
+  emit('date-range-change', dateRange)
+}
+
 const onResetFilters = () => {
   emit('reset-filters')
 }
+
+// Computed property to get unique benefits from all resources
+const allBenefits = computed(() => {
+  const uniqueBenefits = new Set<string>()
+  Object.keys(props.facetCounts || {}).forEach(key => {
+    if (key.startsWith('benefits_')) {
+      const benefit = key.replace('benefits_', '')
+      uniqueBenefits.add(benefit)
+    }
+  })
+  return Array.from(uniqueBenefits)
+})
 
 // Helper function to get count for a specific filter option
 const getCountForOption = (option: string, filterType: string): number => {

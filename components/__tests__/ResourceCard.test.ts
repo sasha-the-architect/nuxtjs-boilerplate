@@ -55,37 +55,11 @@ describe('ResourceCard', () => {
     expect(wrapper.text()).toContain('Benefit 2')
   })
 
-    const wrapper = mount(ResourceCard, {
-      props: {
-        ...defaultProps,
-        category: 'Test Category', // Add required prop that was missing
-      },
-      global: {
-        components: {
-          NuxtLink: mockNuxtLink,
-          SocialShare: mockSocialShare,
-        },
-        // Mock the composables directly
-        mocks: {
-          $config: {
-            public: {
-              canonicalUrl: 'http://localhost:3000',
-            },
-          },
-        },
-      },
-    })
-
-    expect(wrapper.find('h3').text()).toContain('Test Resource')
-    expect(wrapper.find('p').text()).toContain('Test description')
-    expect(wrapper.text()).toContain('Benefit 1')
-    expect(wrapper.text()).toContain('Benefit 2')
-  })
-
   it('renders button with correct label', () => {
     const wrapper = mount(ResourceCard, {
       props: {
         ...defaultProps,
+        buttonLabel: 'Custom Button',
       },
       global: {
         components: {
