@@ -50,7 +50,7 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
       filterOptions.value.difficultyLevels.length > 0
     ) {
       result = result.filter(resource =>
-        filterOptions.value.difficultyLevels!.includes(resource.difficulty)
+        filterOptions.value.difficultyLevels!.includes(resource.difficultyLevel)
       )
     }
 
@@ -60,7 +60,7 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
       filterOptions.value.technologies.length > 0
     ) {
       result = result.filter(resource =>
-        resource.technology.some(tech =>
+        resource.technologies.some(tech =>
           filterOptions.value.technologies!.includes(tech)
         )
       )

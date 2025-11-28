@@ -65,10 +65,12 @@
             :pricing-models="pricingModels"
             :difficulty-levels="difficultyLevels"
             :technologies="technologies"
+            :tags="allTags"
             :selected-categories="selectedCategories"
             :selected-pricing-models="selectedPricingModels"
             :selected-difficulty-levels="selectedDifficultyLevels"
             :selected-technologies="selectedTechnologies"
+            :selected-tags="selectedTags"
             :search-query="searchQuery"
             :facet-counts="facetCounts"
             :saved-searches="savedSearches"
@@ -78,6 +80,7 @@
             @toggle-pricing-model="enhancedTogglePricingModel"
             @toggle-difficulty-level="enhancedToggleDifficultyLevel"
             @toggle-technology="enhancedToggleTechnology"
+            @toggle-tag="enhancedToggleTag"
             @reset-filters="resetAllFilters"
             @use-saved-search="onUseSavedSearch"
             @remove-saved-search="onRemoveSavedSearch"
@@ -154,6 +157,7 @@ const {
   pricingModels,
   difficultyLevels,
   technologies,
+  allTags,
   filterOptions,
   sortOption,
   updateSearchQuery,
@@ -161,6 +165,7 @@ const {
   togglePricingModel,
   toggleDifficultyLevel,
   toggleTechnology,
+  toggleTag,
   setSortOption,
   resetFilters,
   highlightSearchTerms,
@@ -229,6 +234,7 @@ const facetCounts = computed(() => {
   const pricingCounts = calculateFacetCounts(searchQuery, 'pricingModel')
   const difficultyCounts = calculateFacetCounts(searchQuery, 'difficultyLevel')
   const technologyCounts = calculateFacetCounts(searchQuery, 'technologies')
+  const tagCounts = calculateFacetCounts(searchQuery, 'tags')
 
   // Combine all counts into a single object with appropriate keys
   const allCounts: Record<string, number> = {}
@@ -251,6 +257,11 @@ const facetCounts = computed(() => {
   // Add technology counts
   Object.entries(technologyCounts).forEach(([key, value]) => {
     allCounts[`technology_${key}`] = value
+  })
+
+  // Add tag counts
+  Object.entries(tagCounts).forEach(([key, value]) => {
+    allCounts[`tag_${key}`] = value
   })
 
   return allCounts
@@ -277,6 +288,11 @@ const enhancedToggleTechnology = (technology: string) => {
   trackFilter('technology', technology)
 }
 
+const enhancedToggleTag = (tag: string) => {
+  toggleTag(tag)
+  trackFilter('tag', tag)
+}
+
 // Set up URL synchronization
 useUrlSync(filterOptions, sortOption)
 
@@ -296,6 +312,7 @@ const selectedDifficultyLevels = computed(
 const selectedTechnologies = computed(
   () => filterOptions.value.technologies || []
 )
+const selectedTags = computed(() => filterOptions.value.tags || [])
 
 import { trackSearch, trackFilter } from '~/utils/analytics'
 

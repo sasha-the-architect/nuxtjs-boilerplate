@@ -65,13 +65,21 @@
     <!-- Search Suggestions Dropdown -->
     <SearchSuggestions
       v-if="
-        showSuggestions && (suggestions.length > 0 || searchHistory.length > 0)
+        showSuggestions &&
+        (suggestions.length > 0 ||
+          searchHistory.length > 0 ||
+          didYouMeanSuggestions.length > 0 ||
+          relatedSearches.length > 0)
       "
       :suggestions="suggestions"
       :search-history="searchHistory"
+      :did-you-mean-suggestions="didYouMeanSuggestions"
+      :related-searches="relatedSearches"
       :visible="showSuggestions"
       @select-suggestion="handleSuggestionSelect"
       @select-history="handleHistorySelect"
+      @select-did-you-mean="handleDidYouMeanSelect"
+      @select-related-search="handleRelatedSearchSelect"
       @clear-history="handleClearHistory"
       @navigate="handleNavigate"
     />
@@ -126,6 +134,8 @@ const {
   getAdvancedSuggestions,
   addToSearchHistory,
   searchHistory: advancedSearchHistory,
+  getDidYouMeanSuggestions,
+  getRelatedSearches,
 } = useAdvancedResourceSearch(resources)
 
 // Use the basic resources composable for fallback
@@ -136,10 +146,22 @@ const {
   clearSearchHistory: clearBasicSearchHistory,
 } = useResources()
 
+// Local state for search history UI management
+const searchHistory = ref<string[]>([])
+
 // Load search history on component mount
 onMounted(() => {
   searchHistory.value = advancedSearchHistory.value
 })
+
+// Reactive variables
+const suggestions = ref<any[]>([])
+const showSuggestions = ref(false)
+const didYouMeanSuggestions = ref<string[]>([])
+const relatedSearches = ref<string[]>([])
+const inputTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
+const debouncedQuery = ref('')
+const searchInputRef = ref<HTMLInputElement | null>(null)
 
 // Handle input with debounce
 const handleInput = (event: Event) => {
@@ -157,6 +179,8 @@ const handleInput = (event: Event) => {
   inputTimeout.value = setTimeout(() => {
     debouncedQuery.value = value
     updateSuggestions(value)
+    updateDidYouMeanSuggestions(value)
+    updateRelatedSearches(value)
     emit('search', value)
   }, props.debounceTime)
 }
@@ -179,6 +203,24 @@ const updateSuggestions = (query: string) => {
     }))
   } else {
     suggestions.value = []
+  }
+}
+
+// Update did you mean suggestions
+const updateDidYouMeanSuggestions = (query: string) => {
+  if (query && query.length > 2 && props.enableAdvancedFeatures) {
+    didYouMeanSuggestions.value = getDidYouMeanSuggestions(query, 3)
+  } else {
+    didYouMeanSuggestions.value = []
+  }
+}
+
+// Update related searches
+const updateRelatedSearches = (query: string) => {
+  if (query && query.length > 2 && props.enableAdvancedFeatures) {
+    relatedSearches.value = getRelatedSearches(query, 5)
+  } else {
+    relatedSearches.value = []
   }
 }
 
@@ -223,6 +265,20 @@ const handleHistorySelect = (history: string) => {
   emit('update:modelValue', history)
   emit('search', history)
   addToSearchHistory(history)
+  showSuggestions.value = false
+}
+
+const handleDidYouMeanSelect = (suggestion: string) => {
+  emit('update:modelValue', suggestion)
+  emit('search', suggestion)
+  addToSearchHistory(suggestion)
+  showSuggestions.value = false
+}
+
+const handleRelatedSearchSelect = (suggestion: string) => {
+  emit('update:modelValue', suggestion)
+  emit('search', suggestion)
+  addToSearchHistory(suggestion)
   showSuggestions.value = false
 }
 

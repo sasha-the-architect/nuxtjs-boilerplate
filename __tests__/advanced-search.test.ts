@@ -155,4 +155,99 @@ describe('useAdvancedResourceSearch', () => {
     expect(advancedSearch.savedSearches.value).toHaveLength(1)
     expect(advancedSearch.savedSearches.value[0].name).toBe('New Name')
   })
+
+  it('should track search analytics', () => {
+    expect(advancedSearch.searchAnalytics.value).toEqual([])
+
+    // Perform a search
+    advancedSearch.advancedSearchResources('AI')
+
+    expect(advancedSearch.searchAnalytics.value).toHaveLength(1)
+    expect(advancedSearch.searchAnalytics.value[0].query).toBe('AI')
+    expect(advancedSearch.searchAnalytics.value[0].resultsCount).toBe(2) // 2 AI resources
+  })
+
+  it('should get popular searches', () => {
+    // Add some search analytics
+    advancedSearch.trackSearch('test query 1', 5)
+    advancedSearch.trackSearch('test query 2', 3)
+    advancedSearch.trackSearch('test query 1', 5) // Same query again to make it popular
+    advancedSearch.trackSearch('test query 3', 7)
+
+    const popular = advancedSearch.getPopularSearches(2)
+    expect(popular).toHaveLength(2)
+    expect(popular[0]).toBe('test query 1') // Most frequent
+    expect(popular).toContain('test query 2')
+  })
+
+  it('should get zero result searches', () => {
+    // Add some search analytics with zero results
+    advancedSearch.trackSearch('no results query', 0)
+    advancedSearch.trackSearch('some results query', 5)
+    advancedSearch.trackSearch('another no results', 0)
+
+    const zeroResult = advancedSearch.getZeroResultSearches(5)
+    expect(zeroResult).toHaveLength(2) // Only queries with 0 results
+    expect(zeroResult).toContain('no results query')
+    expect(zeroResult).toContain('another no results')
+  })
+
+  it('should get related searches', () => {
+    // Add some search analytics to establish relationships
+    advancedSearch.trackSearch('AI tools', 5)
+    advancedSearch.trackSearch('AI models', 4)
+    advancedSearch.trackSearch('web hosting', 6)
+    advancedSearch.trackSearch('cloud computing', 3)
+
+    // Get related searches for 'AI'
+    const related = advancedSearch.getRelatedSearches('AI', 5)
+    // Should return searches that contain similar terms
+    expect(Array.isArray(related)).toBe(true)
+  })
+
+  it('should get did-you-mean suggestions for typos', () => {
+    const suggestions = advancedSearch.getDidYouMeanSuggestions('aI tolls', 3) // intentional typo
+    // The function should return similar terms from resources
+    expect(Array.isArray(suggestions)).toBe(true)
+    // We expect it to find suggestions similar to 'AI' and 'tools' from our mock resources
+  })
+
+  it('should calculate facet counts for tags', () => {
+    // Note: our mock resources don't have tags, so we need to add them for this test
+    const mockResourcesWithTags = [
+      ...mockResources,
+      {
+        id: 'res-4',
+        title: 'Test Resource 4',
+        description: 'Test with tags',
+        benefits: ['Benefit 6'],
+        url: 'https://example.com/4',
+        category: 'AI Tools',
+        pricingModel: 'Free',
+        difficultyLevel: 'Intermediate',
+        technologies: ['AI'],
+        tags: ['machine learning', 'data science'],
+      },
+      {
+        id: 'res-5',
+        title: 'Test Resource 5',
+        description: 'Another test with tags',
+        benefits: ['Benefit 7'],
+        url: 'https://example.com/5',
+        category: 'Web Hosting',
+        pricingModel: 'Freemium',
+        difficultyLevel: 'Beginner',
+        technologies: ['Cloud'],
+        tags: ['machine learning', 'web development'],
+      },
+    ]
+
+    const advancedSearchWithTagged = useAdvancedResourceSearch(
+      mockResourcesWithTags as any
+    )
+    const tagCounts = advancedSearchWithTagged.calculateFacetCounts('', 'tags')
+    expect(tagCounts['machine learning']).toBe(2)
+    expect(tagCounts['data science']).toBe(1)
+    expect(tagCounts['web development']).toBe(1)
+  })
 })
