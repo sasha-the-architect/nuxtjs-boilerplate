@@ -112,6 +112,14 @@ const props = withDefaults(defineProps<Props>(), {
 })
 const emit = defineEmits<Emits>()
 
+// Reactive variables
+const searchInputRef = ref<HTMLInputElement>()
+const inputTimeout = ref<number>()
+const debouncedQuery = ref('')
+const suggestions = ref<any[]>([])
+const showSuggestions = ref(false)
+const searchHistory = ref<string[]>([])
+
 // Use the resources composable
 const { resources } = useResourceData()
 const {

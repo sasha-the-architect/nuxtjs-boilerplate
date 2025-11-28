@@ -149,12 +149,13 @@ export const useResourceRecommendations = (
           )
         }
         break
-      case 'content-based':
+      case 'content-based': {
         if (context?.currentResource) {
           recommendations = getSimilarResources(context.currentResource)
         }
         break
-      case 'hybrid':
+      }
+      case 'hybrid': {
         // Combine multiple approaches
         const collaborative = context?.currentResource
           ? getCollaborativeRecommendations(context.currentResource.id, 3)
@@ -177,12 +178,15 @@ export const useResourceRecommendations = (
           return true
         })
         break
-      case 'popular':
+      }
+      case 'popular': {
         recommendations = getPopularRecommendations()
         break
-      case 'trending':
+      }
+      case 'trending': {
         recommendations = getTrendingRecommendations()
         break
+      }
     }
 
     // Filter out resources the user has already interacted with if configured

@@ -83,22 +83,17 @@ export async function validateUrl(
         }
       } catch (headError) {
         // If HEAD fails, try GET request
-        try {
-          const getResponse = await fetch(url, {
-            method: 'GET',
-            timeout: timeout,
-            redirect: 'follow',
-            headers: {
-              'User-Agent': 'NuxtResourceValidator/1.0',
-            },
-          })
+        const getResponse = await fetch(url, {
+          method: 'GET',
+          timeout: timeout,
+          redirect: 'follow',
+          headers: {
+            'User-Agent': 'NuxtResourceValidator/1.0',
+          },
+        })
 
-          responseTime = Date.now() - startTime
-          response = getResponse
-        } catch (getError) {
-          // If both HEAD and GET fail, throw the error
-          throw getError
-        }
+        responseTime = Date.now() - startTime
+        response = getResponse
       }
 
       return {

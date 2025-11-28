@@ -148,7 +148,7 @@ interface Props {
   benefits: string[]
   url: string
   id?: string
-  category: string // Added for analytics tracking
+  category?: string // Added for analytics tracking
   icon?: string
   newTab?: boolean
   buttonLabel?: string
