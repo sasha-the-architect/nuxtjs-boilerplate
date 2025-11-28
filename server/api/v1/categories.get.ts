@@ -1,4 +1,4 @@
-import { Resource } from '~/types/resource'
+import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
 import { cacheManager } from '../../utils/enhanced-cache'
 

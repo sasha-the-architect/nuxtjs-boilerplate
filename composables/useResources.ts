@@ -36,9 +36,19 @@ export const useResources = () => {
     togglePricingModel,
     toggleDifficultyLevel,
     toggleTechnology,
+    toggleTag,
     setSortOption,
     resetFilters,
   } = useResourceFilters(resources.value)
+
+  // Extract all unique tags from resources
+  const allTags = computed(() => {
+    const tagsSet = new Set<string>()
+    resources.value.forEach(resource => {
+      resource.tags.forEach(tag => tagsSet.add(tag))
+    })
+    return Array.from(tagsSet).sort()
+  })
 
   // Use the search composable
   const { fuse, searchResources, getSuggestions, highlightSearchTerms } =
@@ -97,13 +107,20 @@ export const useResources = () => {
           )
         }
 
+        // Apply tag filter
+        if (filterOptions.value.tags && filterOptions.value.tags.length > 0) {
+          result = result.filter(resource =>
+            resource.tags.some(tag => filterOptions.value.tags!.includes(tag))
+          )
+        }
+
         return result
       } else {
         // Use the filtered resources from the filters composable when no search query
         return [...filteredResources.value]
       }
     }),
-    sortOption
+    computed(() => sortOption.value)
   )
 
   // Use the search history composable
@@ -125,6 +142,7 @@ export const useResources = () => {
     pricingModels,
     difficultyLevels,
     technologies,
+    allTags,
     filterOptions,
     sortOption,
     updateSearchQuery,
@@ -132,6 +150,7 @@ export const useResources = () => {
     togglePricingModel,
     toggleDifficultyLevel,
     toggleTechnology,
+    toggleTag,
     setSortOption,
     resetFilters,
     highlightSearchTerms,

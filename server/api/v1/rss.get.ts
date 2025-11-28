@@ -1,5 +1,5 @@
 import { setResponseHeader } from 'h3'
-import { Resource } from '~/types/resource'
+import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
 
 /**

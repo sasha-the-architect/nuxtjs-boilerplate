@@ -1,5 +1,5 @@
 import { getQuery, setResponseStatus } from 'h3'
-import { Resource } from '~/types/resource'
+import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
 import {
   cacheManager,
@@ -10,6 +10,10 @@ import {
   rateLimit,
   getRateLimiterForPath,
 } from '../../utils/enhanced-rate-limit'
+import {
+  filterResourcesByHierarchicalTags,
+  convertResourcesToHierarchicalTags,
+} from '~/utils/tags'
 
 /**
  * GET /api/v1/search
@@ -24,6 +28,7 @@ import {
  * - pricing: Filter by pricing model
  * - difficulty: Filter by difficulty level
  * - tags: Filter by tags (comma-separated)
+ * - hierarchicalTags: Filter by hierarchical tags (comma-separated)
  */
 export default defineEventHandler(async event => {
   try {
@@ -87,6 +92,7 @@ export default defineEventHandler(async event => {
     const pricing = query.pricing as string | undefined
     const difficulty = query.difficulty as string | undefined
     const tagsParam = query.tags as string | undefined
+    const hierarchicalTagsParam = query.hierarchicalTags as string | undefined
 
     // Apply filters
     if (category) {
@@ -127,6 +133,28 @@ export default defineEventHandler(async event => {
       }
     }
 
+    // Apply hierarchical tags filter if provided
+    if (hierarchicalTagsParam) {
+      if (typeof hierarchicalTagsParam === 'string') {
+        const hierarchicalTagIds = hierarchicalTagsParam
+          .split(',')
+          .map(tagId => tagId.trim())
+        resources = filterResourcesByHierarchicalTags(
+          resources,
+          hierarchicalTagIds
+        )
+      } else {
+        // Invalid hierarchical tags parameter format
+        setResponseStatus(event, 400)
+        return {
+          success: false,
+          message:
+            'Invalid hierarchicalTags parameter. Must be a comma-separated string.',
+          error: 'Bad Request',
+        }
+      }
+    }
+
     // Apply search if query exists
     if (searchQuery) {
       if (typeof searchQuery !== 'string') {
@@ -147,9 +175,16 @@ export default defineEventHandler(async event => {
       )
     }
 
+    // Convert resources to include hierarchical tags
+    const resourcesWithHierarchicalTags =
+      convertResourcesToHierarchicalTags(resources)
+
     // Apply pagination
-    const total = resources.length
-    const paginatedResources = resources.slice(offset, offset + limit)
+    const total = resourcesWithHierarchicalTags.length
+    const paginatedResources = resourcesWithHierarchicalTags.slice(
+      offset,
+      offset + limit
+    )
 
     // Prepare response
     const response = {

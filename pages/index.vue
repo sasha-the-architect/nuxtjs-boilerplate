@@ -60,100 +60,232 @@
           {{ filteredResources.length }} resources found for your search
         </div>
 
-        <!-- Category Filters -->
-        <div class="flex flex-wrap gap-2 mb-8 justify-center">
-          <button
-            v-for="category in categories"
-            :key="category"
-            :class="[
-              'px-3 py-1 text-sm rounded-full border',
-              selectedCategories.includes(category)
-                ? 'bg-gray-800 text-white border-gray-800'
-                : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50',
-            ]"
-            :aria-label="
-              selectedCategories.includes(category)
-                ? `Remove ${category} filter`
-                : `Filter by ${category}`
-            "
-            :aria-pressed="selectedCategories.includes(category)"
-            @click="toggleCategory(category)"
-          >
-            {{ category }}
-          </button>
-        </div>
-
-        <!-- Results Info -->
-        <div class="flex justify-between items-center mb-6">
-          <ResourceSort
-            :selected-sort-option="sortOption"
-            :total-resources="filteredResources.length"
-            @update-sort-option="setSortOption"
-          />
-        </div>
-
-        <!-- Resources Grid -->
-        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <ResourceCard
-            v-for="resource in filteredResources"
-            :id="resource.id"
-            :key="resource.id"
-            :title="resource.title"
-            :description="resource.description"
-            :benefits="resource.benefits"
-            :url="resource.url"
-            :button-label="getButtonLabel(resource.category)"
-            :highlighted-title="
-              highlightSearchTerms(resource.title, searchQuery)
-            "
-            :highlighted-description="
-              highlightSearchTerms(resource.description, searchQuery)
-            "
-            :search-query="searchQuery"
-          />
-        </div>
-
-        <!-- No Results Message -->
-        <div
-          v-if="!filteredResources.length && !loading"
-          class="text-center py-12"
-        >
-          <h3 class="text-xl font-medium text-gray-900 mb-2">
-            No resources found
-          </h3>
-          <p class="text-gray-500 mb-6">
-            Try adjusting your search or filter criteria
-          </p>
-          <button
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-800 hover:bg-gray-900"
-            @click="resetAllFilters"
-          >
-            Reset Filters
-          </button>
-        </div>
-
-        <!-- Trending Resources Section -->
-        <div v-if="filteredResources.length > 0 && !loading" class="mt-16">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6">
-            Trending Resources
-          </h2>
-          <div class="grid grid-cols-1 gap-6">
-            <ResourceCard
-              v-for="resource in trendingResources"
-              :key="resource.id"
-              :title="resource.title"
-              :description="resource.description"
-              :benefits="resource.benefits"
-              :url="resource.url"
-              :button-label="getButtonLabel(resource.category)"
-              :highlighted-title="
-                highlightSearchTerms(resource.title, searchQuery)
-              "
-              :highlighted-description="
-                highlightSearchTerms(resource.description, searchQuery)
-              "
-              :search-query="searchQuery"
+        <!-- Filters Section -->
+        <div class="flex flex-col lg:flex-row gap-8">
+          <!-- Resource Filters Component -->
+          <div class="lg:w-1/4">
+            <ResourceFilters
+              :categories="categories"
+              :pricing-models="pricingModels"
+              :difficulty-levels="difficultyLevels"
+              :technologies="technologies"
+              :tags="allTags"
+              :selected-categories="filterOptions.categories"
+              :selected-pricing-models="filterOptions.pricingModels"
+              :selected-difficulty-levels="filterOptions.difficultyLevels"
+              :selected-technologies="filterOptions.technologies"
+              :selected-tags="filterOptions.tags"
+              @toggle-category="toggleCategory"
+              @toggle-pricing-model="togglePricingModel"
+              @toggle-difficulty-level="toggleDifficultyLevel"
+              @toggle-technology="toggleTechnology"
+              @toggle-tag="toggleTag"
+              @reset-filters="resetFilters"
             />
+          </div>
+
+          <!-- Category Filters (for mobile) -->
+          <div class="lg:hidden flex flex-wrap gap-2 mb-4 justify-center">
+            <button
+              v-for="category in categories"
+              :key="category"
+              :class="[
+                'px-3 py-1 text-sm rounded-full border',
+                selectedCategories.includes(category)
+                  ? 'bg-gray-800 text-white border-gray-800'
+                  : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50',
+              ]"
+              :aria-label="
+                selectedCategories.includes(category)
+                  ? `Remove ${category} filter`
+                  : `Filter by ${category}`
+              "
+              :aria-pressed="selectedCategories.includes(category)"
+              @click="toggleCategory(category)"
+            >
+              {{ category }}
+            </button>
+          </div>
+
+          <!-- Resources Grid -->
+          <div class="lg:w-3/4">
+            <!-- Results Info -->
+            <div class="flex justify-between items-center mb-6">
+              <ResourceSort
+                :selected-sort-option="sortOption"
+                :total-resources="filteredResources.length"
+                @update-sort-option="setSortOption"
+              />
+            </div>
+
+            <!-- Resources Grid -->
+            <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              <ResourceCard
+                v-for="resource in filteredResources"
+                :id="resource.id"
+                :key="resource.id"
+                :title="resource.title"
+                :description="resource.description"
+                :benefits="resource.benefits"
+                :url="resource.url"
+                :button-label="getButtonLabel(resource.category)"
+                :highlighted-title="
+                  highlightSearchTerms(resource.title, searchQuery)
+                "
+                :highlighted-description="
+                  highlightSearchTerms(resource.description, searchQuery)
+                "
+              />
+            </div>
+          </div>
+
+          <!-- No Results Message -->
+          <div
+            v-if="!filteredResources.length && !loading"
+            class="text-center py-12"
+          >
+            <h3 class="text-xl font-medium text-gray-900 mb-2">
+              No resources found
+            </h3>
+            <p class="text-gray-500 mb-6">
+              Try adjusting your search or filter criteria
+            </p>
+            <button
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-800 hover:bg-gray-900"
+              @click="resetAllFilters"
+            >
+              Reset Filters
+            </button>
+          </div>
+
+          <!-- Trending Resources Section -->
+          <div v-if="filteredResources.length > 0 && !loading" class="mt-16">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">
+              Trending Resources
+            </h2>
+            <div class="grid grid-cols-1 gap-6">
+              <ResourceCard
+                v-for="resource in trendingResources"
+                :key="resource.id"
+                :title="resource.title"
+                :description="resource.description"
+                :benefits="resource.benefits"
+                :url="resource.url"
+                :button-label="getButtonLabel(resource.category)"
+                :highlighted-title="
+                  highlightSearchTerms(resource.title, searchQuery)
+                "
+                :highlighted-description="
+                  highlightSearchTerms(resource.description, searchQuery)
+                "
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommendations Section -->
+        <div v-if="filteredResources.length > 0 && !loading" class="mt-16">
+          <RecommendationsSection />
+        </div>
+            />
+          </div>
+
+          <!-- Category Filters (for mobile) -->
+          <div class="lg:hidden flex flex-wrap gap-2 mb-4 justify-center">
+            <button
+              v-for="category in categories"
+              :key="category"
+              :class="[
+                'px-3 py-1 text-sm rounded-full border',
+                selectedCategories.includes(category)
+                  ? 'bg-gray-800 text-white border-gray-800'
+                  : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50',
+              ]"
+              :aria-label="
+                selectedCategories.includes(category)
+                  ? `Remove ${category} filter`
+                  : `Filter by ${category}`
+              "
+              :aria-pressed="selectedCategories.includes(category)"
+              @click="toggleCategory(category)"
+            >
+              {{ category }}
+            </button>
+          </div>
+
+          <!-- Resources Grid -->
+          <div class="lg:w-3/4">
+            <!-- Results Info -->
+            <div class="flex justify-between items-center mb-6">
+              <ResourceSort
+                :selected-sort-option="sortOption"
+                :total-resources="filteredResources.length"
+                @update-sort-option="setSortOption"
+              />
+            </div>
+
+            <!-- Resources Grid -->
+            <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              <ResourceCard
+                v-for="resource in filteredResources"
+                :id="resource.id"
+                :key="resource.id"
+                :title="resource.title"
+                :description="resource.description"
+                :benefits="resource.benefits"
+                :url="resource.url"
+                :button-label="getButtonLabel(resource.category)"
+                :highlighted-title="
+                  highlightSearchTerms(resource.title, searchQuery)
+                "
+                :highlighted-description="
+                  highlightSearchTerms(resource.description, searchQuery)
+                "
+              />
+            </div>
+          </div>
+
+          <!-- No Results Message -->
+          <div
+            v-if="!filteredResources.length && !loading"
+            class="text-center py-12"
+          >
+            <h3 class="text-xl font-medium text-gray-900 mb-2">
+              No resources found
+            </h3>
+            <p class="text-gray-500 mb-6">
+              Try adjusting your search or filter criteria
+            </p>
+            <button
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-800 hover:bg-gray-900"
+              @click="resetAllFilters"
+            >
+              Reset Filters
+            </button>
+          </div>
+
+          <!-- Trending Resources Section -->
+          <div v-if="filteredResources.length > 0 && !loading" class="mt-16">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">
+              Trending Resources
+            </h2>
+            <div class="grid grid-cols-1 gap-6">
+              <ResourceCard
+                v-for="resource in trendingResources"
+                :key="resource.id"
+                :title="resource.title"
+                :description="resource.description"
+                :benefits="resource.benefits"
+                :url="resource.url"
+                :button-label="getButtonLabel(resource.category)"
+                :highlighted-title="
+                  highlightSearchTerms(resource.title, searchQuery)
+                "
+                :highlighted-description="
+                  highlightSearchTerms(resource.description, searchQuery)
+                "
+              />
+            </div>
           </div>
         </div>
 
@@ -172,6 +304,7 @@ import { useUrlSync } from '~/composables/useUrlSync'
 import ResourceCard from '~/components/ResourceCard.vue'
 import SearchBar from '~/components/SearchBar.vue'
 import ResourceSort from '~/components/ResourceSort.vue'
+import ResourceFilters from '~/components/ResourceFilters.vue'
 import RecommendationsSection from '~/components/RecommendationsSection.vue'
 
 definePageMeta({
@@ -202,10 +335,18 @@ const {
   error,
   errorMessage,
   categories,
+  pricingModels,
+  difficultyLevels,
+  technologies,
+  allTags,
   filterOptions,
   sortOption,
   updateSearchQuery,
   toggleCategory,
+  togglePricingModel,
+  toggleDifficultyLevel,
+  toggleTechnology,
+  toggleTag,
   setSortOption,
   resetFilters,
   resources,

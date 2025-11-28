@@ -1,5 +1,5 @@
 import { getQuery, setResponseHeader, setResponseStatus } from 'h3'
-import { Resource } from '~/types/resource'
+import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
 import {
   cacheManager,
@@ -10,6 +10,7 @@ import {
   rateLimit,
   getRateLimiterForPath,
 } from '../../utils/enhanced-rate-limit'
+import { convertResourcesToHierarchicalTags } from '~/utils/tags'
 
 /**
  * GET /api/v1/resources
@@ -155,9 +156,16 @@ export default defineEventHandler(async event => {
         break
     }
 
+    // Convert resources to include hierarchical tags
+    const resourcesWithHierarchicalTags =
+      convertResourcesToHierarchicalTags(resources)
+
     // Apply pagination
-    const total = resources.length
-    const paginatedResources = resources.slice(offset, offset + limit)
+    const total = resourcesWithHierarchicalTags.length
+    const paginatedResources = resourcesWithHierarchicalTags.slice(
+      offset,
+      offset + limit
+    )
 
     // Prepare response
     const response = {

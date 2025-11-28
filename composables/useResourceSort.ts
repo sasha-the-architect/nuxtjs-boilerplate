@@ -1,8 +1,11 @@
-import { computed } from 'vue'
+import { computed, type ComputedRef } from 'vue'
 import type { Resource, SortOption } from '~/types/resource'
 
 // Composable for handling resource sorting
-export const useResourceSort = (resources, sortOption) => {
+export const useResourceSort = (
+  resources: ComputedRef<Resource[]>,
+  sortOption: ComputedRef<SortOption>
+) => {
   // Computed sorted resources
   const sortedResources = computed(() => {
     if (!resources.value || !resources.value.length) {
