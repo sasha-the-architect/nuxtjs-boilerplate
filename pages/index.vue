@@ -183,12 +183,7 @@
           </div>
         </div>
 
-        <!-- Recommendations Section -->
-        <div v-if="filteredResources.length > 0 && !loading" class="mt-16">
-          <RecommendationsSection />
-        </div>
-            />
-          </div>
+
 
           <!-- Category Filters (for mobile) -->
           <div class="lg:hidden flex flex-wrap gap-2 mb-4 justify-center">
