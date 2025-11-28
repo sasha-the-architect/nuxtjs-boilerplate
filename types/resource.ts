@@ -25,6 +25,11 @@ export interface FilterOptions {
   difficultyLevels?: string[]
   technologies?: string[]
   tags?: string[]
+  popularityRange?: [number, number] // [min, max] popularity values
+  dateRange?: {
+    start?: string
+    end?: string
+  } // date range for filtering
 }
 
 export type SortOption =

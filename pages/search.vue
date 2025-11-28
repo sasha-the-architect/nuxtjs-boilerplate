@@ -69,6 +69,9 @@
             :selected-pricing-models="selectedPricingModels"
             :selected-difficulty-levels="selectedDifficultyLevels"
             :selected-technologies="selectedTechnologies"
+            :selected-tags="selectedTags"
+            :selected-popularity-range="selectedPopularityRange"
+            :selected-date-range="selectedDateRange"
             :search-query="searchQuery"
             :facet-counts="facetCounts"
             :saved-searches="savedSearches"
@@ -78,6 +81,9 @@
             @toggle-pricing-model="enhancedTogglePricingModel"
             @toggle-difficulty-level="enhancedToggleDifficultyLevel"
             @toggle-technology="enhancedToggleTechnology"
+            @toggle-tag="enhancedToggleTag"
+            @set-popularity-range="handlePopularityRange"
+            @set-date-range="handleDateRange"
             @reset-filters="resetAllFilters"
             @use-saved-search="onUseSavedSearch"
             @remove-saved-search="onRemoveSavedSearch"
@@ -161,7 +167,10 @@ const {
   togglePricingModel,
   toggleDifficultyLevel,
   toggleTechnology,
+  toggleTag,
   setSortOption,
+  setPopularityRange,
+  setDateRange,
   resetFilters,
   highlightSearchTerms,
 } = useResources()
@@ -277,6 +286,21 @@ const enhancedToggleTechnology = (technology: string) => {
   trackFilter('technology', technology)
 }
 
+const enhancedToggleTag = (tag: string) => {
+  toggleTag(tag)
+  trackFilter('tag', tag)
+}
+
+const handlePopularityRange = (range: [number, number]) => {
+  setPopularityRange(range[0], range[1])
+  trackFilter('popularity', `range-${range[0]}-${range[1]}`)
+}
+
+const handleDateRange = (range: { start?: string; end?: string }) => {
+  setDateRange(range.start, range.end)
+  trackFilter('date', `range-${range.start || 'start'}-${range.end || 'end'}`)
+}
+
 // Set up URL synchronization
 useUrlSync(filterOptions, sortOption)
 
@@ -296,6 +320,11 @@ const selectedDifficultyLevels = computed(
 const selectedTechnologies = computed(
   () => filterOptions.value.technologies || []
 )
+const selectedTags = computed(() => filterOptions.value.tags || [])
+const selectedPopularityRange = computed(
+  () => filterOptions.value.popularityRange || [0, 100]
+)
+const selectedDateRange = computed(() => filterOptions.value.dateRange || {})
 
 import { trackSearch, trackFilter } from '~/utils/analytics'
 

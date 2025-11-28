@@ -187,6 +187,92 @@
       </div>
     </div>
 
+    <!-- Popularity Range Filter -->
+    <div class="mb-6">
+      <h4 class="text-sm font-medium text-gray-900 mb-3">Popularity</h4>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs text-gray-600 mb-1"
+            >Min: {{ selectedPopularityRange[0] }}</label
+          >
+          <input
+            type="range"
+            min="0"
+            max="100"
+            :value="selectedPopularityRange[0]"
+            class="w-full"
+            @input="onMinPopularityChange"
+          />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1"
+            >Max: {{ selectedPopularityRange[1] }}</label
+          >
+          <input
+            type="range"
+            min="0"
+            max="100"
+            :value="selectedPopularityRange[1]"
+            class="w-full"
+            @input="onMaxPopularityChange"
+          />
+        </div>
+        <div class="flex justify-between text-xs text-gray-500">
+          <span>0</span>
+          <span>100</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date Added Filter -->
+    <div class="mb-6">
+      <h4 class="text-sm font-medium text-gray-900 mb-3">Date Added</h4>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">From</label>
+          <input
+            type="date"
+            :value="selectedDateRange.start"
+            class="w-full p-2 border border-gray-300 rounded text-sm"
+            @change="onDateStartChange"
+          />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">To</label>
+          <input
+            type="date"
+            :value="selectedDateRange.end"
+            class="w-full p-2 border border-gray-300 rounded text-sm"
+            @change="onDateEndChange"
+          />
+        </div>
+        <!-- Preset date range buttons -->
+        <div class="flex flex-wrap gap-1 mt-2">
+          <button
+            type="button"
+            class="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded"
+            @click="setDatePreset('lastWeek')"
+          >
+            Last Week
+          </button>
+          <button
+            type="button"
+            class="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded"
+            @click="setDatePreset('lastMonth')"
+          >
+            Last Month
+          </button>
+          <button
+            type="button"
+            class="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded"
+            @click="setDatePreset('lastYear')"
+          >
+            Last Year
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Saved Searches -->
     <SavedSearches
       v-if="savedSearches && savedSearches.length > 0"
@@ -215,6 +301,11 @@ interface Props {
   selectedDifficultyLevels: string[]
   selectedTechnologies: string[]
   selectedTags: string[]
+  selectedPopularityRange?: [number, number]
+  selectedDateRange?: {
+    start?: string
+    end?: string
+  }
   searchQuery?: string
   facetCounts?: FacetCounts
   savedSearches?: Array<{ name: string; query: string; createdAt: Date }>
@@ -226,6 +317,8 @@ interface Emits {
   (event: 'toggle-difficulty-level', difficulty: string): void
   (event: 'toggle-technology', technology: string): void
   (event: 'toggle-tag', tag: string): void
+  (event: 'set-popularity-range', range: [number, number]): void
+  (event: 'set-date-range', range: { start?: string; end?: string }): void
   (event: 'reset-filters'): void
   (
     event: 'use-saved-search',
@@ -237,6 +330,9 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   searchQuery: '',
   facetCounts: () => ({}),
+  selectedPopularityRange: () => [0, 100] as [number, number],
+  selectedDateRange: () => ({}),
+  savedSearches: () => [],
 })
 const emit = defineEmits<Emits>()
 
@@ -258,6 +354,14 @@ const toggleTechnology = (technology: string) => {
 
 const toggleTag = (tag: string) => {
   emit('toggle-tag', tag)
+}
+
+const setPopularityRange = (min: number, max: number) => {
+  emit('set-popularity-range', [min, max])
+}
+
+const setDateRange = (start?: string, end?: string) => {
+  emit('set-date-range', { start, end })
 }
 
 const onResetFilters = () => {
@@ -283,5 +387,50 @@ const onUseSavedSearch = (search: {
 
 const onRemoveSavedSearch = (query: string) => {
   emit('remove-saved-search', query)
+}
+
+const onMinPopularityChange = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const min = parseInt(target.value)
+  setPopularityRange(min, props.selectedPopularityRange[1])
+}
+
+const onMaxPopularityChange = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const max = parseInt(target.value)
+  setPopularityRange(props.selectedPopularityRange[0], max)
+}
+
+const onDateStartChange = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const newStart = target.value
+  setDateRange(newStart, props.selectedDateRange.end)
+}
+
+const onDateEndChange = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const newEnd = target.value
+  setDateRange(props.selectedDateRange.start, newEnd)
+}
+
+const setDatePreset = (preset: 'lastWeek' | 'lastMonth' | 'lastYear') => {
+  const endDate = new Date()
+  let startDate = new Date()
+
+  switch (preset) {
+    case 'lastWeek':
+      startDate.setDate(endDate.getDate() - 7)
+      break
+    case 'lastMonth':
+      startDate.setMonth(endDate.getMonth() - 1)
+      break
+    case 'lastYear':
+      startDate.setFullYear(endDate.getFullYear() - 1)
+      break
+  }
+
+  const startStr = startDate.toISOString().split('T')[0]
+  const endStr = endDate.toISOString().split('T')[0]
+  setDateRange(startStr, endStr)
 }
 </script>

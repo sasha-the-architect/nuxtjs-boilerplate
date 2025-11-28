@@ -11,6 +11,8 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
     difficultyLevels: [],
     technologies: [],
     tags: [],
+    popularityRange: undefined,
+    dateRange: undefined,
   })
 
   // Sort option
@@ -71,6 +73,25 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
       result = result.filter(resource =>
         resource.tags.some(tag => filterOptions.value.tags!.includes(tag))
       )
+    }
+
+    // Apply popularity range filter
+    if (filterOptions.value.popularityRange) {
+      const [min, max] = filterOptions.value.popularityRange
+      result = result.filter(
+        resource => resource.popularity >= min && resource.popularity <= max
+      )
+    }
+
+    // Apply date range filter
+    if (filterOptions.value.dateRange) {
+      const { start, end } = filterOptions.value.dateRange
+      result = result.filter(resource => {
+        const resourceDate = new Date(resource.dateAdded).getTime()
+        const startDate = start ? new Date(start).getTime() : -Infinity
+        const endDate = end ? new Date(end).getTime() : Infinity
+        return resourceDate >= startDate && resourceDate <= endDate
+      })
     }
 
     // Apply sorting
@@ -155,6 +176,14 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
     sortOption.value = option
   }
 
+  const setPopularityRange = (min: number, max: number) => {
+    filterOptions.value.popularityRange = [min, max]
+  }
+
+  const setDateRange = (start?: string, end?: string) => {
+    filterOptions.value.dateRange = { start, end }
+  }
+
   // Reset all filters
   const resetFilters = () => {
     filterOptions.value = {
@@ -164,6 +193,8 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
       difficultyLevels: [],
       technologies: [],
       tags: [],
+      popularityRange: undefined,
+      dateRange: undefined,
     }
     sortOption.value = 'popularity-desc'
   }
@@ -179,6 +210,8 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
     toggleTechnology,
     toggleTag,
     setSortOption,
+    setPopularityRange,
+    setDateRange,
     resetFilters,
   }
 }

@@ -38,6 +38,8 @@ export const useResources = () => {
     toggleTechnology,
     toggleTag,
     setSortOption,
+    setPopularityRange,
+    setDateRange,
     resetFilters,
   } = useResourceFilters(resources.value)
 
@@ -152,6 +154,8 @@ export const useResources = () => {
     toggleTechnology,
     toggleTag,
     setSortOption,
+    setPopularityRange,
+    setDateRange,
     resetFilters,
     highlightSearchTerms,
     retryResources,
