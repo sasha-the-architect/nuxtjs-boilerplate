@@ -1,380 +1,301 @@
 /**
  * Composable for community features
- * Implements basic community functionality including user profiles, comments, voting, and moderation
+ * Implements community functionality with proper authentication and API integration
  */
 
-export const useCommunityFeatures = (
-  initialUsers = [],
-  initialComments = [],
-  initialVotes = []
-) => {
-  // User data
-  const users = initialUsers
-  // Comments data
-  const comments = initialComments
-  // Votes data
-  const votes = initialVotes
-  // Flags data
-  const flags = []
+export const useCommunityFeatures = () => {
+  // Get current user from auth token
+  const authToken = useCookie('auth_token').value
+  const currentUser = ref(null)
 
-  // Current user (for demo purposes)
-  let currentUser = null
+  // Load current user profile if authenticated
+  if (authToken) {
+    loadCurrentUser()
+  }
 
-  // Set current user
-  const setCurrentUser = user => {
-    currentUser = user
+  async function loadCurrentUser() {
+    try {
+      const user = await $fetch('/api/auth/profile', {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      })
+      currentUser.value = user
+    } catch (error) {
+      console.error('Error loading current user:', error)
+      // Clear invalid token
+      useCookie('auth_token').value = null
+    }
   }
 
   // User profile management
-  const createProfile = userData => {
-    const profile = {
-      id: generateId(),
-      ...userData,
-      joinDate: new Date().toISOString(),
-      reputation: 0,
-      contributions: {
-        comments: 0,
-        resources: 0,
-        votes: 0,
-      },
-      privacy: {
-        showEmail: false,
-        showActivity: true,
-      },
+  const createProfile = async userData => {
+    if (!authToken) {
+      throw new Error('User must be logged in to create profile')
     }
-    users.push(profile)
-    return profile
+
+    try {
+      const profile = await $fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: userData,
+      })
+      return profile
+    } catch (error) {
+      console.error('Error creating profile:', error)
+      throw error
+    }
   }
 
-  const updateProfile = (userId, updates) => {
-    // Use a for loop instead of findIndex to avoid compatibility issues
-    for (let i = 0; i < users.length; i++) {
-      if (users[i].id === userId) {
-        users[i] = { ...users[i], ...updates }
-        return users[i]
-      }
+  const updateProfile = async updates => {
+    if (!authToken) {
+      throw new Error('User must be logged in to update profile')
     }
-    return null
+
+    try {
+      const profile = await $fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: updates,
+      })
+
+      // Update local current user reference
+      currentUser.value = profile
+
+      return profile
+    } catch (error) {
+      console.error('Error updating profile:', error)
+      throw error
+    }
   }
 
   // Comment system
-  const addComment = commentData => {
-    if (!currentUser) {
+  const addComment = async commentData => {
+    if (!authToken) {
       throw new Error('User must be logged in to comment')
     }
 
-    const comment = {
-      id: generateId(),
-      ...commentData,
-      userId: currentUser.id,
-      userName: currentUser.name || currentUser.username,
-      timestamp: new Date().toISOString(),
-      votes: 0,
-      replies: [],
-      isEdited: false,
-      status: 'active', // active, flagged, removed
+    try {
+      const comment = await $fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: {
+          ...commentData,
+          userId: currentUser.value?.id,
+        },
+      })
+      return comment
+    } catch (error) {
+      console.error('Error adding comment:', error)
+      throw error
     }
-    comments.push(comment)
-
-    // Update user contributions
-    for (let i = 0; i < users.length; i++) {
-      if (users[i].id === currentUser.id) {
-        users[i].contributions.comments += 1
-        break
-      }
-    }
-
-    return comment
   }
 
-  const addReply = (commentId, replyData) => {
-    if (!currentUser) {
+  const addReply = async (commentId, replyData) => {
+    if (!authToken) {
       throw new Error('User must be logged in to reply')
     }
 
-    // Find parent comment using for loop
-    let parentComment = null
-    for (let i = 0; i < comments.length; i++) {
-      if (comments[i].id === commentId) {
-        parentComment = comments[i]
-        break
-      }
+    try {
+      const reply = await $fetch(`/api/comments/${commentId}/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: {
+          ...replyData,
+          userId: currentUser.value?.id,
+        },
+      })
+      return reply
+    } catch (error) {
+      console.error('Error adding reply:', error)
+      throw error
     }
-
-    if (!parentComment) return null
-
-    const reply = {
-      id: generateId(),
-      ...replyData,
-      userId: currentUser.id,
-      userName: currentUser.name || currentUser.username,
-      timestamp: new Date().toISOString(),
-      votes: 0,
-      isEdited: false,
-      status: 'active',
-    }
-
-    parentComment.replies.push(reply)
-    return reply
   }
 
-  const editComment = (commentId, newContent) => {
-    // Find comment using for loop
-    for (let i = 0; i < comments.length; i++) {
-      if (
-        comments[i].id === commentId &&
-        comments[i].userId === currentUser?.id
-      ) {
-        comments[i].content = newContent
-        comments[i].isEdited = true
-        comments[i].editedAt = new Date().toISOString()
-        return comments[i]
-      }
+  const editComment = async (commentId, newContent) => {
+    if (!authToken) {
+      throw new Error('User must be logged in to edit comment')
     }
-    return null
+
+    try {
+      const comment = await $fetch(`/api/comments/${commentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: { content: newContent },
+      })
+      return comment
+    } catch (error) {
+      console.error('Error editing comment:', error)
+      throw error
+    }
   }
 
-  const deleteComment = commentId => {
-    for (let i = 0; i < comments.length; i++) {
-      if (
-        comments[i].id === commentId &&
-        comments[i].userId === currentUser?.id
-      ) {
-        // Instead of completely deleting, mark as removed for moderation trail
-        comments[i].status = 'removed'
-        comments[i].content = '[Comment removed by user]'
-        return true
-      }
+  const deleteComment = async commentId => {
+    if (!authToken) {
+      throw new Error('User must be logged in to delete comment')
     }
-    return false
+
+    try {
+      const result = await $fetch(`/api/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      })
+      return result
+    } catch (error) {
+      console.error('Error deleting comment:', error)
+      throw error
+    }
   }
 
   // Voting system
-  const vote = (targetType, targetId, voteType) => {
-    if (!currentUser) {
+  const vote = async (targetType, targetId, voteType) => {
+    if (!authToken) {
       throw new Error('User must be logged in to vote')
     }
 
-    // Check if user has already voted on this item using for loop
-    let existingVoteIndex = -1
-    for (let i = 0; i < votes.length; i++) {
-      if (
-        votes[i].targetType === targetType &&
-        votes[i].targetId === targetId &&
-        votes[i].userId === currentUser.id
-      ) {
-        existingVoteIndex = i
-        break
-      }
-    }
-
-    if (existingVoteIndex !== -1) {
-      // Update existing vote
-      const existingVote = votes[existingVoteIndex]
-      if (existingVote.voteType === voteType) {
-        // Remove vote if same type is cast again (toggle off)
-        votes.splice(existingVoteIndex, 1)
-
-        // Update target item vote count
-        updateTargetVoteCount(targetType, targetId, existingVote.voteType, -1)
-
-        // Update user contributions
-        updateUserContributions(currentUser.id, -1)
-
-        return { success: true, removed: true }
-      } else {
-        // Change vote type
-        const oldVoteType = existingVote.voteType
-        votes[existingVoteIndex].voteType = voteType
-        votes[existingVoteIndex].timestamp = new Date().toISOString()
-
-        // Update target item vote count (remove old, add new)
-        updateTargetVoteCount(targetType, targetId, oldVoteType, -1)
-        updateTargetVoteCount(targetType, targetId, voteType, 1)
-
-        return { success: true, changed: true }
-      }
-    } else {
-      // Add new vote
-      const newVote = {
-        id: generateId(),
-        targetType,
-        targetId,
-        userId: currentUser.id,
-        voteType, // 'up' or 'down'
-        timestamp: new Date().toISOString(),
-      }
-      votes.push(newVote)
-
-      // Update target item vote count
-      updateTargetVoteCount(targetType, targetId, voteType, 1)
-
-      // Update user contributions
-      updateUserContributions(currentUser.id, 1)
-
-      return { success: true, added: true }
-    }
-  }
-
-  // Helper function to update vote counts on target items
-  const updateTargetVoteCount = (targetType, targetId, voteType, change) => {
-    // This is a simplified implementation - in reality, this would update the actual resource or comment
-    if (targetType === 'comment') {
-      for (let i = 0; i < comments.length; i++) {
-        if (comments[i].id === targetId) {
-          comments[i].votes += change * (voteType === 'up' ? 1 : -1)
-          break
-        }
-      }
-    }
-    // Could extend for other target types like resources
-  }
-
-  // Helper function to update user contributions
-  const updateUserContributions = (userId, change) => {
-    for (let i = 0; i < users.length; i++) {
-      if (users[i].id === userId) {
-        users[i].contributions.votes += change
-        break
-      }
+    try {
+      const voteResult = await $fetch('/api/votes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: {
+          targetType,
+          targetId,
+          voteType,
+          userId: currentUser.value?.id,
+        },
+      })
+      return voteResult
+    } catch (error) {
+      console.error('Error voting:', error)
+      throw error
     }
   }
 
   // Moderation system
-  const flagContent = (targetType, targetId, reason, details = '') => {
-    if (!currentUser) {
+  const flagContent = async (targetType, targetId, reason, details = '') => {
+    if (!authToken) {
       throw new Error('User must be logged in to flag content')
     }
 
-    const flag = {
-      id: generateId(),
-      targetType,
-      targetId,
-      flaggedBy: currentUser.id,
-      reason,
-      details,
-      timestamp: new Date().toISOString(),
-      status: 'pending', // pending, reviewed, resolved
+    try {
+      const flag = await $fetch('/api/flags', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: {
+          targetType,
+          targetId,
+          reason,
+          details,
+          flaggedBy: currentUser.value?.id,
+        },
+      })
+      return flag
+    } catch (error) {
+      console.error('Error flagging content:', error)
+      throw error
     }
-
-    flags.push(flag)
-
-    return flag
   }
 
-  const moderateContent = (flagId, action, moderatorNote = '') => {
-    if (!currentUser || !currentUser.isModerator) {
+  const moderateContent = async (flagId, action, moderatorNote = '') => {
+    if (
+      !authToken ||
+      (currentUser.value?.role !== 'moderator' &&
+        currentUser.value?.role !== 'admin')
+    ) {
       throw new Error('User must be a moderator to moderate content')
     }
 
-    let flag = null
-    let flagIndex = -1
-    for (let i = 0; i < flags.length; i++) {
-      if (flags[i].id === flagId) {
-        flag = flags[i]
-        flagIndex = i
-        break
-      }
+    try {
+      const result = await $fetch(`/api/flags/${flagId}/moderate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: {
+          action,
+          moderatorNote,
+          moderatorId: currentUser.value?.id,
+        },
+      })
+      return result
+    } catch (error) {
+      console.error('Error moderating content:', error)
+      throw error
     }
-
-    if (!flag) return false
-
-    flag.status = 'reviewed'
-    flag.moderator = currentUser.id
-    flag.moderatorNote = moderatorNote
-    flag.actionTaken = action // 'approved', 'removed', 'warning', etc.
-
-    // Take action on the flagged content
-    if (flag.targetType === 'comment' && action === 'removed') {
-      for (let i = 0; i < comments.length; i++) {
-        if (comments[i].id === flag.targetId) {
-          comments[i].status = 'removed'
-          comments[i].content = '[Content removed by moderator]'
-          break
-        }
-      }
-    }
-
-    return true
-  }
-
-  // Helper function to generate IDs
-  const generateId = () => {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5)
   }
 
   // Get user profile
-  const getUserProfile = userId => {
-    for (let i = 0; i < users.length; i++) {
-      if (users[i].id === userId) {
-        return users[i]
-      }
+  const getUserProfile = async userId => {
+    try {
+      const profile = await $fetch(`/api/users/${userId}`)
+      return profile
+    } catch (error) {
+      console.error('Error getting user profile:', error)
+      throw error
     }
-    return null
   }
 
   // Get comments for a specific resource
-  const getCommentsForResource = resourceId => {
-    const result = []
-    for (let i = 0; i < comments.length; i++) {
-      if (
-        comments[i].resourceId === resourceId &&
-        comments[i].status !== 'removed'
-      ) {
-        result.push(comments[i])
-      }
+  const getCommentsForResource = async resourceId => {
+    try {
+      const comments = await $fetch(`/api/comments?resourceId=${resourceId}`)
+      return comments
+    } catch (error) {
+      console.error('Error getting comments:', error)
+      return []
     }
-    return result
   }
 
   // Get user's activity history
-  const getUserActivity = userId => {
-    const userComments = []
-    const userVotes = []
-
-    for (let i = 0; i < comments.length; i++) {
-      if (comments[i].userId === userId) {
-        userComments.push(comments[i])
-      }
-    }
-
-    for (let i = 0; i < votes.length; i++) {
-      if (votes[i].userId === userId) {
-        userVotes.push(votes[i])
-      }
-    }
-
-    return {
-      comments: userComments,
-      votes: userVotes,
-      totalActivity: userComments.length + userVotes.length,
+  const getUserActivity = async userId => {
+    try {
+      const activity = await $fetch(`/api/users/${userId}/activity`)
+      return activity
+    } catch (error) {
+      console.error('Error getting user activity:', error)
+      return { comments: [], votes: [], totalActivity: 0 }
     }
   }
 
   // Get top contributors based on reputation or activity
-  const getTopContributors = limitValue => {
-    if (limitValue === undefined) limitValue = 10
-    // Create a copy of users array and sort by reputation
-    const sortedUsers = []
-    for (let i = 0; i < users.length; i++) {
-      sortedUsers.push(users[i])
+  const getTopContributors = async (limitValue = 10) => {
+    try {
+      const contributors = await $fetch(`/api/users/top?limit=${limitValue}`)
+      return contributors
+    } catch (error) {
+      console.error('Error getting top contributors:', error)
+      return []
     }
-
-    sortedUsers.sort((a, b) => b.reputation - a.reputation)
-
-    // Limit the results
-    const result = []
-    for (let i = 0; i < Math.min(limitValue, sortedUsers.length); i++) {
-      result.push(sortedUsers[i])
-    }
-
-    return result
   }
 
   // Return the composable functions
   const result = {
     // User management
-    setCurrentUser,
+    currentUser: readonly(currentUser),
     createProfile,
     updateProfile,
     getUserProfile,
@@ -396,12 +317,6 @@ export const useCommunityFeatures = (
     // Activity and stats
     getUserActivity,
     getTopContributors,
-
-    // Data access
-    users,
-    comments,
-    votes,
-    flags,
   }
 
   return result
