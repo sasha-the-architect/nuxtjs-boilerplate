@@ -44,7 +44,9 @@ class CacheManager {
       try {
         // In a real implementation, we would connect to Redis here
         // For now, we'll just set a flag to indicate Redis is enabled
-        console.log('Redis caching enabled')
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Redis caching enabled')
+        }
       } catch (error) {
         console.warn(
           'Failed to connect to Redis, falling back to memory cache:',

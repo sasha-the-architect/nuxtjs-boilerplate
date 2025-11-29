@@ -1,78 +1,26 @@
+import { ref, computed, readonly } from 'vue'
 import type { Resource } from '~/types/resource'
+import { useResourceData } from '~/composables/useResourceData'
 
-export interface Alternative {
-  resource: Resource
+// Types for alternative suggestions
+export interface AlternativeRelationship {
+  id: string
+  resourceId: string
+  alternativeId: string
   similarityScore: number
+  reason: string
+  createdAt: string
 }
 
-export const useAlternatives = (resources: Resource[]) => {
-  /**
-   * Find alternative resources based on category, tags, and description similarity
-   */
-  const findAlternatives = (
-    currentResource: Resource,
-    limit: number = 6
-  ): Alternative[] => {
-    if (!resources || resources.length === 0) return []
+export interface AlternativeSuggestion {
+  resource: Resource
+  similarityScore: number
+  reason: string
+}
 
-    return resources
-      .filter(resource => resource.id !== currentResource.id) // Exclude current resource
-      .map(resource => ({
-        resource,
-        similarityScore: calculateSimilarity(currentResource, resource),
-      }))
-      .filter(alt => alt.similarityScore > 0.1) // Filter out very low similarity
-      .sort((a, b) => b.similarityScore - a.similarityScore) // Sort by similarity
-      .slice(0, limit) // Limit results
-  }
-
-  /**
-   * Calculate similarity score between two resources (0-1)
-   */
-  const calculateSimilarity = (
-    resource1: Resource,
-    resource2: Resource
-  ): number => {
-    let score = 0
-    let totalWeight = 0
-
-    // Category similarity (weight: 0.4)
-    if (resource1.category === resource2.category) {
-      score += 0.4
-    }
-    totalWeight += 0.4
-
-    // Tag overlap (weight: 0.3)
-    const tagIntersection = resource1.tags.filter(tag =>
-      resource2.tags.includes(tag)
-    ).length
-    const tagUnion = [...new Set([...resource1.tags, ...resource2.tags])].length
-    const tagSimilarity = tagUnion > 0 ? tagIntersection / tagUnion : 0
-    score += tagSimilarity * 0.3
-    totalWeight += 0.3
-
-    // Description similarity (weight: 0.2)
-    const descSimilarity = calculateTextSimilarity(
-      resource1.description.toLowerCase(),
-      resource2.description.toLowerCase()
-    )
-    score += descSimilarity * 0.2
-    totalWeight += 0.2
-
-    // Technology overlap (weight: 0.1)
-    const techIntersection = resource1.technology.filter(tech =>
-      resource2.technology.includes(tech)
-    ).length
-    const techUnion = [
-      ...new Set([...resource1.technology, ...resource2.technology]),
-    ].length
-    const techSimilarity = techUnion > 0 ? techIntersection / techUnion : 0
-    score += techSimilarity * 0.1
-    totalWeight += 0.1
-
-    // Normalize score based on actual weights applied
-    return totalWeight > 0 ? score / totalWeight : 0
-  }
+// Main composable for alternative suggestions
+export const useAlternatives = (resources: Resource[] = []) => {
+  const { resources: resourceData } = useResourceData()
 
   /**
    * Calculate text similarity using a simple Jaccard similarity approach
@@ -92,13 +40,176 @@ export const useAlternatives = (resources: Resource[]) => {
     return union > 0 ? intersection / union : 0
   }
 
+  // Calculate similarity between two resources for alternative suggestions
+  const calculateAlternativeSimilarity = (
+    resourceA: Resource,
+    resourceB: Resource
+  ): { score: number; reason: string } => {
+    if (resourceA.id === resourceB.id)
+      return { score: 0, reason: 'same resource' }
+
+    let score = 0
+    let reasons: string[] = []
+
+    // Category similarity (high weight for alternatives)
+    if (resourceA.category === resourceB.category) {
+      score += 0.4
+      reasons.push('same category')
+    }
+
+    // Tags similarity
+    const commonTags = resourceA.tags.filter(tag =>
+      resourceB.tags.includes(tag)
+    ).length
+    if (commonTags > 0) {
+      const tagSimilarity =
+        commonTags / Math.max(resourceA.tags.length, resourceB.tags.length)
+      score += 0.3 * tagSimilarity
+      reasons.push(`${commonTags} common tags`)
+    }
+
+    // Technology similarity
+    const commonTech = resourceA.technology.filter(tech =>
+      resourceB.technology.includes(tech)
+    ).length
+    if (commonTech > 0) {
+      const techSimilarity =
+        commonTech /
+        Math.max(resourceA.technology.length, resourceB.technology.length)
+      score += 0.2 * techSimilarity
+      reasons.push(`${commonTech} common technologies`)
+    }
+
+    // Pricing model similarity
+    if (resourceA.pricingModel === resourceB.pricingModel) {
+      score += 0.1
+      reasons.push('same pricing model')
+    }
+
+    return {
+      score: Math.min(1, score),
+      reason: reasons.join(', '),
+    }
+  }
+
+  // Get alternative suggestions for a resource
+  const getAlternativeSuggestions = (
+    targetResource: Resource,
+    maxSuggestions: number = 6
+  ): AlternativeSuggestion[] => {
+    // Use provided resources array if available, otherwise fall back to resourceData
+    const availableResources = resources.length > 0 ? resources : resourceData.value || []
+    
+    if (!availableResources || availableResources.length === 0) {
+      return []
+    }
+
+    const alternatives: AlternativeSuggestion[] = []
+
+    for (const resource of availableResources) {
+      // Skip if it's the same resource
+      if (resource.id === targetResource.id) continue
+
+      // Skip if they're in different categories (for alternatives, we typically want same category)
+      if (resource.category !== targetResource.category) continue
+
+      const { score, reason } = calculateAlternativeSimilarity(
+        targetResource,
+        resource
+      )
+
+      // Only include if similarity is above threshold
+      if (score >= 0.3) {
+        alternatives.push({
+          resource,
+          similarityScore: score,
+          reason,
+        })
+      }
+    }
+
+    // Sort by similarity score and return top suggestions
+    return alternatives
+      .sort((a, b) => b.similarityScore - a.similarityScore)
+      .slice(0, maxSuggestions)
+  }
+
+  // Get alternatives based on pre-defined relationships in the resource data
+  const getPredefinedAlternatives = (
+    targetResource: Resource
+  ): AlternativeSuggestion[] => {
+    if (!targetResource.alternatives || !resourceData.value) return []
+
+    const alternativeSuggestions: AlternativeSuggestion[] = []
+
+    for (const altId of targetResource.alternatives) {
+      const alternativeResource = resourceData.value.find(r => r.id === altId)
+      if (alternativeResource) {
+        alternativeSuggestions.push({
+          resource: alternativeResource,
+          similarityScore: targetResource.similarityScore || 0.8, // Default to high score for predefined
+          reason: 'predefined alternative',
+        })
+      }
+    }
+
+    return alternativeSuggestions
+  }
+
+  // Combine both predefined and calculated alternatives
+  const getAllAlternatives = (
+    targetResource: Resource,
+    maxSuggestions: number = 6
+  ): AlternativeSuggestion[] => {
+    const predefined = getPredefinedAlternatives(targetResource)
+    const calculated = getAlternativeSuggestions(targetResource, maxSuggestions)
+
+    // Combine and deduplicate
+    const allAlternatives = [...predefined, ...calculated]
+
+    // Remove duplicates by resource ID
+    const uniqueAlternatives = allAlternatives.filter(
+      (alt, index, self) =>
+        index === self.findIndex(a => a.resource.id === alt.resource.id)
+    )
+
+    // Sort by similarity score and return top suggestions
+    return uniqueAlternatives
+      .sort((a, b) => b.similarityScore - a.similarityScore)
+      .slice(0, maxSuggestions)
+  }
+
+  /**
+   * Find alternative resources based on category, tags, and description similarity
+   */
+  const findAlternatives = (
+    currentResource: Resource,
+    limit: number = 6
+  ): AlternativeSuggestion[] => {
+    // Use provided resources array if available, otherwise fall back to resourceData
+    const availableResources = resources.length > 0 ? resources : resourceData.value || []
+    
+    if (!availableResources || availableResources.length === 0) return []
+
+    return availableResources
+      .filter(resource => resource.id !== currentResource.id) // Exclude current resource
+      .map(resource => ({
+        resource,
+        similarityScore: calculateAlternativeSimilarity(currentResource, resource).score,
+        reason: calculateAlternativeSimilarity(currentResource, resource).reason
+      }))
+      .filter(alt => alt.similarityScore > 0.1) // Filter out very low similarity
+      .sort((a, b) => b.similarityScore - a.similarityScore) // Sort by similarity
+      .slice(0, limit) // Limit results
+  }
+
   /**
    * Get alternatives for a resource from the API
    */
   const getAlternativesForResource = async (
     resourceId: string,
     limit: number = 6
-  ): Promise<Alternative[]> => {
+  ): Promise<AlternativeSuggestion[]> => {
     try {
       const response = await $fetch(
         `/api/v1/resources/${resourceId}/alternatives`,
@@ -119,8 +230,11 @@ export const useAlternatives = (resources: Resource[]) => {
   }
 
   return {
+    getAlternativeSuggestions,
+    getPredefinedAlternatives,
+    getAllAlternatives,
+    calculateAlternativeSimilarity,
     findAlternatives,
-    calculateSimilarity,
     getAlternativesForResource,
   }
 }

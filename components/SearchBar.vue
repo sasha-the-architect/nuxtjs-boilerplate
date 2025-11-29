@@ -95,6 +95,9 @@ import { useResources } from '~/composables/useResources'
 import { useAdvancedResourceSearch } from '~/composables/useAdvancedResourceSearch'
 import { useResourceData } from '~/composables/useResourceData'
 
+// Define EventListener type for TypeScript
+type EventListener = (evt: Event) => void
+
 interface Props {
   modelValue: string
   debounceTime?: number

@@ -80,9 +80,16 @@
               <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">
                 {{ resource.title }}
               </h1>
-              <p class="mt-2 text-gray-600">
-                {{ resource.category }}
-              </p>
+              <div class="flex items-center mt-2 gap-2">
+                <p class="text-gray-600">
+                  {{ resource.category }}
+                </p>
+                <ResourceStatus
+                  v-if="resource.status"
+                  :status="resource.status"
+                  :health-score="resource.healthScore"
+                />
+              </div>
             </div>
             <div class="mt-4 sm:mt-0">
               <a
@@ -113,6 +120,19 @@
 
         <!-- Resource Content -->
         <div class="p-6">
+          <!-- Deprecation notice if resource is deprecated or discontinued -->
+          <DeprecationNotice
+            v-if="
+              resource.status &&
+              (resource.status === 'deprecated' ||
+                resource.status === 'discontinued' ||
+                resource.status === 'pending')
+            "
+            :status="resource.status"
+            :migration-path="resource.migrationPath"
+            :deprecation-date="resource.deprecationDate"
+          />
+
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <!-- Main Content -->
             <div class="md:col-span-2">
@@ -294,134 +314,148 @@
               </div>
             </div>
 
-            <!-- Sidebar -->
-            <div class="md:col-span-1">
-              <!-- Tags -->
-              <div class="mb-8">
-                <h3 class="text-lg font-medium text-gray-900 mb-3">Tags</h3>
-                <div class="flex flex-wrap gap-2">
-                  <span
-                    v-for="tag in resource.tags"
-                    :key="tag"
-                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                  >
-                    {{ tag }}
-                  </span>
-                </div>
-              </div>
+            <!-- Resource Status and Lifecycle -->
+            <div v-if="resource.statusHistory || resource.updateHistory" class="mb-8">
+              <h3 class="text-lg font-medium text-gray-900 mb-3">
+                Lifecycle
+              </h3>
+              <LifecycleTimeline
+                :status-history="resource.statusHistory"
+                :update-history="resource.updateHistory"
+              />
+            </div>
 
-              <!-- Technologies -->
-              <div class="mb-8">
-                <h3 class="text-lg font-medium text-gray-900 mb-3">
-                  Technologies
-                </h3>
-                <div class="flex flex-wrap gap-2">
-                  <span
-                    v-for="tech in resource.technology"
-                    :key="tech"
-                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
-                  >
-                    {{ tech }}
-                  </span>
-                </div>
-              </div>
+            <!-- Health Monitor -->
+            <div class="mb-8">
+              <h3 class="text-lg font-medium text-gray-900 mb-3">Health</h3>
+              <HealthMonitor :resource-id="resource.id" :url="resource.url" />
+            </div>
 
-              <!-- Share Section -->
-              <div class="mb-8">
-                <h3 class="text-lg font-medium text-gray-900 mb-3">Share</h3>
-                <div class="flex flex-wrap gap-3">
-                  <a
-                    :href="shareUrls.twitter"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
-                    aria-label="Share on Twitter"
+            <!-- Tags -->
+            <div class="mb-8">
+              <h3 class="text-lg font-medium text-gray-900 mb-3">Tags</h3>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="tag in resource.tags"
+                  :key="tag"
+                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                >
+                  {{ tag }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Technologies -->
+            <div class="mb-8">
+              <h3 class="text-lg font-medium text-gray-900 mb-3">
+                Technologies
+              </h3>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="tech in resource.technology"
+                  :key="tech"
+                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                >
+                  {{ tech }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Share Section -->
+            <div class="mb-8">
+              <h3 class="text-lg font-medium text-gray-900 mb-3">Share</h3>
+              <div class="flex flex-wrap gap-3">
+                <a
+                  :href="shareUrls.twitter"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                  aria-label="Share on Twitter"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path
-                        d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"
-                      />
-                    </svg>
-                  </a>
-                  <a
-                    :href="shareUrls.facebook"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="p-2 rounded-full bg-blue-700 text-white hover:bg-blue-800 transition-colors"
-                    aria-label="Share on Facebook"
+                    <path
+                      d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"
+                    />
+                  </svg>
+                </a>
+                <a
+                  :href="shareUrls.facebook"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="p-2 rounded-full bg-blue-700 text-white hover:bg-blue-800 transition-colors"
+                  aria-label="Share on Facebook"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path
-                        d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
-                      />
-                    </svg>
-                  </a>
-                  <a
-                    :href="shareUrls.linkedin"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="p-2 rounded-full bg-blue-800 text-white hover:bg-blue-900 transition-colors"
-                    aria-label="Share on LinkedIn"
+                    <path
+                      d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                    />
+                  </svg>
+                </a>
+                <a
+                  :href="shareUrls.linkedin"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="p-2 rounded-full bg-blue-800 text-white hover:bg-blue-900 transition-colors"
+                  aria-label="Share on LinkedIn"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path
-                        d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
-                      />
-                    </svg>
-                  </a>
-                  <a
-                    :href="shareUrls.reddit"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="p-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors"
-                    aria-label="Share on Reddit"
+                    <path
+                      d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
+                    />
+                  </svg>
+                </a>
+                <a
+                  :href="shareUrls.reddit"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="p-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                  aria-label="Share on Reddit"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path
-                        d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"
-                      />
-                    </svg>
-                  </a>
-                  <button
-                    class="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors"
-                    aria-label="Copy link to clipboard"
-                    @click="copyToClipboard"
+                    <path
+                      d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"
+                    />
+                  </svg>
+                </a>
+                <button
+                  class="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors"
+                  aria-label="Copy link to clipboard"
+                  @click="copyToClipboard"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
-                      />
-                      <path
-                        d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h4a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
-                      />
-                    </svg>
-                  </button>
-                </div>
+                    <path
+                      d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                    />
+                    <path
+                      d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h4a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
+                    />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -442,6 +476,11 @@
             :button-label="getButtonLabel(relatedResource.category)"
           />
         </div>
+      </div>
+
+      <!-- Alternative Suggestions Section -->
+      <div class="mt-12">
+        <AlternativeSuggestions v-if="resource" :resource="resource" />
       </div>
 
       <!-- Recommendations Section -->
@@ -469,6 +508,10 @@ import { useResources, type Resource } from '~/composables/useResources'
 import ResourceCard from '~/components/ResourceCard.vue'
 import RecommendationsSection from '~/components/RecommendationsSection.vue'
 import AlternativeSuggestions from '~/components/AlternativeSuggestions.vue'
+import ResourceStatus from '~/components/ResourceStatus.vue'
+import LifecycleTimeline from '~/components/LifecycleTimeline.vue'
+import HealthMonitor from '~/components/HealthMonitor.vue'
+import DeprecationNotice from '~/components/DeprecationNotice.vue'
 import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRuntimeConfig, useSeoMeta } from '#imports'
@@ -557,38 +600,17 @@ onMounted(async () => {
               .filter(rec => rec.resource.id !== resource.value?.id)
               .slice(0, 3) // Limit to 3 related resources
 
-         relatedResources.value = recommendations.map(rec => rec.resource)
+            relatedResources.value = recommendations.map(rec => rec.resource)
 
-         // Fetch alternatives for this resource
-         fetchAlternatives(resourceId)
+            // Fetch alternatives for this resource
+            fetchAlternatives(resourceId)
 
-         // Fetch analytics data for this resource
-         fetchResourceAnalytics(resourceId)
-       }
-       loading.value = false
-     } else {
-       const resourceId = route.params.id as string
-       resource.value = resources.value.find(r => r.id === resourceId) || null
-       if (!resource.value) {
-         error.value = 'Resource not found'
-       } else {
-         // Use the enhanced recommendation engine to find related resources
-         const engine = useRecommendationEngine(resources.value)
-         const recommendations = engine
-           .getContentBasedRecommendations(resource.value!)
-           .filter(rec => rec.resource.id !== resource.value?.id)
-           .slice(0, 3) // Limit to 3 related resources
-
-         relatedResources.value = recommendations.map(rec => rec.resource)
-
-         // Fetch alternatives for this resource
-         fetchAlternatives(resourceId)
-
-         // Fetch analytics data for this resource
-         fetchResourceAnalytics(resourceId)
-       }
-       loading.value = false
-     }
+            // Fetch analytics data for this resource
+            fetchResourceAnalytics(resourceId)
+            
+            // Fetch resource history (status and update history)
+            fetchResourceHistory(resourceId)
+          }
           loading.value = false
         } else {
           setTimeout(checkResources, 100)
@@ -610,8 +632,14 @@ onMounted(async () => {
 
         relatedResources.value = recommendations.map(rec => rec.resource)
 
+        // Fetch alternatives for this resource
+        fetchAlternatives(resourceId)
+
         // Fetch analytics data for this resource
         fetchResourceAnalytics(resourceId)
+        
+        // Fetch resource history (status and update history)
+        fetchResourceHistory(resourceId)
       }
       loading.value = false
     }
@@ -621,43 +649,60 @@ onMounted(async () => {
   }
 })
 
- // Fetch alternatives for the resource
- const fetchAlternatives = async (resourceId: string) => {
-   try {
-     const response = await $fetch(`/api/v1/resources/${resourceId}/alternatives`)
-     if (response && response.success && response.data) {
-       alternatives.value = response.data.map((alt: any) => ({
-         ...alt.resource,
-         similarityScore: alt.similarityScore
-       }))
-     }
-   } catch (err) {
-     console.error('Error fetching alternatives:', err)
-     // Set empty array if alternatives fetch fails
-     alternatives.value = []
-   }
- }
+// Fetch alternatives for the resource
+const fetchAlternatives = async (resourceId: string) => {
+  try {
+    const response = await $fetch(`/api/v1/resources/${resourceId}/alternatives`)
+    if (response && response.success && response.data) {
+      alternatives.value = response.data.map((alt: any) => ({
+        ...alt.resource,
+        similarityScore: alt.similarityScore
+      }))
+    }
+  } catch (err) {
+    console.error('Error fetching alternatives:', err)
+    // Set empty array if alternatives fetch fails
+    alternatives.value = []
+  }
+}
 
- // Fetch analytics data for the resource
- const fetchResourceAnalytics = async (resourceId: string) => {
-   try {
-     const response = await $fetch(`/api/analytics/resource/${resourceId}`)
-     if (response && response.data) {
-       analyticsData.value = response.data
-     }
-   } catch (err) {
-     console.error('Error fetching resource analytics:', err)
-     // Set default values if analytics fetch fails
-     analyticsData.value = {
-       resourceId,
-       viewCount: resource.value?.viewCount || 0,
-       uniqueVisitors: 0,
-       avgTimeOnPage: 0,
-       bounceRate: 0,
-       lastViewed: new Date().toISOString(),
-     }
-   }
- }
+// Fetch resource history (status and update history)
+const fetchResourceHistory = async (resourceId: string) => {
+  try {
+    const history = await $fetch(`/api/resources/${resourceId}/history`)
+    if (history) {
+      // Update resource with history data
+      if (resource.value) {
+        resource.value.statusHistory = history.statusHistory
+        resource.value.updateHistory = history.updateHistory
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching resource history:', err)
+    // If history fetch fails, continue without history data
+  }
+}
+
+// Fetch analytics data for the resource
+const fetchResourceAnalytics = async (resourceId: string) => {
+  try {
+    const response = await $fetch(`/api/analytics/resource/${resourceId}`)
+    if (response && response.data) {
+      analyticsData.value = response.data
+    }
+  } catch (err) {
+    console.error('Error fetching resource analytics:', err)
+    // Set default values if analytics fetch fails
+    analyticsData.value = {
+      resourceId,
+      viewCount: resource.value?.viewCount || 0,
+      uniqueVisitors: 0,
+      avgTimeOnPage: 0,
+      bounceRate: 0,
+      lastViewed: new Date().toISOString(),
+    }
+  }
+}
 
 // Copy URL to clipboard
 const copyToClipboard = async () => {

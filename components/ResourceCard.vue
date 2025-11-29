@@ -20,32 +20,40 @@
         />
       </div>
       <div class="flex-1 min-w-0">
-        <h3
-          id="resource-title"
-          class="text-lg font-medium text-gray-900 truncate"
-        >
-          <NuxtLink
-            v-if="id"
-            :to="`/resources/${id}`"
-            class="hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:rounded-sm"
-            :aria-label="`View details for ${title}`"
+        <div class="flex items-center justify-between">
+          <h3
+            id="resource-title"
+            class="text-lg font-medium text-gray-900 truncate"
           >
-            <span
-              v-if="highlightedTitle"
-              v-html="sanitizedHighlightedTitle"
-            ></span>
-            <!-- eslint-disable-line vue/no-v-html -->
-            <span v-else>{{ title }}</span>
-          </NuxtLink>
-          <span v-else>
-            <span
-              v-if="highlightedTitle"
-              v-html="sanitizedHighlightedTitle"
-            ></span>
-            <!-- eslint-disable-line vue/no-v-html -->
-            <span v-else>{{ title }}</span>
-          </span>
-        </h3>
+            <NuxtLink
+              v-if="id"
+              :to="`/resources/${id}`"
+              class="hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:rounded-sm"
+              :aria-label="`View details for ${title}`"
+            >
+              <span
+                v-if="highlightedTitle"
+                v-html="sanitizedHighlightedTitle"
+              ></span>
+              <!-- eslint-disable-line vue/no-v-html -->
+              <span v-else>{{ title }}</span>
+            </NuxtLink>
+            <span v-else>
+              <span
+                v-if="highlightedTitle"
+                v-html="sanitizedHighlightedTitle"
+              ></span>
+              <!-- eslint-disable-line vue/no-v-html -->
+              <span v-else>{{ title }}</span>
+            </span>
+          </h3>
+          <!-- Resource status badge -->
+          <ResourceStatus
+            v-if="status"
+            :status="status"
+            :health-score="healthScore"
+          />
+        </div>
         <p id="resource-description" class="mt-1 text-gray-800 text-sm">
           <span
             v-if="highlightedDescription"
@@ -68,6 +76,25 @@
             </li>
           </ul>
         </div>
+
+        <!-- Similarity information (for alternative suggestions) -->
+        <div v-if="similarityScore && similarityScore > 0" class="mt-3">
+          <div class="flex items-center">
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div
+                class="bg-blue-600 h-2 rounded-full"
+                :style="{ width: `${similarityScore * 100}%` }"
+              ></div>
+            </div>
+            <span class="ml-2 text-xs font-medium text-gray-700">
+              {{ Math.round(similarityScore * 100) }}% match
+            </span>
+          </div>
+          <p v-if="similarityReason" class="mt-1 text-xs text-gray-600">
+            {{ similarityReason }}
+          </p>
+        </div>
+
         <div class="mt-4 flex items-center justify-between">
           <a
             :href="url"
@@ -96,6 +123,28 @@
               :description="description"
               :url="`${runtimeConfig.public.canonicalUrl}/resources/${id}`"
             />
+            <!-- Compare button -->
+            <button
+              v-if="id"
+              @click="addResourceToComparison"
+              class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              :aria-label="`Add ${title} to comparison`"
+              title="Add to comparison"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                <path
+                  fill-rule="evenodd"
+                  d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
             <!-- Slot for additional actions -->
             <slot name="actions"></slot>
           </div>
@@ -136,9 +185,11 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import { useHead, useRuntimeConfig } from '#imports'
+import { useResourceComparison } from '~/composables/useResourceComparison'
 import OptimizedImage from '~/components/OptimizedImage.vue'
 import BookmarkButton from '~/components/BookmarkButton.vue'
 import ShareButton from '~/components/ShareButton.vue'
+import ResourceStatus from '~/components/ResourceStatus.vue'
 import { trackResourceView, trackResourceClick } from '~/utils/analytics'
 import { sanitizeAndHighlight } from '~/utils/sanitize'
 
@@ -155,7 +206,12 @@ interface Props {
   highlightedTitle?: string
   highlightedDescription?: string
   searchQuery?: string
+  similarityScore?: number
+  similarityReason?: string
 }
+
+// Get the comparison composable
+const { addResource, selectedResources } = useResourceComparison()
 
 const props = withDefaults(defineProps<Props>(), {
   id: undefined,
@@ -166,6 +222,8 @@ const props = withDefaults(defineProps<Props>(), {
   highlightedDescription: undefined,
   icon: undefined,
   searchQuery: '',
+  status: 'active',
+  healthScore: undefined,
 })
 
 const hasError = ref(false)
@@ -229,6 +287,29 @@ const handleLinkClick = (event: Event) => {
 
 // Get runtime config for canonical URL
 const runtimeConfig = useRuntimeConfig()
+
+// Method to add resource to comparison
+const addResourceToComparison = () => {
+  if (!props.id) return
+
+  // Create a resource object with the required properties
+  const resource = {
+    id: props.id,
+    title: props.title,
+    description: props.description,
+    benefits: props.benefits,
+    url: props.url,
+    category: props.category || 'unknown',
+  }
+
+  // Add the resource to comparison
+  const added = addResource(resource as any)
+
+  if (added) {
+    // Navigate to comparison page
+    navigateTo('/compare')
+  }
+}
 
 // Add structured data for the resource
 const resourceSchema = computed(() => {

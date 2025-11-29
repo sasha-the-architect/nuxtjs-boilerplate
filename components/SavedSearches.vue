@@ -10,8 +10,8 @@
         <div class="flex-1 min-w-0">
           <button
             class="text-left text-sm text-gray-800 truncate hover:text-gray-600"
-            @click="onUseSavedSearch(search)"
             :title="`Search: ${search.query}`"
+            @click="onUseSavedSearch(search)"
           >
             {{ search.name || search.query }}
           </button>
@@ -21,8 +21,8 @@
         </div>
         <button
           class="ml-2 text-gray-400 hover:text-red-500 focus:outline-none"
-          @click="onRemoveSavedSearch(search.query)"
           :aria-label="`Remove saved search: ${search.query}`"
+          @click="onRemoveSavedSearch(search.query)"
         >
           <svg
             class="w-4 h-4"

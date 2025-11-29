@@ -188,7 +188,7 @@
     </div>
 
     <!-- Benefits Filter -->
-    <div class="mb-6" v-if="allBenefits.length > 0">
+    <div v-if="allBenefits.length > 0" class="mb-6">
       <h4 class="text-sm font-medium text-gray-900 mb-3">Benefits</h4>
       <div
         role="group"

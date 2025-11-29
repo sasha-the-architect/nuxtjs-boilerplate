@@ -12,7 +12,7 @@ import {
 } from '../../../../utils/enhanced-rate-limit'
 import {
   useAlternatives,
-  type Alternative,
+  type AlternativeSuggestion,
 } from '~/composables/useAlternatives'
 
 /**
@@ -72,17 +72,23 @@ export default defineEventHandler(async event => {
 
     // Use the useAlternatives composable to find alternatives
     const alternativesComposable = useAlternatives(resources)
-    const alternatives = alternativesComposable.findAlternatives(
+    const alternatives = alternativesComposable.getAllAlternatives(
       currentResource,
       limit
     )
 
-    // Prepare response
+    // Prepare response with properly formatted alternatives
+    const formattedAlternatives = alternatives.map(alt => ({
+      resource: alt.resource,
+      similarityScore: alt.similarityScore,
+      reason: alt.reason,
+    }))
+
     const response = {
       success: true,
-      data: alternatives,
+      data: formattedAlternatives,
       resourceId,
-      count: alternatives.length,
+      count: formattedAlternatives.length,
     }
 
     // Cache the result with tags for easier invalidation

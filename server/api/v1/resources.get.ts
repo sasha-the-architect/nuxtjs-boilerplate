@@ -5,11 +5,11 @@ import {
   cacheManager,
   cacheSetWithTags,
   invalidateCacheByTag,
-} from '../../utils/enhanced-cache'
+} from '~/server/utils/enhanced-cache'
 import {
   rateLimit,
   getRateLimiterForPath,
-} from '../../utils/enhanced-rate-limit'
+} from '~/server/utils/enhanced-rate-limit'
 import { convertResourcesToHierarchicalTags } from '~/utils/tags'
 
 /**

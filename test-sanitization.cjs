@@ -1,4 +1,4 @@
-/* eslint-disable no-console, no-undef */
+/* eslint-disable no-undef */
 // Test script to validate XSS sanitization functionality
 const { JSDOM } = require('jsdom')
 const window = new JSDOM('').window
