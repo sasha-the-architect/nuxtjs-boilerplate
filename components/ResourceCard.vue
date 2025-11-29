@@ -68,6 +68,36 @@
             </li>
           </ul>
         </div>
+        <!-- Similarity badge if provided -->
+        <div
+          v-if="showSimilarity && similarityScore !== undefined"
+          class="mt-2"
+        >
+          <SimilarityBadge
+            :score="similarityScore"
+            :show-icon="true"
+            :show-percentage="true"
+          />
+        </div>
+
+        <!-- Similarity factors if provided -->
+        <div
+          v-if="
+            showSimilarity && similarityFactors && similarityFactors.length > 0
+          "
+          class="mt-2"
+        >
+          <div class="flex flex-wrap gap-1">
+            <span
+              v-for="(factor, index) in similarityFactors"
+              :key="index"
+              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+            >
+              {{ factor }}
+            </span>
+          </div>
+        </div>
+
         <div class="mt-4 flex items-center justify-between">
           <a
             :href="url"
@@ -162,6 +192,7 @@ import { useResourceComparison } from '~/composables/useResourceComparison'
 import OptimizedImage from '~/components/OptimizedImage.vue'
 import BookmarkButton from '~/components/BookmarkButton.vue'
 import ShareButton from '~/components/ShareButton.vue'
+import SimilarityBadge from '~/components/SimilarityBadge.vue'
 import { trackResourceView, trackResourceClick } from '~/utils/analytics'
 import { sanitizeAndHighlight } from '~/utils/sanitize'
 
@@ -178,6 +209,9 @@ interface Props {
   highlightedTitle?: string
   highlightedDescription?: string
   searchQuery?: string
+  showSimilarity?: boolean
+  similarityScore?: number
+  similarityFactors?: string[]
 }
 
 // Get the comparison composable
@@ -192,6 +226,9 @@ const props = withDefaults(defineProps<Props>(), {
   highlightedDescription: undefined,
   icon: undefined,
   searchQuery: '',
+  showSimilarity: false,
+  similarityScore: undefined,
+  similarityFactors: () => [],
 })
 
 const hasError = ref(false)
