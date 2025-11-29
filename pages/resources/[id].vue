@@ -444,6 +444,11 @@
         </div>
       </div>
 
+      <!-- Alternative Resources Section -->
+      <div class="mt-12">
+        <AlternativeSuggestions :current-resource="resource" />
+      </div>
+
       <!-- Recommendations Section -->
       <div class="mt-12">
         <RecommendationsSection
@@ -459,6 +464,7 @@
 import { useResources, type Resource } from '~/composables/useResources'
 import ResourceCard from '~/components/ResourceCard.vue'
 import RecommendationsSection from '~/components/RecommendationsSection.vue'
+import AlternativeSuggestions from '~/components/AlternativeSuggestions.vue'
 import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRuntimeConfig, useSeoMeta } from '#imports'
