@@ -4,7 +4,7 @@ import { useResourceFilters } from './useResourceFilters'
 import { useResourceSearch } from './useResourceSearch'
 import { useResourceSort } from './useResourceSort'
 import { useSearchHistory } from './useSearchHistory'
-import { useResourceSearchFilter } from './useResourceSearchFilter'
+import { useResourceSearchAndFilter } from './useResourceSearchAndFilter'
 import type { Resource, SortOption, FilterOptions } from '~/types/resource'
 
 // Re-export types for convenience
@@ -41,13 +41,6 @@ export const useResources = () => {
     resetFilters,
   } = useResourceFilters(resources.value)
 
-  // Use the search-filter composable to handle combining search and filters
-  const { finalResources: searchFilteredResources } = useResourceSearchFilter(
-    resources.value,
-    { value: filterOptions.value },
-    filterOptions.value.searchQuery
-  )
-
   // Extract all unique tags from resources
   const allTags = computed(() => {
     const tagsSet = new Set<string>()
@@ -61,9 +54,17 @@ export const useResources = () => {
   const { fuse, searchResources, getSuggestions, highlightSearchTerms } =
     useResourceSearch(resources.value)
 
-  // Use the sort composable with the properly filtered/combined resources
+  // Use the search and filter composable to combine search and filtering logic
+  const { searchAndFilterResources } = useResourceSearchAndFilter(
+    resources.value,
+    computed(() => filterOptions.value.searchQuery),
+    searchResources,
+    computed(() => filterOptions.value)
+  )
+
+  // Use the sort composable with the search and filter results
   const { sortedResources } = useResourceSort(
-    searchFilteredResources,
+    searchAndFilterResources,
     computed(() => sortOption.value)
   )
 
