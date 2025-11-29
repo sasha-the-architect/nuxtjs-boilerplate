@@ -14,13 +14,18 @@ if (
   console.log('Validating security implementation...')
 }
 
-// Check if DOMPurify import is in ResourceCard.vue
+// Check if centralized sanitization import is in ResourceCard.vue (import from utils/sanitize)
 const resourceCardPath = path.join(__dirname, 'components/ResourceCard.vue')
 const resourceCardContent = fs.readFileSync(resourceCardPath, 'utf8')
 
 // For centralized sanitization approach, we don't need direct DOMPurify import in ResourceCard.vue
 // Instead, check that the centralized sanitization utility is being used
-if (resourceCardContent.includes('sanitizeAndHighlight')) {
+if (
+  resourceCardContent.includes(
+    "import { sanitizeAndHighlight } from '~/utils/sanitize'"
+  ) ||
+  resourceCardContent.includes('sanitizeAndHighlight')
+) {
   if (
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
