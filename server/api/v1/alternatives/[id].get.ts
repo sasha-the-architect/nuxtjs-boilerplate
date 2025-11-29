@@ -1,30 +1,26 @@
 import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
-import {
-  cacheManager,
-  cacheSetWithTags,
-} from '../../../utils/enhanced-cache'
-import {
-  rateLimit,
-} from '../../../utils/enhanced-rate-limit'
+import { cacheManager, cacheSetWithTags } from '../../../utils/enhanced-cache'
+import { rateLimit } from '../../../utils/enhanced-rate-limit'
+import { getRouterParam } from 'h3'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   try {
     // Apply rate limiting
     await rateLimit(event)
-    
+
     const resourceId = getRouterParam(event, 'id')
-    
+
     if (!resourceId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Resource ID is required'
+        statusMessage: 'Resource ID is required',
       })
     }
 
     // Generate cache key
     const cacheKey = `alternatives:${resourceId}`
-    
+
     // Try to get from cache first
     const cachedResult = await cacheManager.get(cacheKey)
     if (cachedResult) {
@@ -36,20 +32,20 @@ export default defineEventHandler(async (event) => {
     // Import resources from JSON (following the same pattern as other API endpoints)
     const resourcesModule = await import('~/data/resources.json')
     const resources: Resource[] = resourcesModule.default || resourcesModule
-    
+
     // Find the specific resource
     const resource = resources.find(r => r.id === resourceId)
-    
+
     if (!resource) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'Resource not found'
+        statusMessage: 'Resource not found',
       })
     }
 
     // Get alternative resources based on the alternatives field and similarity
     let alternatives: Resource[] = []
-    
+
     if (resource.alternatives && Array.isArray(resource.alternatives)) {
       // Get alternative resources by ID
       alternatives = resource.alternatives
@@ -60,13 +56,14 @@ export default defineEventHandler(async (event) => {
       const resourceCategory = resource.category
       const resourceTags = resource.tags || []
       const resourceTech = resource.technology || []
-      
+
       alternatives = resources
-        .filter(r => 
-          r.id !== resourceId && 
-          (r.category === resourceCategory || 
-           r.tags?.some((tag: string) => resourceTags.includes(tag)) ||
-           r.technology?.some((tech: string) => resourceTech.includes(tech)))
+        .filter(
+          r =>
+            r.id !== resourceId &&
+            (r.category === resourceCategory ||
+              r.tags?.some((tag: string) => resourceTags.includes(tag)) ||
+              r.technology?.some((tech: string) => resourceTech.includes(tech)))
         )
         .slice(0, 6) // Limit to 6 alternatives
     }
@@ -76,8 +73,8 @@ export default defineEventHandler(async (event) => {
       data: {
         resourceId,
         alternatives,
-        count: alternatives.length
-      }
+        count: alternatives.length,
+      },
     }
 
     // Cache the result
@@ -85,7 +82,7 @@ export default defineEventHandler(async (event) => {
       'alternatives',
       'api-v1',
       'resource-alternatives',
-      resourceId
+      resourceId,
     ])
 
     event.node.res?.setHeader('X-Cache', 'MISS')
@@ -104,61 +101,6 @@ export default defineEventHandler(async (event) => {
       }
     )
 
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to fetch alternatives'
-    })
-  }
-})
-    }
-
-    // Read all resources
-    const resources = await readResourceFile()
-
-    // Find the specific resource
-    const resource = resources.find((r: any) => r.id === resourceId)
-
-    if (!resource) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Resource not found',
-      })
-    }
-
-    // Get alternative resources based on the alternatives field and similarity
-    let alternatives = []
-
-    if (resource.alternatives && Array.isArray(resource.alternatives)) {
-      // Get alternative resources by ID
-      alternatives = resource.alternatives
-        .map((altId: string) => resources.find((r: any) => r.id === altId))
-        .filter(Boolean) // Remove any undefined values
-    } else {
-      // If no explicit alternatives, find similar resources based on category, tags, and technology
-      const resourceCategory = resource.category
-      const resourceTags = resource.tags || []
-      const resourceTech = resource.technology || []
-
-      alternatives = resources
-        .filter(
-          (r: any) =>
-            r.id !== resourceId &&
-            (r.category === resourceCategory ||
-              r.tags?.some((tag: string) => resourceTags.includes(tag)) ||
-              r.technology?.some((tech: string) => resourceTech.includes(tech)))
-        )
-        .slice(0, 6) // Limit to 6 alternatives
-    }
-
-    return {
-      success: true,
-      data: {
-        resourceId,
-        alternatives,
-        count: alternatives.length,
-      },
-    }
-  } catch (error: any) {
     throw createError({
       statusCode: error.statusCode || 500,
       statusMessage: error.statusMessage || 'Failed to fetch alternatives',

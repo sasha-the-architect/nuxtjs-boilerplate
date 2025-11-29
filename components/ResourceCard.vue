@@ -96,6 +96,28 @@
               :description="description"
               :url="`${runtimeConfig.public.canonicalUrl}/resources/${id}`"
             />
+            <!-- Compare button -->
+            <button
+              v-if="id"
+              @click="addResourceToComparison"
+              class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              :aria-label="`Add ${title} to comparison`"
+              title="Add to comparison"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                <path
+                  fill-rule="evenodd"
+                  d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
             <!-- Slot for additional actions -->
             <slot name="actions"></slot>
           </div>
@@ -136,6 +158,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import { useHead, useRuntimeConfig } from '#imports'
+import { useResourceComparison } from '~/composables/useResourceComparison'
 import OptimizedImage from '~/components/OptimizedImage.vue'
 import BookmarkButton from '~/components/BookmarkButton.vue'
 import ShareButton from '~/components/ShareButton.vue'
@@ -156,6 +179,9 @@ interface Props {
   highlightedDescription?: string
   searchQuery?: string
 }
+
+// Get the comparison composable
+const { addResource, selectedResources } = useResourceComparison()
 
 const props = withDefaults(defineProps<Props>(), {
   id: undefined,
@@ -229,6 +255,29 @@ const handleLinkClick = (event: Event) => {
 
 // Get runtime config for canonical URL
 const runtimeConfig = useRuntimeConfig()
+
+// Method to add resource to comparison
+const addResourceToComparison = () => {
+  if (!props.id) return
+
+  // Create a resource object with the required properties
+  const resource = {
+    id: props.id,
+    title: props.title,
+    description: props.description,
+    benefits: props.benefits,
+    url: props.url,
+    category: props.category || 'unknown',
+  }
+
+  // Add the resource to comparison
+  const added = addResource(resource as any)
+
+  if (added) {
+    // Navigate to comparison page
+    navigateTo('/compare')
+  }
+}
 
 // Add structured data for the resource
 const resourceSchema = computed(() => {
