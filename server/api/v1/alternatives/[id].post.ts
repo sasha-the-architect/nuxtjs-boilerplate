@@ -1,6 +1,6 @@
 import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
-import { rateLimit } from '../../../utils/enhanced-rate-limit'
+import { rateLimit } from '~/server/utils/enhanced-rate-limit'
 import { getRouterParam } from 'h3'
 
 // This is a simplified implementation for demonstration
