@@ -51,8 +51,9 @@ const shareComparison = () => {
   navigator.clipboard
     .writeText(shareUrl)
     .then(() => {
-      // Show success notification
-      console.log('Comparison URL copied to clipboard')
+      // Show success notification using the toast client plugin
+      const nuxtApp = useNuxtApp()
+      nuxtApp.$toast.success('Comparison URL copied to clipboard!')
     })
     .catch(err => {
       console.error('Failed to copy URL: ', err)

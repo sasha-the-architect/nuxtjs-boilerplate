@@ -7,7 +7,10 @@ import { defineNitroPlugin } from 'nitropack/runtime'
 import { updateAllResourceHealth } from '../utils/resourceHealth'
 
 export default defineNitroPlugin(async nitroApp => {
-  console.log('Initializing resource validation system...')
+  // Only log in development or test environments to prevent information disclosure in production
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Initializing resource validation system...')
+  }
 
   // Function to validate all resources
   const validateAllResources = async () => {
@@ -17,13 +20,20 @@ export default defineNitroPlugin(async nitroApp => {
       const resources = resourcesModule.default || resourcesModule
 
       if (Array.isArray(resources) && resources.length > 0) {
-        console.log(`Validating ${resources.length} resources...`)
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`Validating ${resources.length} resources...`)
+        }
         await updateAllResourceHealth(resources)
-        console.log('Resource validation completed.')
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Resource validation completed.')
+        }
       } else {
-        console.warn('No resources found to validate.')
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('No resources found to validate.')
+        }
       }
     } catch (error) {
+      // Log errors in any environment as they might indicate system issues
       console.error('Error during resource validation:', error)
     }
   }
@@ -34,7 +44,9 @@ export default defineNitroPlugin(async nitroApp => {
   // Set up periodic validation (every hour)
   const validationInterval = setInterval(
     async () => {
-      console.log('Starting scheduled resource validation...')
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Starting scheduled resource validation...')
+      }
       await validateAllResources()
     },
     60 * 60 * 1000
@@ -50,14 +62,18 @@ export default defineNitroPlugin(async nitroApp => {
 
   // Add cleanup handler to clear interval on shutdown
   process.on('SIGTERM', () => {
-    console.log('Shutting down resource validation...')
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Shutting down resource validation...')
+    }
     if (nitroApp._resourceValidationInterval) {
       clearInterval(nitroApp._resourceValidationInterval)
     }
   })
 
   process.on('SIGINT', () => {
-    console.log('Shutting down resource validation...')
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Shutting down resource validation...')
+    }
     if (nitroApp._resourceValidationInterval) {
       clearInterval(nitroApp._resourceValidationInterval)
     }
