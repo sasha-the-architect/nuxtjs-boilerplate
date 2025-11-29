@@ -1,10 +1,13 @@
 // Define the form data interface
+import type { HierarchicalTag } from './tag'
+
 export interface FormData {
   title: string
   description: string
   url: string
   category: string
-  tags: string[]
+  tags: string[] // Maintain backward compatibility
+  hierarchicalTags?: readonly HierarchicalTag[] // New hierarchical tags support
 }
 
 export interface Submission {
@@ -13,7 +16,8 @@ export interface Submission {
   description: string
   url: string
   category: string
-  tags: string[]
+  tags: string[] // Maintain backward compatibility
+  hierarchicalTags?: readonly HierarchicalTag[] // New hierarchical tags support
   status: string
   submittedAt: string
   submittedBy: string

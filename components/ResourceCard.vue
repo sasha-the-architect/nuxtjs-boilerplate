@@ -68,7 +68,7 @@
             </li>
           </ul>
         </div>
-        <div class="mt-3">
+        <div class="mt-4 flex items-center justify-between">
           <a
             :href="url"
             :target="newTab ? '_blank' : '_self'"
@@ -80,6 +80,25 @@
             {{ buttonLabel }}
             <span v-if="newTab" class="ml-1 text-xs">(new tab)</span>
           </a>
+          <div class="flex items-center space-x-2">
+            <!-- Bookmark button -->
+            <BookmarkButton
+              v-if="id"
+              :resource-id="id"
+              :title="title"
+              :description="description"
+              :url="url"
+            />
+            <!-- Share button -->
+            <ShareButton
+              v-if="id"
+              :title="title"
+              :description="description"
+              :url="`${runtimeConfig.public.canonicalUrl}/resources/${id}`"
+            />
+            <!-- Slot for additional actions -->
+            <slot name="actions"></slot>
+          </div>
         </div>
       </div>
     </div>
@@ -115,10 +134,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useHead } from '#imports'
-import DOMPurify from 'dompurify'
+import { computed, ref, onMounted } from 'vue'
+import { useHead, useRuntimeConfig } from '#imports'
 import OptimizedImage from '~/components/OptimizedImage.vue'
+import BookmarkButton from '~/components/BookmarkButton.vue'
+import ShareButton from '~/components/ShareButton.vue'
+import { trackResourceView, trackResourceClick } from '~/utils/analytics'
+import { sanitizeAndHighlight } from '~/utils/sanitize'
 
 interface Props {
   title: string
@@ -126,110 +148,52 @@ interface Props {
   benefits: string[]
   url: string
   id?: string
+  category?: string // Added for analytics tracking
   icon?: string
   newTab?: boolean
   buttonLabel?: string
   highlightedTitle?: string
   highlightedDescription?: string
+  searchQuery?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  id: undefined,
+  category: 'unknown',
   newTab: true,
   buttonLabel: 'Get Free Access',
   highlightedTitle: undefined,
   highlightedDescription: undefined,
   icon: undefined,
+  searchQuery: '',
 })
 
 const hasError = ref(false)
 
-// Sanitize highlighted content to prevent XSS using DOMPurify
+// Track resource view when component mounts
+onMounted(() => {
+  if (props.id) {
+    trackResourceView(props.id, props.title, props.category)
+  }
+})
+
+// Sanitize highlighted content to prevent XSS using centralized utility
 const sanitizedHighlightedTitle = computed(() => {
   if (!props.highlightedTitle) return ''
-  // Use DOMPurify to sanitize content, allowing only mark tags for highlighting
-  let sanitized = DOMPurify.sanitize(props.highlightedTitle, {
-    ALLOWED_TAGS: ['mark'],
-    ALLOWED_ATTR: ['class'],
-    FORBID_TAGS: [
-      'script',
-      'iframe',
-      'object',
-      'embed',
-      'form',
-      'input',
-      'button',
-    ],
-    FORBID_ATTR: [
-      'src',
-      'href',
-      'style',
-      'onload',
-      'onerror',
-      'onclick',
-      'onmouseover',
-      'onmouseout',
-      'data',
-      'formaction',
-    ],
-  })
-
-  // Additional sanitization to remove dangerous patterns that might remain
-  return sanitized
-    .replace(/javascript:/gi, '')
-    .replace(/data:/gi, '')
-    .replace(/vbscript:/gi, '')
-    .replace(/on\w+\s*=/gi, '') // Remove any event handlers
-    .replace(/script/gi, '') // Remove 'script' substrings to pass tests
+  // Use the centralized sanitization utility with the actual search query
+  return sanitizeAndHighlight(
+    props.highlightedTitle,
+    props.searchQuery || props.highlightedTitle
+  )
 })
 
 const sanitizedHighlightedDescription = computed(() => {
   if (!props.highlightedDescription) return ''
-
-  // First, remove any script-related tags/content before sanitizing with DOMPurify
-  // This handles the case where malicious content exists outside of allowed tags
-  let preprocessed = props.highlightedDescription
-
-  // Remove script tags and their content (including self-closing tags)
-  preprocessed = preprocessed.replace(
-    /<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi,
-    ''
+  // Use the centralized sanitization utility with the actual search query
+  return sanitizeAndHighlight(
+    props.highlightedDescription,
+    props.searchQuery || props.highlightedDescription
   )
-  preprocessed = preprocessed.replace(/<\s*script[^>]*\/?\s*>/gi, '')
-
-  // Use DOMPurify to sanitize the preprocessed content, allowing only mark tags for highlighting
-  const sanitized = DOMPurify.sanitize(preprocessed, {
-    ALLOWED_TAGS: ['mark'],
-    ALLOWED_ATTR: ['class'],
-    FORBID_TAGS: [
-      'script',
-      'iframe',
-      'object',
-      'embed',
-      'form',
-      'input',
-      'button',
-    ],
-    FORBID_ATTR: [
-      'src',
-      'href',
-      'style',
-      'onload',
-      'onerror',
-      'onclick',
-      'onmouseover',
-      'onmouseout',
-      'data',
-      'formaction',
-    ],
-  })
-
-  // Additional sanitization to remove dangerous patterns that might remain
-  return sanitized
-    .replace(/javascript:/gi, '')
-    .replace(/data:/gi, '')
-    .replace(/vbscript:/gi, '')
-    .replace(/on\w+\s*=/gi, '') // Remove any event handlers
-    .replace(/script/gi, '') // Remove 'script' substrings to pass tests
 })
 
 // Handle image loading errors
@@ -244,6 +208,11 @@ const handleImageError = () => {
 
 // Handle link clicks and validate URL
 const handleLinkClick = (event: Event) => {
+  // Track the resource click
+  if (props.id) {
+    trackResourceClick(props.id, props.title, props.category)
+  }
+
   try {
     const url = new URL(props.url)
     // URL is valid, allow the click
@@ -257,6 +226,9 @@ const handleLinkClick = (event: Event) => {
     }
   }
 }
+
+// Get runtime config for canonical URL
+const runtimeConfig = useRuntimeConfig()
 
 // Add structured data for the resource
 const resourceSchema = computed(() => {
@@ -282,7 +254,7 @@ const resourceSchema = computed(() => {
 
 // Add JSON-LD structured data to the head if no error
 // Skip useHead in test environment to avoid injection issues
-if (process.env.NODE_ENV !== 'test' && typeof useHead === 'function') {
+if (typeof useHead === 'function') {
   useHead(() => {
     if (hasError.value || !resourceSchema.value) {
       return {}

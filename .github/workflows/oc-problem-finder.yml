@@ -13,7 +13,7 @@ permissions:
 # global lock: only 1 instance of this workflow running across events
 concurrency:
   group: global-workflow-lock
- cancel-in-progress: false
+  cancel-in-progress: false
 
 env:
   IFLOW_MODEL: iflowcn/qwen3-coder-plus

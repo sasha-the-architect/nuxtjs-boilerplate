@@ -14,17 +14,24 @@ if (
   console.log('Validating security implementation...')
 }
 
-// Check if DOMPurify import is in ResourceCard.vue
+// Check if centralized sanitization import is in ResourceCard.vue (import from utils/sanitize)
 const resourceCardPath = path.join(__dirname, 'components/ResourceCard.vue')
 const resourceCardContent = fs.readFileSync(resourceCardPath, 'utf8')
 
-if (resourceCardContent.includes("import DOMPurify from 'dompurify'")) {
+// For centralized sanitization approach, we don't need direct DOMPurify import in ResourceCard.vue
+// Instead, check that the centralized sanitization utility is being used
+if (
+  resourceCardContent.includes(
+    "import { sanitizeAndHighlight } from '~/utils/sanitize'"
+  ) ||
+  resourceCardContent.includes('sanitizeAndHighlight')
+) {
   if (
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
     // eslint-disable-next-line no-console
-    console.log('✓ DOMPurify import found in ResourceCard.vue')
+    console.log('✓ Centralized sanitization usage found in ResourceCard.vue')
   }
 } else {
   if (
@@ -32,46 +39,33 @@ if (resourceCardContent.includes("import DOMPurify from 'dompurify'")) {
     process.env.VALIDATION_LOGS === 'true'
   ) {
     // eslint-disable-next-line no-console
-    console.log('✓ DOMPurify import found in ResourceCard.vue')
+    console.log(
+      '✗ Centralized sanitization usage NOT found in ResourceCard.vue'
+    )
   }
 }
 
-if (resourceCardContent.includes('DOMPurify.sanitize')) {
+// Check if security headers plugin exists
+const securityPluginPath = path.join(
+  __dirname,
+  'server/plugins/security-headers.ts'
+)
+if (fs.existsSync(securityPluginPath)) {
   if (
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
     // eslint-disable-next-line no-console
-    console.log('✓ DOMPurify.sanitize usage found in ResourceCard.vue')
+    console.log('✓ Security headers plugin exists')
   }
-} else {
-  if (
-    process.env.NODE_ENV !== 'production' ||
-    process.env.VALIDATION_LOGS === 'true'
-  ) {
-    // eslint-disable-next-line no-console
-    console.log('✗ DOMPurify.sanitize usage NOT found in ResourceCard.vue')
-  }
-}
-
-// Check if security middleware exists
-const middlewarePath = path.join(__dirname, 'server/middleware/security.ts')
-if (fs.existsSync(middlewarePath)) {
-  if (
-    process.env.NODE_ENV !== 'production' ||
-    process.env.VALIDATION_LOGS === 'true'
-  ) {
-    // eslint-disable-next-line no-console
-    console.log('✓ Security middleware file exists')
-  }
-  const middlewareContent = fs.readFileSync(middlewarePath, 'utf8')
-  if (middlewareContent.includes('Content-Security-Policy')) {
+  const securityPluginContent = fs.readFileSync(securityPluginPath, 'utf8')
+  if (securityPluginContent.includes('Content-Security-Policy')) {
     if (
       process.env.NODE_ENV !== 'production' ||
       process.env.VALIDATION_LOGS === 'true'
     ) {
       // eslint-disable-next-line no-console
-      console.log('✓ CSP header configuration found in security middleware')
+      console.log('✓ CSP header configuration found in security headers plugin')
     }
   } else {
     if (
@@ -79,7 +73,9 @@ if (fs.existsSync(middlewarePath)) {
       process.env.VALIDATION_LOGS === 'true'
     ) {
       // eslint-disable-next-line no-console
-      console.log('✗ CSP header configuration NOT found in security middleware')
+      console.log(
+        '✗ CSP header configuration NOT found in security headers plugin'
+      )
     }
   }
 } else {
@@ -88,7 +84,7 @@ if (fs.existsSync(middlewarePath)) {
     process.env.VALIDATION_LOGS === 'true'
   ) {
     // eslint-disable-next-line no-console
-    console.log('✗ Security middleware file does NOT exist')
+    console.log('✗ Security headers plugin does NOT exist')
   }
 }
 

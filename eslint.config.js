@@ -247,6 +247,21 @@ export default [
       'vue/one-component-per-file': 'off', // Allow multiple components in test files
     },
   },
+  {
+    // For error logger utility
+    files: ['utils/errorLogger.ts'],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: 'module',
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+    rules: {
+      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn', // Allow console in development for error logger
+    },
+  },
   // Apply prettier config to disable conflicting rules
   configPrettier,
   {

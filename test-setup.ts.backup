@@ -1,0 +1,155 @@
+// Test setup file for Vitest
+import { vi, expect } from 'vitest'
+import '@testing-library/jest-dom'
+
+// Only mock browser APIs if they don't exist to avoid conflicts with Nuxt environment
+if (typeof window !== 'undefined') {
+  // Mock window.matchMedia if it doesn't exist
+  if (!window.matchMedia) {
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: vi.fn().mockImplementation(query => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(), // deprecated
+        removeListener: vi.fn(), // deprecated
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    })
+  }
+
+  // Mock ResizeObserver if it doesn't exist
+  if (typeof window.ResizeObserver === 'undefined') {
+    class VitestResizeObserver {
+      observe = vi.fn()
+      unobserve = vi.fn()
+      disconnect = vi.fn()
+    }
+
+    // @ts-ignore
+    window.ResizeObserver = VitestResizeObserver
+  }
+
+  // Mock IntersectionObserver if it doesn't exist
+  if (typeof window.IntersectionObserver === 'undefined') {
+    class VitestIntersectionObserver {
+      observe = vi.fn()
+      unobserve = vi.fn()
+      disconnect = vi.fn()
+    }
+
+    // @ts-ignore
+    window.IntersectionObserver = VitestIntersectionObserver
+  }
+
+  // Mock localStorage if needed
+  if (typeof Storage === 'undefined') {
+    const vitestLocalStorageMock = {
+      getItem: vi.fn(),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+      length: 0,
+      key: vi.fn(),
+    }
+    Object.defineProperty(window, 'localStorage', {
+      value: vitestLocalStorageMock,
+    })
+  }
+}
+
+// Mock DOMPurify
+vi.mock('dompurify', () => {
+  return {
+    default: {
+      sanitize: (html: string) => {
+        // Basic sanitization for testing - just return the input for now
+        // In real tests you'd want proper sanitization
+        return html
+          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+          .replace(/javascript:/gi, '')
+          .replace(/on\w+\s*=/gi, '')
+      },
+    },
+  }
+})
+
+// Only mock process if not already set by Nuxt environment
+if (typeof global !== 'undefined' && typeof process === 'undefined') {
+  Object.defineProperty(global, 'process', {
+    value: {
+      env: {
+        NODE_ENV: 'test',
+      },
+    },
+    writable: true,
+  })
+}
+
+// Only mock console if not already mocked to avoid conflicts with Nuxt environment
+if (
+  typeof global !== 'undefined' &&
+  global.console &&
+  !global.console.__mocked
+) {
+  // Save original console methods before mocking
+  const originalConsole = { ...global.console }
+  Object.defineProperty(global, 'console', {
+    value: {
+      ...originalConsole,
+      error: vi.fn(originalConsole.error),
+      warn: vi.fn(originalConsole.warn),
+      log: vi.fn(originalConsole.log),
+      info: vi.fn(originalConsole.info),
+      debug: vi.fn(originalConsole.debug),
+    },
+    writable: true,
+    configurable: true,
+  })
+  global.console.__mocked = true
+}
+
+// Mock fetch API if needed
+if (typeof global !== 'undefined' && typeof global.fetch === 'undefined') {
+  global.fetch = vi.fn(() =>
+    Promise.resolve({
+      json: () => Promise.resolve({}),
+      text: () => Promise.resolve(''),
+      ok: true,
+      status: 200,
+    })
+  ) as any
+}
+
+// Mock URL constructor if needed
+if (typeof global !== 'undefined' && typeof URL === 'undefined') {
+  vi.stubGlobal('URL', {
+    prototype: {
+      href: '',
+      origin: '',
+      protocol: '',
+      host: '',
+      hostname: '',
+      port: '',
+      pathname: '',
+      search: '',
+      hash: '',
+    },
+    createObjectURL: vi.fn(),
+    revokeObjectURL: vi.fn(),
+  })
+}
+
+// Mock Nuxt runtime config if needed
+if (typeof global !== 'undefined' && !globalThis.__NUXT__) {
+  globalThis.__NUXT__ = {
+    config: {
+      public: {
+        canonicalUrl: 'http://localhost:3000',
+      },
+    },
+  }
+}

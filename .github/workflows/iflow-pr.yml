@@ -129,13 +129,6 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           IFLOW_API_KEY: ${{ secrets.IFLOW_API_KEY }}
 
-      - name: Upload summary
-        if: success()
-        uses: actions/upload-artifact@v5
-        with:
-          name: pr-action-summary-${{ github.run_id }}
-          path: pr_intel/action_summary.json
-
       - name: Optional summary comment
         if: success()
         run: |

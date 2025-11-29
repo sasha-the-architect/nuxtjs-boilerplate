@@ -1,4 +1,4 @@
-# Free Stuff on the Internet
+# Free Stuff on the Internet - Refactored
 
 A comprehensive directory of free resources for developers, students, and tech enthusiasts.
 
@@ -90,9 +90,34 @@ npm run build
 
 We welcome contributions! Please see our [Contributing Guide](./docs/development.md#contributing) for details.
 
+## 📊 Repository Management
+
+This project follows a structured approach to repository management. For information about our triage process, issue handling, and PR review workflow, see:
+
+- [Repository Management Guide](./docs/repository-management.md)
+- [Triage Process](./docs/repository-triage-process.md)
+
+We're committed to maintaining a healthy repository with:
+
+- **Quick response times**: Issues responded to within 48 hours
+- **Regular maintenance**: Weekly reviews of open issues and PRs
+- **Clear communication**: Regular updates on issue status
+- **Community support**: Assistance for new contributors
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔄 Project Coordination
+
+This project implements a task coordination system to manage the development of multiple features across different agents:
+
+- **Task Coordination System**: Tracks progress of multiple development agents working on different features
+- **Resource Recommendation Engine**: Implements content-based and collaborative filtering
+- **Community Features**: Provides user profiles, comments, voting, and moderation
+- **Advanced Search**: Enhanced search and filtering capabilities
+
+For more details, see the [coordination system documentation](./docs/coordination-system.md).
 
 ---
 

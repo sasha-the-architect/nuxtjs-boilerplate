@@ -2,7 +2,12 @@
 export default defineNuxtConfig({
   devtools: { enabled: false }, // Disable in production for performance
   css: ['~/assets/css/main.css'],
-  modules: ['@nuxtjs/tailwindcss', '@nuxt/image', '@vite-pwa/nuxt'],
+  modules: [
+    '@nuxt/test-utils/module',
+    '@nuxtjs/tailwindcss',
+    '@nuxt/image',
+    '@vite-pwa/nuxt',
+  ],
 
   // Runtime configuration for environment variables
   runtimeConfig: {
@@ -186,6 +191,33 @@ export default defineNuxtConfig({
     componentIslands: true,
   },
 
+  // Content Security Policy configuration
+  nitro: {
+    // Optimize server-side rendering
+    minify: true,
+    // Enable compression
+    compressPublicAssets: true,
+    // Improve build performance
+    ignore: ['**/.git/**', '**/node_modules/**', '**/dist/**'],
+    // CSP headers via middleware
+    plugins: [
+      '~/server/plugins/security-headers.ts',
+      '~/server/plugins/resource-validation.ts',
+    ],
+    // Security headers configuration - using nonce-based CSP for consistency with security-headers.ts
+    headers: {
+      'Content-Security-Policy':
+        "default-src 'self'; script-src 'self' 'nonce-{{nonce}}' 'strict-dynamic' https:; style-src 'self' 'nonce-{{nonce}}' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;",
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '0',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Strict-Transport-Security':
+        'max-age=31536000; includeSubDomains; preload',
+      'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
+    },
+  },
+
   // Image optimization configuration
   image: {
     // Enable native lazy loading for images
@@ -292,101 +324,29 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    // Add security headers globally
-    '/**': {
-      headers: {
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '1; mode=block',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-      },
-    },
-    // Main routes with prerender and security headers
+    // Main routes with prerender
     '/': {
       prerender: true,
-      headers: {
-        'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '0',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-      },
     },
     '/ai-keys': {
       prerender: true,
-      headers: {
-        'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '0',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-      },
     },
     '/about': {
       prerender: true,
-      headers: {
-        'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '0',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-      },
     },
     '/search': {
       prerender: true,
-      headers: {
-        'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '0',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-      },
     },
     '/submit': {
       prerender: true,
-      headers: {
-        'cache-control': 'max-age=3600, s-maxage=3600, public', // 1 hour
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '0',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-      },
     },
-    // Add caching headers for better performance
+    // API routes
     '/api/**': {
-      headers: {
-        'cache-control': 'max-age=300, public, s-maxage=300', // 5 minutes
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '0',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-      },
+      // Cache control handled by security headers plugin
     },
-    // Cache static assets
+    // Static assets
     '/_nuxt/**': {
-      headers: {
-        'cache-control': 'max-age=31536000, immutable',
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '1; mode=block',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Strict-Transport-Security':
-          'max-age=31536000; includeSubDomains; preload',
-      },
+      // Cache control handled by security headers plugin
     },
   },
 
@@ -406,17 +366,6 @@ export default defineNuxtConfig({
   },
   // Explicitly use Vite for faster builds
   builder: 'vite',
-
-  nitro: {
-    // Optimize server-side rendering
-    minify: true,
-    // Enable compression
-    compressPublicAssets: true,
-    // Improve build performance
-    ignore: ['**/.git/**', '**/node_modules/**', '**/dist/**'],
-    // CSP headers via middleware
-    plugins: ['~/server/plugins/security-headers.ts'],
-  },
 
   // Optimize bundle size
   vite: {
@@ -443,15 +392,18 @@ export default defineNuxtConfig({
       },
     },
     plugins: [
-      // Add bundle analyzer for performance monitoring
-      process.env.ANALYZE_BUNDLE === 'true' &&
-        (await import('rollup-plugin-visualizer')).default({
-          filename: './dist/stats.html',
-          open: false,
-          gzipSize: true,
-          brotliSize: true,
-        }),
-    ].filter(Boolean), // Filter out falsy values when ANALYZE_BUNDLE is not true
+      // Add bundle analyzer for performance monitoring (only when ANALYZE_BUNDLE is true)
+      ...(process.env.ANALYZE_BUNDLE === 'true'
+        ? [
+            require('rollup-plugin-visualizer').default({
+              filename: './dist/stats.html',
+              open: false,
+              gzipSize: true,
+              brotliSize: true,
+            }),
+          ]
+        : []),
+    ],
     // Optimize build speed
     esbuild: {
       logLevel: 'silent', // Reduce build noise

@@ -51,6 +51,7 @@
 
 <script setup lang="ts">
 import { onErrorCaptured, ref, computed } from 'vue'
+import { logError } from '~/utils/errorLogger'
 
 interface ErrorInfo {
   componentStack: string
@@ -83,6 +84,9 @@ const fallbackComponentName = computed(() => props.componentName || 'component')
 const throwError = (err: Error, info: ErrorInfo) => {
   error.value = err
   errorInfo.value = info
+  logError(`ErrorBoundary caught error: ${err.message}`, err, 'ErrorBoundary', {
+    componentStack: info.componentStack,
+  })
   emit('error', err, info)
 }
 

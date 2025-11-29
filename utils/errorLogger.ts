@@ -8,6 +8,7 @@ export interface ErrorLog {
   userAgent?: string
   component?: string
   severity: 'info' | 'warning' | 'error' | 'critical'
+  additionalInfo?: Record<string, any>
 }
 
 class ErrorLogger {
@@ -19,7 +20,8 @@ class ErrorLogger {
     message: string,
     severity: ErrorLog['severity'] = 'error',
     error?: Error,
-    component?: string
+    component?: string,
+    additionalInfo?: Record<string, any>
   ): void {
     const log: ErrorLog = {
       id: Math.random().toString(36).substring(2, 15),
@@ -31,6 +33,7 @@ class ErrorLogger {
         typeof window !== 'undefined' ? navigator.userAgent : undefined,
       component,
       severity,
+      additionalInfo,
     }
 
     this.logs.push(log)
@@ -49,7 +52,7 @@ class ErrorLogger {
           : severity === 'warning'
             ? 'warn'
             : 'log'
-      ](`[${severity.toUpperCase()}]`, message, error)
+      ](`[${severity.toUpperCase()}]`, message, error, additionalInfo)
     }
 
     // Here we could also send logs to an external service
@@ -101,27 +104,35 @@ export const errorLogger = new ErrorLogger()
 export const logError = (
   message: string,
   error?: Error,
-  component?: string
+  component?: string,
+  additionalInfo?: Record<string, any>
 ) => {
-  errorLogger.log(message, 'error', error, component)
+  errorLogger.log(message, 'error', error, component, additionalInfo)
 }
 
 export const logWarning = (
   message: string,
   error?: Error,
-  component?: string
+  component?: string,
+  additionalInfo?: Record<string, any>
 ) => {
-  errorLogger.log(message, 'warning', error, component)
+  errorLogger.log(message, 'warning', error, component, additionalInfo)
 }
 
-export const logInfo = (message: string, error?: Error, component?: string) => {
-  errorLogger.log(message, 'info', error, component)
+export const logInfo = (
+  message: string,
+  error?: Error,
+  component?: string,
+  additionalInfo?: Record<string, any>
+) => {
+  errorLogger.log(message, 'info', error, component, additionalInfo)
 }
 
 export const logCritical = (
   message: string,
   error?: Error,
-  component?: string
+  component?: string,
+  additionalInfo?: Record<string, any>
 ) => {
-  errorLogger.log(message, 'critical', error, component)
+  errorLogger.log(message, 'critical', error, component, additionalInfo)
 }
