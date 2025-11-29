@@ -69,6 +69,23 @@ export default defineNuxtPlugin(nuxtApp => {
           }
           return Promise.resolve(false)
         },
+        trackAlternativeClick: (
+          originalResourceId: string,
+          alternativeResourceId: string,
+          alternativeTitle: string
+        ) => {
+          if (process.client) {
+            return import('~/utils/analytics').then(
+              ({ trackAlternativeClick }) =>
+                trackAlternativeClick(
+                  originalResourceId,
+                  alternativeResourceId,
+                  alternativeTitle
+                )
+            )
+          }
+          return Promise.resolve(false)
+        },
       },
     },
   }

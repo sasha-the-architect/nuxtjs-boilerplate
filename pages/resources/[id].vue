@@ -451,6 +451,15 @@
           :current-category="resource?.category"
         />
       </div>
+
+      <!-- Alternative Suggestions Section -->
+      <div class="mt-12">
+        <AlternativeSuggestions
+          v-if="alternatives && alternatives.length > 0"
+          :current-resource-id="resource?.id"
+          :alternatives="alternatives"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -459,12 +468,14 @@
 import { useResources, type Resource } from '~/composables/useResources'
 import ResourceCard from '~/components/ResourceCard.vue'
 import RecommendationsSection from '~/components/RecommendationsSection.vue'
+import AlternativeSuggestions from '~/components/AlternativeSuggestions.vue'
 import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRuntimeConfig, useSeoMeta } from '#imports'
 import { useNuxtApp } from '#app'
 import { useRecommendationEngine } from '~/composables/useRecommendationEngine'
 import { useResourceAnalytics } from '~/composables/useResourceAnalytics'
+import { useAlternatives } from '~/composables/useAlternatives'
 import { useHead } from '#imports'
 import { generateResourceShareUrls } from '~/utils/shareUtils'
 
@@ -478,6 +489,7 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 const resource = ref<Resource | null>(null)
 const relatedResources = ref<Resource[]>([])
+const alternatives = ref<Resource[]>([])
 const analyticsData = ref<any>(null) // Resource analytics data
 
 // Get current URL for sharing
@@ -545,11 +557,38 @@ onMounted(async () => {
               .filter(rec => rec.resource.id !== resource.value?.id)
               .slice(0, 3) // Limit to 3 related resources
 
-            relatedResources.value = recommendations.map(rec => rec.resource)
+         relatedResources.value = recommendations.map(rec => rec.resource)
 
-            // Fetch analytics data for this resource
-            fetchResourceAnalytics(resourceId)
-          }
+         // Fetch alternatives for this resource
+         fetchAlternatives(resourceId)
+
+         // Fetch analytics data for this resource
+         fetchResourceAnalytics(resourceId)
+       }
+       loading.value = false
+     } else {
+       const resourceId = route.params.id as string
+       resource.value = resources.value.find(r => r.id === resourceId) || null
+       if (!resource.value) {
+         error.value = 'Resource not found'
+       } else {
+         // Use the enhanced recommendation engine to find related resources
+         const engine = useRecommendationEngine(resources.value)
+         const recommendations = engine
+           .getContentBasedRecommendations(resource.value!)
+           .filter(rec => rec.resource.id !== resource.value?.id)
+           .slice(0, 3) // Limit to 3 related resources
+
+         relatedResources.value = recommendations.map(rec => rec.resource)
+
+         // Fetch alternatives for this resource
+         fetchAlternatives(resourceId)
+
+         // Fetch analytics data for this resource
+         fetchResourceAnalytics(resourceId)
+       }
+       loading.value = false
+     }
           loading.value = false
         } else {
           setTimeout(checkResources, 100)
@@ -582,26 +621,43 @@ onMounted(async () => {
   }
 })
 
-// Fetch analytics data for the resource
-const fetchResourceAnalytics = async (resourceId: string) => {
-  try {
-    const response = await $fetch(`/api/analytics/resource/${resourceId}`)
-    if (response && response.data) {
-      analyticsData.value = response.data
-    }
-  } catch (err) {
-    console.error('Error fetching resource analytics:', err)
-    // Set default values if analytics fetch fails
-    analyticsData.value = {
-      resourceId,
-      viewCount: resource.value?.viewCount || 0,
-      uniqueVisitors: 0,
-      avgTimeOnPage: 0,
-      bounceRate: 0,
-      lastViewed: new Date().toISOString(),
-    }
-  }
-}
+ // Fetch alternatives for the resource
+ const fetchAlternatives = async (resourceId: string) => {
+   try {
+     const response = await $fetch(`/api/v1/resources/${resourceId}/alternatives`)
+     if (response && response.success && response.data) {
+       alternatives.value = response.data.map((alt: any) => ({
+         ...alt.resource,
+         similarityScore: alt.similarityScore
+       }))
+     }
+   } catch (err) {
+     console.error('Error fetching alternatives:', err)
+     // Set empty array if alternatives fetch fails
+     alternatives.value = []
+   }
+ }
+
+ // Fetch analytics data for the resource
+ const fetchResourceAnalytics = async (resourceId: string) => {
+   try {
+     const response = await $fetch(`/api/analytics/resource/${resourceId}`)
+     if (response && response.data) {
+       analyticsData.value = response.data
+     }
+   } catch (err) {
+     console.error('Error fetching resource analytics:', err)
+     // Set default values if analytics fetch fails
+     analyticsData.value = {
+       resourceId,
+       viewCount: resource.value?.viewCount || 0,
+       uniqueVisitors: 0,
+       avgTimeOnPage: 0,
+       bounceRate: 0,
+       lastViewed: new Date().toISOString(),
+     }
+   }
+ }
 
 // Copy URL to clipboard
 const copyToClipboard = async () => {

@@ -172,3 +172,20 @@ export async function trackFilter(
     },
   })
 }
+
+// Track an alternative click
+export async function trackAlternativeClick(
+  originalResourceId: string,
+  alternativeResourceId: string,
+  alternativeTitle: string
+): Promise<boolean> {
+  return trackEvent({
+    type: 'alternative_click',
+    resourceId: originalResourceId,
+    properties: {
+      alternativeResourceId,
+      alternativeTitle,
+      timestamp: new Date().toISOString(),
+    },
+  })
+}
