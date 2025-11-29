@@ -4,6 +4,13 @@ This section contains documentation for the project's architecture, components, 
 
 ## 📚 Available Documentation
 
+### [API Endpoints](./endpoints.md)
+
+- Available API endpoints
+- Request/response formats
+- Query parameters
+- Rate limiting information
+
 ### [Project Architecture](./architecture/README.md)
 
 - System design overview
@@ -27,4 +34,4 @@ This section contains documentation for the project's architecture, components, 
 
 ---
 
-_Last Updated: 2025-11-18_
+_Last Updated: 2025-11-29_
