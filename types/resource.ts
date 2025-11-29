@@ -29,6 +29,45 @@ export interface Resource {
   alternatives?: readonly string[] // IDs of alternative resources
   // Similar resources
   similarResources?: readonly string[] // IDs of similar resources
+  // Resource Status and Lifecycle Management
+  status?: 'active' | 'deprecated' | 'discontinued' | 'updated' | 'pending' // Default is 'active'
+  statusHistory?: StatusChange[]
+  lastHealthCheck?: string
+  healthScore?: number
+  deprecationDate?: string
+  migrationPath?: string
+  version?: string
+  updateHistory?: ResourceUpdate[]
+}
+
+// Status change tracking
+export interface StatusChange {
+  id: string
+  fromStatus: string
+  toStatus: string
+  reason: string
+  changedBy: string // User ID or 'system'
+  changedAt: string
+  notes?: string
+}
+
+// Resource update tracking
+export interface ResourceUpdate {
+  id: string
+  version: string
+  changes: string[]
+  updatedAt: string
+  updatedBy: string
+  changelog?: string
+}
+
+// Health check tracking
+export interface HealthCheck {
+  resourceId: string
+  status: 'healthy' | 'warning' | 'error'
+  responseTime?: number
+  checkedAt: string
+  error?: string
 }
 
 export interface FilterOptions {

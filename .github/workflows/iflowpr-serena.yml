@@ -6,16 +6,16 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "PR number (opsional, default: auto-select PR)"
+        description: 'PR number (opsional, default: auto-select PR)'
         required: false
         type: string
       custom_prompt:
-        description: "Instruksi tambahan untuk iFlow/Serena (opsional)"
+        description: 'Instruksi tambahan untuk iFlow/Serena (opsional)'
         required: false
         type: string
   schedule:
     # contoh: jalan tiap hari jam 00:00 Asia/Jakarta (17:00 UTC hari sebelumnya)
-    - cron: "0 17 * * *"
+    - cron: '0 17 * * *'
 
 permissions:
   contents: write
@@ -24,7 +24,7 @@ permissions:
   statuses: read
 
 concurrency:
-  group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.head_ref || github.ref }}"
+  group: '${{ github.workflow }}-${{ github.event.pull_request.number || github.head_ref || github.ref }}'
   cancel-in-progress: true
 
 jobs:
@@ -115,20 +115,22 @@ jobs:
           # Checkout ke head branch PR supaya bisa di-push
           ref: ${{ needs.select_pr.outputs.pr_head_ref }}
 
-      # ⬇⬇⬇ Tambahan ini yang menghilangkan error "Unable to locate executable file: pnpm"
+        # ⬇⬇⬇ Tambahan ini yang menghilangkan error "Unable to locate executable file: pnpm"
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           # Sesuaikan versi kalau mau, 9/10 dll
           version: 9
           run_install: false
+        # Only run if pnpm lock file exists
+        if: hashFiles('pnpm-lock.yaml') != ''
       # ⬆⬆⬆
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22"
-          cache: "pnpm"
+          node-version: '22'
+          cache: 'npm'
 
       - name: Run CI build and tests (Node, generic, reusable)
         id: run_build
@@ -242,9 +244,9 @@ jobs:
           REPOSITORY: ${{ github.repository }}
 
           # PR yang sudah dipilih di job select_pr
-          PR_NUMBER:   ${{ needs.select_pr.outputs.pr_number }}
-          PR_TITLE:    ${{ needs.select_pr.outputs.pr_title }}
-          PR_BODY:     ${{ needs.select_pr.outputs.pr_body }}
+          PR_NUMBER: ${{ needs.select_pr.outputs.pr_number }}
+          PR_TITLE: ${{ needs.select_pr.outputs.pr_title }}
+          PR_BODY: ${{ needs.select_pr.outputs.pr_body }}
           PR_HEAD_REF: ${{ needs.select_pr.outputs.pr_head_ref }}
           PR_BASE_REF: ${{ needs.select_pr.outputs.pr_base_ref }}
 
@@ -256,9 +258,9 @@ jobs:
 
         with:
           api_key: ${{ secrets.IFLOW_API_KEY }}
-          model: "Qwen3-Coder"
-          timeout: "3600"
-          debug: "true"
+          model: 'Qwen3-Coder'
+          timeout: '3600'
+          debug: 'true'
           settings_json: |
             {
               "selectedAuthType": "iflow",

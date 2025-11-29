@@ -80,9 +80,16 @@
               <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">
                 {{ resource.title }}
               </h1>
-              <p class="mt-2 text-gray-600">
-                {{ resource.category }}
-              </p>
+              <div class="flex items-center mt-2 gap-2">
+                <p class="text-gray-600">
+                  {{ resource.category }}
+                </p>
+                <ResourceStatus
+                  v-if="resource.status"
+                  :status="resource.status"
+                  :health-score="resource.healthScore"
+                />
+              </div>
             </div>
             <div class="mt-4 sm:mt-0">
               <a
@@ -113,6 +120,19 @@
 
         <!-- Resource Content -->
         <div class="p-6">
+          <!-- Deprecation notice if resource is deprecated or discontinued -->
+          <DeprecationNotice
+            v-if="
+              resource.status &&
+              (resource.status === 'deprecated' ||
+                resource.status === 'discontinued' ||
+                resource.status === 'pending')
+            "
+            :status="resource.status"
+            :migration-path="resource.migrationPath"
+            :deprecation-date="resource.deprecationDate"
+          />
+
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <!-- Main Content -->
             <div class="md:col-span-2">
@@ -296,6 +316,26 @@
 
             <!-- Sidebar -->
             <div class="md:col-span-1">
+              <!-- Resource Status and Lifecycle -->
+              <div
+                v-if="resource.statusHistory || resource.updateHistory"
+                class="mb-8"
+              >
+                <h3 class="text-lg font-medium text-gray-900 mb-3">
+                  Lifecycle
+                </h3>
+                <LifecycleTimeline
+                  :status-history="resource.statusHistory"
+                  :update-history="resource.updateHistory"
+                />
+              </div>
+
+              <!-- Health Monitor -->
+              <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Health</h3>
+                <HealthMonitor :resource-id="resource.id" :url="resource.url" />
+              </div>
+
               <!-- Tags -->
               <div class="mb-8">
                 <h3 class="text-lg font-medium text-gray-900 mb-3">Tags</h3>
@@ -465,6 +505,10 @@ import { useResources, type Resource } from '~/composables/useResources'
 import ResourceCard from '~/components/ResourceCard.vue'
 import RecommendationsSection from '~/components/RecommendationsSection.vue'
 import AlternativeSuggestions from '~/components/AlternativeSuggestions.vue'
+import ResourceStatus from '~/components/ResourceStatus.vue'
+import LifecycleTimeline from '~/components/LifecycleTimeline.vue'
+import HealthMonitor from '~/components/HealthMonitor.vue'
+import DeprecationNotice from '~/components/DeprecationNotice.vue'
 import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRuntimeConfig, useSeoMeta } from '#imports'
@@ -555,6 +599,9 @@ onMounted(async () => {
 
             // Fetch analytics data for this resource
             fetchResourceAnalytics(resourceId)
+
+            // Fetch resource history (status and update history)
+            fetchResourceHistory(resourceId)
           }
           loading.value = false
         } else {
@@ -579,6 +626,9 @@ onMounted(async () => {
 
         // Fetch analytics data for this resource
         fetchResourceAnalytics(resourceId)
+
+        // Fetch resource history (status and update history)
+        fetchResourceHistory(resourceId)
       }
       loading.value = false
     }
@@ -587,6 +637,23 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+// Fetch resource history (status and update history)
+const fetchResourceHistory = async (resourceId: string) => {
+  try {
+    const history = await $fetch(`/api/resources/${resourceId}/history`)
+    if (history) {
+      // Update resource with history data
+      if (resource.value) {
+        resource.value.statusHistory = history.statusHistory
+        resource.value.updateHistory = history.updateHistory
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching resource history:', err)
+    // If history fetch fails, continue without history data
+  }
+}
 
 // Fetch analytics data for the resource
 const fetchResourceAnalytics = async (resourceId: string) => {
