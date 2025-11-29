@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useSearchHistory } from '~/composables/useSearchHistory'
 
 // Mock localStorage
@@ -11,25 +11,22 @@ const localStorageMock = {
   key: vi.fn(),
 }
 
-// Mock window.localStorage
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 })
 
 describe('useSearchHistory', () => {
-  const mockSearchHistory = [
-    { query: 'test query 1', timestamp: Date.now() - 1000 },
-    { query: 'test query 2', timestamp: Date.now() - 2000 },
-    { query: 'test query 3', timestamp: Date.now() - 3000 },
-  ]
-
   beforeEach(() => {
     vi.clearAllMocks()
     localStorageMock.getItem.mockClear()
     localStorageMock.setItem.mockClear()
+    localStorageMock.removeItem.mockClear()
+
+    // Reset localStorage mock return values
+    localStorageMock.getItem.mockReturnValue(null)
   })
 
-  it('should initialize with empty history when localStorage is empty', () => {
+  it('initializes with empty history when no localStorage data', () => {
     localStorageMock.getItem.mockReturnValue(null)
 
     const { searchHistory } = useSearchHistory()
@@ -37,130 +34,165 @@ describe('useSearchHistory', () => {
     expect(searchHistory.value).toEqual([])
   })
 
-  it('should initialize with existing history from localStorage', () => {
-    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockSearchHistory))
+  it('loads search history from localStorage', () => {
+    const now = new Date()
+    const mockHistory = [
+      { query: 'test1', timestamp: now.toISOString(), count: 1 },
+      { query: 'test2', timestamp: now.toISOString(), count: 3 },
+    ]
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockHistory))
 
     const { searchHistory } = useSearchHistory()
 
-    expect(searchHistory.value).toEqual(mockSearchHistory)
+    expect(searchHistory.value).toHaveLength(2)
+    expect(searchHistory.value[0].query).toBe('test1')
+    expect(searchHistory.value[0].count).toBe(1)
+    expect(searchHistory.value[1].query).toBe('test2')
+    expect(searchHistory.value[1].count).toBe(3)
   })
 
-  it('should add a new search query to history', () => {
-    localStorageMock.getItem.mockReturnValue(JSON.stringify([]))
+  it('adds search to history', () => {
+    localStorageMock.getItem.mockReturnValue(null)
 
-    const { searchHistory, addSearch } = useSearchHistory()
-    addSearch('new search query')
+    const { addSearchToHistory, searchHistory } = useSearchHistory()
+
+    addSearchToHistory('test query')
 
     expect(searchHistory.value).toHaveLength(1)
-    expect(searchHistory.value[0].query).toBe('new search query')
-    expect(searchHistory.value[0].timestamp).toBeTypeOf('number')
+    expect(searchHistory.value[0].query).toBe('test query')
+    expect(searchHistory.value[0].count).toBe(1)
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      'resource_search_history',
+      expect.any(String)
+    )
   })
 
-  it('should not add duplicate queries to history', () => {
-    const existingHistory = [
-      { query: 'existing query', timestamp: Date.now() - 1000 },
+  it('increments count for existing query', () => {
+    const now = new Date()
+    const mockHistory = [
+      { query: 'existing query', timestamp: now.toISOString(), count: 1 },
+      { query: 'other query', timestamp: now.toISOString(), count: 2 },
     ]
-    localStorageMock.getItem.mockReturnValue(JSON.stringify(existingHistory))
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockHistory))
 
-    const { searchHistory, addSearch } = useSearchHistory()
-    addSearch('existing query') // Adding the same query
+    const { addSearchToHistory, searchHistory } = useSearchHistory()
 
-    expect(searchHistory.value).toHaveLength(1) // Should remain the same
+    // Add the same query again
+    addSearchToHistory('existing query')
+
+    // The existing query should be moved to the front and count incremented
     expect(searchHistory.value[0].query).toBe('existing query')
+    expect(searchHistory.value[0].count).toBe(2)
+    expect(searchHistory.value).toHaveLength(2)
   })
 
-  it('should limit history to the most recent 10 items', () => {
-    const oldHistory = Array.from({ length: 10 }, (_, i) => ({
-      query: `old query ${i}`,
-      timestamp: Date.now() - (10000 + i),
+  it('limits history to 50 items', () => {
+    const now = new Date()
+    const largeHistory = Array.from({ length: 60 }, (_, i) => ({
+      query: `query${i}`,
+      timestamp: now.toISOString(),
+      count: 1,
     }))
-    localStorageMock.getItem.mockReturnValue(JSON.stringify(oldHistory))
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(largeHistory))
 
-    const { searchHistory, addSearch } = useSearchHistory()
-    addSearch('new query') // This should push out the oldest item
+    const { addSearchToHistory, searchHistory } = useSearchHistory()
 
-    expect(searchHistory.value).toHaveLength(10) // Still 10 items
-    expect(searchHistory.value[0].query).toBe('new query') // Newest first
-    // The last item should be the second oldest from the original list
-    expect(searchHistory.value[9].query).toBe('old query 1')
+    addSearchToHistory('new query')
+
+    expect(searchHistory.value).toHaveLength(50)
+    expect(searchHistory.value[0].query).toBe('new query')
   })
 
-  it('should clear all search history', () => {
-    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockSearchHistory))
+  it('clears search history', () => {
+    const now = new Date()
+    localStorageMock.getItem.mockReturnValue(
+      JSON.stringify([
+        { query: 'test', timestamp: now.toISOString(), count: 1 },
+      ])
+    )
 
-    const { searchHistory, clearHistory } = useSearchHistory()
-    clearHistory()
+    const { clearSearchHistory, searchHistory } = useSearchHistory()
+
+    clearSearchHistory()
 
     expect(searchHistory.value).toEqual([])
+    expect(localStorageMock.removeItem).toHaveBeenCalledWith(
+      'resource_search_history'
+    )
   })
 
-  it('should remove a specific query from history', () => {
-    const initialHistory = [
-      { query: 'query 1', timestamp: Date.now() - 1000 },
-      { query: 'query 2', timestamp: Date.now() - 2000 },
-      { query: 'query 3', timestamp: Date.now() - 3000 },
+  it('removes specific search from history', () => {
+    const now = new Date()
+    const mockHistory = [
+      { query: 'query1', timestamp: now.toISOString(), count: 1 },
+      { query: 'query2', timestamp: now.toISOString(), count: 2 },
+      { query: 'query3', timestamp: now.toISOString(), count: 1 },
     ]
-    localStorageMock.getItem.mockReturnValue(JSON.stringify(initialHistory))
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockHistory))
 
-    const { searchHistory, removeSearch } = useSearchHistory()
-    removeSearch('query 2')
+    const { removeSearchFromHistory, searchHistory, getSearchHistory } =
+      useSearchHistory()
 
-    expect(searchHistory.value).toHaveLength(2)
-    expect(searchHistory.value.some(item => item.query === 'query 2')).toBe(
-      false
-    )
-    expect(searchHistory.value[0].query).toBe('query 1')
-    expect(searchHistory.value[1].query).toBe('query 3')
+    removeSearchFromHistory('query2')
+
+    const history = getSearchHistory()
+    expect(history).toHaveLength(2)
+    expect(history.some(item => item.query === 'query2')).toBe(false)
   })
 
-  it('should save history to localStorage when adding a query', () => {
-    localStorageMock.getItem.mockReturnValue(JSON.stringify([]))
-
-    const { addSearch } = useSearchHistory()
-    addSearch('test query')
-
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'searchHistory',
-      expect.any(String)
-    )
-
-    // Verify that the saved value can be parsed back
-    const savedValue = JSON.parse(localStorageMock.setItem.mock.calls[0][1])
-    expect(Array.isArray(savedValue)).toBe(true)
-    expect(savedValue[0].query).toBe('test query')
-  })
-
-  it('should save history to localStorage when clearing history', () => {
-    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockSearchHistory))
-
-    const { clearHistory } = useSearchHistory()
-    clearHistory()
-
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('searchHistory', '[]')
-  })
-
-  it('should save history to localStorage when removing a query', () => {
-    const initialHistory = [
-      { query: 'query 1', timestamp: Date.now() - 1000 },
-      { query: 'query 2', timestamp: Date.now() - 2000 },
+  it('gets recent searches', () => {
+    const now = new Date()
+    const mockHistory = [
+      { query: 'query1', timestamp: now.toISOString(), count: 1 },
+      { query: 'query2', timestamp: now.toISOString(), count: 2 },
+      { query: 'query3', timestamp: now.toISOString(), count: 3 },
     ]
-    localStorageMock.getItem.mockReturnValue(JSON.stringify(initialHistory))
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockHistory))
 
-    const { removeSearch } = useSearchHistory()
-    removeSearch('query 1')
+    const { getRecentSearches } = useSearchHistory()
 
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'searchHistory',
-      expect.any(String)
-    )
-
-    // Verify that the saved value no longer contains the removed query
-    const savedValue = JSON.parse(localStorageMock.setItem.mock.calls[0][1])
-    expect(savedValue).toHaveLength(1)
-    expect(savedValue.some((item: any) => item.query === 'query 1')).toBe(false)
+    const recent = getRecentSearches(2)
+    expect(recent).toHaveLength(2)
+    expect(recent[0].query).toBe('query1')
+    expect(recent[1].query).toBe('query2')
   })
 
-  it('should handle localStorage errors gracefully', () => {
+  it('gets top searches by count', () => {
+    const now = new Date()
+    const mockHistory = [
+      { query: 'query1', timestamp: now.toISOString(), count: 1 },
+      { query: 'query2', timestamp: now.toISOString(), count: 3 },
+      { query: 'query3', timestamp: now.toISOString(), count: 2 },
+    ]
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockHistory))
+
+    const { getTopSearches } = useSearchHistory()
+
+    const top = getTopSearches(5)
+    expect(top[0].query).toBe('query2') // highest count
+    expect(top[1].query).toBe('query3') // second highest
+    expect(top[2].query).toBe('query1') // lowest count
+  })
+
+  it('gets searches within time range', () => {
+    const now = new Date()
+    const yesterday = new Date(now)
+    yesterday.setDate(yesterday.getDate() - 1)
+
+    const mockHistory = [
+      { query: 'current', timestamp: now.toISOString(), count: 1 },
+      { query: 'old', timestamp: yesterday.toISOString(), count: 1 },
+    ]
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockHistory))
+
+    const { getSearchesInTimeRange } = useSearchHistory()
+
+    const recent = getSearchesInTimeRange(1) // last 1 day
+    expect(recent).toHaveLength(1)
+    expect(recent[0].query).toBe('current')
+  })
+
+  it('handles localStorage errors gracefully', () => {
     localStorageMock.getItem.mockImplementation(() => {
       throw new Error('localStorage error')
     })
@@ -169,15 +201,9 @@ describe('useSearchHistory', () => {
     const { searchHistory } = useSearchHistory()
 
     expect(searchHistory.value).toEqual([])
-
-    // Adding a search should also handle the error
-    expect(() => {
-      const { addSearch } = useSearchHistory()
-      addSearch('test query')
-    }).not.toThrow()
   })
 
-  it('should parse invalid JSON from localStorage safely', () => {
+  it('handles invalid JSON from localStorage safely', () => {
     localStorageMock.getItem.mockReturnValue('invalid json')
 
     const { searchHistory } = useSearchHistory()
@@ -185,21 +211,231 @@ describe('useSearchHistory', () => {
     expect(searchHistory.value).toEqual([])
   })
 
-  it('should handle null query when adding to history', () => {
+  it('handles null query when adding to history', () => {
     localStorageMock.getItem.mockReturnValue(JSON.stringify([]))
 
-    const { searchHistory, addSearch } = useSearchHistory()
+    const { searchHistory, addSearchToHistory } = useSearchHistory()
     // @ts-expect-error - Testing invalid input
-    addSearch(null)
+    addSearchToHistory(null)
 
     expect(searchHistory.value).toEqual([])
   })
 
-  it('should handle empty string query when adding to history', () => {
+  it('handles empty string query when adding to history', () => {
     localStorageMock.getItem.mockReturnValue(JSON.stringify([]))
 
-    const { searchHistory, addSearch } = useSearchHistory()
-    addSearch('')
+    const { searchHistory, addSearchToHistory } = useSearchHistory()
+    addSearchToHistory('')
+
+    expect(searchHistory.value).toEqual([])
+  })
+})
+
+describe('useSearchHistory', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorageMock.getItem.mockClear()
+    localStorageMock.setItem.mockClear()
+    localStorageMock.removeItem.mockClear()
+  })
+
+  it('initializes with empty history when no localStorage data', () => {
+    localStorageMock.getItem.mockReturnValue(null)
+
+    const { searchHistory } = useSearchHistory()
+
+    expect(searchHistory.value).toEqual([])
+  })
+
+  it('loads search history from localStorage', () => {
+    const mockHistory = [
+      { query: 'test1', timestamp: new Date().toISOString(), count: 1 },
+      { query: 'test2', timestamp: new Date().toISOString(), count: 3 },
+    ]
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockHistory))
+
+    const { searchHistory } = useSearchHistory()
+
+    expect(searchHistory.value).toHaveLength(2)
+    expect(searchHistory.value[0].query).toBe('test1')
+    expect(searchHistory.value[0].count).toBe(1)
+    expect(searchHistory.value[1].query).toBe('test2')
+    expect(searchHistory.value[1].count).toBe(3)
+  })
+
+  it('adds search to history', () => {
+    localStorageMock.getItem.mockReturnValue(null)
+
+    const { addSearchToHistory, searchHistory } = useSearchHistory()
+
+    addSearchToHistory('test query')
+
+    expect(searchHistory.value).toHaveLength(1)
+    expect(searchHistory.value[0].query).toBe('test query')
+    expect(searchHistory.value[0].count).toBe(1)
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      'resource_search_history',
+      expect.any(String)
+    )
+  })
+
+  it('increments count for existing query', () => {
+    const mockHistory = [
+      {
+        query: 'existing query',
+        timestamp: new Date().toISOString(),
+        count: 1,
+      },
+      { query: 'other query', timestamp: new Date().toISOString(), count: 2 },
+    ]
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockHistory))
+
+    const { addSearchToHistory, searchHistory } = useSearchHistory()
+
+    // Add the same query again
+    addSearchToHistory('existing query')
+
+    // The existing query should be moved to the front and count incremented
+    expect(searchHistory.value[0].query).toBe('existing query')
+    expect(searchHistory.value[0].count).toBe(2)
+    expect(searchHistory.value).toHaveLength(2)
+  })
+
+  it('limits history to 50 items', () => {
+    const largeHistory = Array.from({ length: 60 }, (_, i) => ({
+      query: `query${i}`,
+      timestamp: new Date().toISOString(),
+      count: 1,
+    }))
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(largeHistory))
+
+    const { addSearchToHistory, searchHistory } = useSearchHistory()
+
+    addSearchToHistory('new query')
+
+    expect(searchHistory.value).toHaveLength(50)
+    expect(searchHistory.value[0].query).toBe('new query')
+  })
+
+  it('clears search history', () => {
+    localStorageMock.getItem.mockReturnValue(
+      JSON.stringify([
+        { query: 'test', timestamp: new Date().toISOString(), count: 1 },
+      ])
+    )
+
+    const { clearSearchHistory, searchHistory } = useSearchHistory()
+
+    clearSearchHistory()
+
+    expect(searchHistory.value).toEqual([])
+    expect(localStorageMock.removeItem).toHaveBeenCalledWith(
+      'resource_search_history'
+    )
+  })
+
+  it('removes specific search from history', () => {
+    const mockHistory = [
+      { query: 'query1', timestamp: new Date().toISOString(), count: 1 },
+      { query: 'query2', timestamp: new Date().toISOString(), count: 2 },
+      { query: 'query3', timestamp: new Date().toISOString(), count: 1 },
+    ]
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockHistory))
+
+    const { removeSearchFromHistory, searchHistory, getSearchHistory } =
+      useSearchHistory()
+
+    removeSearchFromHistory('query2')
+
+    const history = getSearchHistory()
+    expect(history).toHaveLength(2)
+    expect(history.some(item => item.query === 'query2')).toBe(false)
+  })
+
+  it('gets recent searches', () => {
+    const mockHistory = [
+      { query: 'query1', timestamp: new Date().toISOString(), count: 1 },
+      { query: 'query2', timestamp: new Date().toISOString(), count: 2 },
+      { query: 'query3', timestamp: new Date().toISOString(), count: 3 },
+    ]
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockHistory))
+
+    const { getRecentSearches } = useSearchHistory()
+
+    const recent = getRecentSearches(2)
+    expect(recent).toHaveLength(2)
+    expect(recent[0].query).toBe('query1')
+    expect(recent[1].query).toBe('query2')
+  })
+
+  it('gets top searches by count', () => {
+    const mockHistory = [
+      { query: 'query1', timestamp: new Date().toISOString(), count: 1 },
+      { query: 'query2', timestamp: new Date().toISOString(), count: 3 },
+      { query: 'query3', timestamp: new Date().toISOString(), count: 2 },
+    ]
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockHistory))
+
+    const { getTopSearches } = useSearchHistory()
+
+    const top = getTopSearches(5)
+    expect(top[0].query).toBe('query2') // highest count
+    expect(top[1].query).toBe('query3') // second highest
+    expect(top[2].query).toBe('query1') // lowest count
+  })
+
+  it('gets searches within time range', () => {
+    const now = new Date()
+    const yesterday = new Date(now)
+    yesterday.setDate(yesterday.getDate() - 1)
+
+    const mockHistory = [
+      { query: 'current', timestamp: now.toISOString(), count: 1 },
+      { query: 'old', timestamp: yesterday.toISOString(), count: 1 },
+    ]
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(mockHistory))
+
+    const { getSearchesInTimeRange } = useSearchHistory()
+
+    const recent = getSearchesInTimeRange(1) // last 1 day
+    expect(recent).toHaveLength(1)
+    expect(recent[0].query).toBe('current')
+  })
+
+  it('handles localStorage errors gracefully', () => {
+    localStorageMock.getItem.mockImplementation(() => {
+      throw new Error('localStorage error')
+    })
+
+    // This should not throw an error
+    const { searchHistory } = useSearchHistory()
+
+    expect(searchHistory.value).toEqual([])
+  })
+
+  it('handles invalid JSON from localStorage safely', () => {
+    localStorageMock.getItem.mockReturnValue('invalid json')
+
+    const { searchHistory } = useSearchHistory()
+
+    expect(searchHistory.value).toEqual([])
+  })
+
+  it('handles null query when adding to history', () => {
+    localStorageMock.getItem.mockReturnValue(JSON.stringify([]))
+
+    const { searchHistory, addSearchToHistory } = useSearchHistory()
+    // @ts-expect-error - Testing invalid input
+    addSearchToHistory(null)
+
+    expect(searchHistory.value).toEqual([])
+  })
+
+  it('handles empty string query when adding to history', () => {
+    localStorageMock.getItem.mockReturnValue(JSON.stringify([]))
+
+    const { searchHistory, addSearchToHistory } = useSearchHistory()
+    addSearchToHistory('')
 
     expect(searchHistory.value).toEqual([])
   })

@@ -16,17 +16,17 @@
       <ul>
         <li
           v-for="(history, index) in searchHistory"
-          :key="'history-' + index"
+          :key="'history-' + history.query"
           role="option"
           :aria-selected="focusedIndex === index"
           :class="[
-            'px-4 py-2 cursor-pointer hover:bg-gray-100',
+            'px-4 py-2 cursor-pointer hover:bg-gray-100 flex items-center justify-between',
             focusedIndex === index ? 'bg-gray-100' : '',
           ]"
-          @click="selectHistory(history)"
+          @click="selectHistory(history.query)"
           @mouseenter="focusedIndex = index"
         >
-          <div class="flex items-center">
+          <div class="flex items-center flex-1">
             <svg
               class="w-4 h-4 mr-2 text-gray-400"
               fill="none"
@@ -41,8 +41,34 @@
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               ></path>
             </svg>
-            <span>{{ history }}</span>
+            <div class="flex flex-col">
+              <span class="text-gray-900 truncate">{{ history.query }}</span>
+              <span class="text-xs text-gray-500"
+                >{{ formatDate(history.timestamp) }} •
+                {{ history.count }} searches</span
+              >
+            </div>
           </div>
+          <button
+            class="ml-2 text-gray-400 hover:text-red-500 focus:outline-none"
+            :aria-label="`Remove search: ${history.query}`"
+            @click.stop="removeHistory(history.query)"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
         </li>
       </ul>
     </div>
@@ -85,7 +111,7 @@
               d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
             ></path>
           </svg>
-          <div class="flex flex-col">
+          <div class="flex flex-col flex-1">
             <span class="font-medium text-gray-900 truncate">{{
               suggestion.title
             }}</span>
@@ -133,9 +159,15 @@ interface SuggestionItem {
   url: string
 }
 
+interface SearchHistoryItem {
+  query: string
+  timestamp: Date
+  count: number
+}
+
 interface Props {
   suggestions: SuggestionItem[]
-  searchHistory: string[]
+  searchHistory: SearchHistoryItem[]
   visible: boolean
 }
 
@@ -143,6 +175,7 @@ interface Emits {
   (event: 'select-suggestion', suggestion: SuggestionItem): void
   (event: 'select-history', history: string): void
   (event: 'clear-history'): void
+  (event: 'remove-history', query: string): void
   (event: 'navigate', direction: 'up' | 'down'): void
 }
 
@@ -177,6 +210,24 @@ const clearHistory = () => {
   emit('clear-history')
 }
 
+const removeHistory = (query: string) => {
+  emit('remove-history', query)
+}
+
+const formatDate = (date: Date) => {
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+
+  if (date.toDateString() === today.toDateString()) {
+    return 'Today'
+  } else if (date.toDateString() === yesterday.toDateString()) {
+    return 'Yesterday'
+  } else {
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+}
+
 const handleKeyDown = (event: KeyboardEvent) => {
   if (event.key === 'ArrowDown') {
     event.preventDefault()
@@ -201,7 +252,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
     if (focusedIndex.value >= 0) {
       if (focusedIndex.value < props.searchHistory.length) {
         // It's a history item
-        emit('select-history', props.searchHistory[focusedIndex.value])
+        emit('select-history', props.searchHistory[focusedIndex.value].query)
       } else {
         // It's a suggestion
         const suggestionIndex = focusedIndex.value - props.searchHistory.length
