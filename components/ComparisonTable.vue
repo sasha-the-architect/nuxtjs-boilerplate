@@ -21,8 +21,8 @@
                 {{ resource.category }}
               </div>
               <button
-                @click="removeResource(resource.id)"
                 class="mt-1 text-red-500 hover:text-red-700 text-xs flex items-center"
+                @click="removeResource(resource.id)"
               >
                 <svg
                   class="w-3 h-3 mr-1"

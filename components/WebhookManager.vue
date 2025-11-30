@@ -2,7 +2,7 @@
   <div class="webhook-manager">
     <div class="webhook-header">
       <h2>Webhook Management</h2>
-      <button @click="showCreateForm = true" class="btn btn-primary">
+      <button class="btn btn-primary" @click="showCreateForm = true">
         Create Webhook
       </button>
     </div>
@@ -52,8 +52,8 @@
           <button type="submit" class="btn btn-primary">Create Webhook</button>
           <button
             type="button"
-            @click="showCreateForm = false"
             class="btn btn-secondary"
+            @click="showCreateForm = false"
           >
             Cancel
           </button>
@@ -93,12 +93,12 @@
             </div>
           </div>
           <div class="webhook-actions">
-            <button @click="toggleWebhook(webhook)" class="btn btn-sm">
+            <button class="btn btn-sm" @click="toggleWebhook(webhook)">
               {{ webhook.active ? 'Deactivate' : 'Activate' }}
             </button>
             <button
-              @click="deleteWebhook(webhook.id)"
               class="btn btn-sm btn-danger"
+              @click="deleteWebhook(webhook.id)"
             >
               Delete
             </button>

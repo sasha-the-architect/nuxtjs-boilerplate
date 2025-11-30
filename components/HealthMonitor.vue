@@ -4,8 +4,8 @@
       <h3>Resource Health</h3>
       <button
         class="check-button"
-        @click="triggerHealthCheck"
         :disabled="isChecking"
+        @click="triggerHealthCheck"
       >
         {{ isChecking ? 'Checking...' : 'Check Health' }}
       </button>

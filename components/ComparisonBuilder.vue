@@ -36,8 +36,8 @@
     <div class="flex flex-wrap gap-3">
       <button
         v-if="comparisonCount > 0"
-        @click="clearComparison"
         class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
+        @click="clearComparison"
       >
         <svg
           class="w-4 h-4 mr-1"
@@ -57,8 +57,8 @@
 
       <button
         v-if="comparisonCount > 1"
-        @click="shareComparison"
         class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        @click="shareComparison"
       >
         <svg
           class="w-4 h-4 mr-1"
@@ -97,8 +97,8 @@
             {{ resource.title }}
           </span>
           <button
-            @click="removeResource(resource.id)"
             class="ml-2 text-red-500 hover:text-red-700"
+            @click="removeResource(resource.id)"
           >
             <svg
               class="w-4 h-4"
@@ -149,8 +149,8 @@
       </p>
       <div class="mt-6">
         <button
-          @click="$emit('browse-resources')"
           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          @click="$emit('browse-resources')"
         >
           Browse Resources
         </button>

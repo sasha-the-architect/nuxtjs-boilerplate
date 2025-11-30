@@ -41,8 +41,8 @@
 
       <button
         class="update-button"
-        @click="updateStatus"
         :disabled="isUpdating || !selectedStatus"
+        @click="updateStatus"
       >
         {{ isUpdating ? 'Updating...' : 'Update Status' }}
       </button>

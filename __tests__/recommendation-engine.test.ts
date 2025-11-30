@@ -69,6 +69,64 @@ describe('useRecommendationEngine', () => {
     engine = useRecommendationEngine(mockResources)
   })
 
+  describe('personalized recommendations', () => {
+    it('should return personalized recommendations when user preferences provided', () => {
+      const userPreferences = {
+        interests: ['AI Tools', 'ai', 'machine learning'],
+        viewedResources: ['2'],
+        bookmarkedResources: [],
+        skillLevel: 'intermediate' as const,
+      }
+
+      const personalizedEngine = useRecommendationEngine(
+        mockResources,
+        userPreferences
+      )
+      const recommendations =
+        personalizedEngine.getPersonalizedRecommendations()
+
+      expect(recommendations).toBeDefined()
+      expect(Array.isArray(recommendations)).toBe(true)
+      expect(recommendations.length).toBeLessThanOrEqual(10)
+    })
+
+    it('should return diverse recommendations when no user preferences provided', () => {
+      // Test with null user preferences
+      const engineWithoutPrefs = useRecommendationEngine(
+        mockResources,
+        undefined
+      )
+      const recommendations = engineWithoutPrefs.getDiverseRecommendations()
+
+      expect(recommendations).toBeDefined()
+      expect(Array.isArray(recommendations)).toBe(true)
+    })
+
+    it('should include explanations in personalized recommendations', () => {
+      const userPreferences = {
+        interests: ['AI Tools', 'ai'],
+        viewedResources: [],
+        bookmarkedResources: [],
+        skillLevel: 'intermediate' as const,
+      }
+
+      const personalizedEngine = useRecommendationEngine(
+        mockResources,
+        userPreferences
+      )
+      const recommendations =
+        personalizedEngine.getPersonalizedRecommendations()
+
+      if (recommendations.length > 0) {
+        // Check if at least one recommendation has an explanation or reason
+        const hasExplanation = recommendations.some(
+          rec => rec.explanation || rec.reason
+        )
+        expect(hasExplanation).toBe(true)
+      }
+    })
+  })
+
   describe('calculateSimilarity', () => {
     it('should return 1 for the same resource', () => {
       const similarity = engine.calculateSimilarity(

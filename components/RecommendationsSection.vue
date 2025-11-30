@@ -64,6 +64,8 @@
         v-for="rec in recommendations"
         :key="rec.resource.id"
         :resource="rec.resource"
+        :explanation="rec.explanation"
+        :reason="rec.reason"
         @bookmark="handleBookmark"
       />
     </div>
@@ -98,6 +100,7 @@ import RecommendationCard from './RecommendationCard.vue'
 import { useRecommendationEngine } from '~/composables/useRecommendationEngine'
 import { useResourceData } from '~/composables/useResourceData'
 import { useBookmarks } from '~/composables/useBookmarks'
+import { useUserPreferences } from '~/composables/useUserPreferences'
 import type { RecommendationResult } from '~/composables/useRecommendationEngine'
 import type { Resource } from '~/types/resource'
 
@@ -127,11 +130,29 @@ const initRecommendations = async () => {
     }
 
     if (resources.value && resources.value.length > 0) {
-      const engine = useRecommendationEngine(resources.value)
-      recommendations.value = engine.getDiverseRecommendations(
-        props.currentResource,
-        props.currentCategory
-      )
+      // Get user preferences for personalized recommendations
+      const userPrefs = useUserPreferences()
+      await userPrefs.initProfile()
+
+      const engine = useRecommendationEngine(resources.value, {
+        interests: userPrefs.getUserInterests.value,
+        viewedResources: userPrefs.getViewedResources.value,
+        bookmarkedResources: userPrefs.getBookmarkedResources.value,
+        skillLevel: userPrefs.getUserSkillLevel.value,
+      })
+
+      // Use personalized recommendations if user preferences are available
+      if (userPrefs.getUserInterests.value.length > 0) {
+        recommendations.value = engine.getPersonalizedRecommendations(
+          props.currentResource,
+          props.currentCategory
+        )
+      } else {
+        recommendations.value = engine.getDiverseRecommendations(
+          props.currentResource,
+          props.currentCategory
+        )
+      }
     }
   } catch (err) {
     error.value = 'Failed to load recommendations'

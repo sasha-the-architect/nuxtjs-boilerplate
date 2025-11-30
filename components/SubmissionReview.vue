@@ -102,24 +102,24 @@
               <span>{{ formatDate(submission.submittedAt) }}</span>
             </div>
 
-            <div class="info-item" v-if="submission.reviewedAt">
+            <div v-if="submission.reviewedAt" class="info-item">
               <label>Reviewed By:</label>
               <span>{{ submission.reviewedBy || 'N/A' }}</span>
             </div>
 
-            <div class="info-item" v-if="submission.reviewedAt">
+            <div v-if="submission.reviewedAt" class="info-item">
               <label>Reviewed At:</label>
               <span>{{ formatDate(submission.reviewedAt) }}</span>
             </div>
 
-            <div class="info-item" v-if="submission.rejectionReason">
+            <div v-if="submission.rejectionReason" class="info-item">
               <label>Rejection Reason:</label>
               <span class="rejection-reason">{{
                 submission.rejectionReason
               }}</span>
             </div>
 
-            <div class="info-item" v-if="submission.notes">
+            <div v-if="submission.notes" class="info-item">
               <label>Notes:</label>
               <span>{{ submission.notes }}</span>
             </div>
@@ -127,10 +127,10 @@
         </div>
       </div>
 
-      <div class="review-actions" v-if="submission.status === 'pending'">
+      <div v-if="submission.status === 'pending'" class="review-actions">
         <div class="action-group">
           <h4>Approve Submission</h4>
-          <button @click="approveSubmission" class="btn btn-approve">
+          <button class="btn btn-approve" @click="approveSubmission">
             Approve
           </button>
         </div>
@@ -142,7 +142,7 @@
             placeholder="Enter reason for rejection..."
             class="rejection-textarea"
           ></textarea>
-          <button @click="rejectSubmission" class="btn btn-reject">
+          <button class="btn btn-reject" @click="rejectSubmission">
             Reject
           </button>
         </div>

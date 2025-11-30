@@ -2,7 +2,7 @@
   <div class="api-keys-manager">
     <div class="api-keys-header">
       <h2>API Keys</h2>
-      <button @click="showCreateForm = true" class="btn btn-primary">
+      <button class="btn btn-primary" @click="showCreateForm = true">
         Create API Key
       </button>
     </div>
@@ -43,8 +43,8 @@
           <button type="submit" class="btn btn-primary">Create API Key</button>
           <button
             type="button"
-            @click="showCreateForm = false"
             class="btn btn-secondary"
+            @click="showCreateForm = false"
           >
             Cancel
           </button>
@@ -82,7 +82,7 @@
             </div>
           </div>
           <div class="api-key-actions">
-            <button @click="revokeApiKey(key.id)" class="btn btn-sm btn-danger">
+            <button class="btn btn-sm btn-danger" @click="revokeApiKey(key.id)">
               Revoke
             </button>
           </div>
@@ -103,10 +103,10 @@
           Make sure to copy this key now. You won't be able to see it again.
         </p>
         <div class="form-actions">
-          <button @click="copyApiKey" class="btn btn-primary">Copy Key</button>
+          <button class="btn btn-primary" @click="copyApiKey">Copy Key</button>
           <button
-            @click="showKeyCreatedModal = false"
             class="btn btn-secondary"
+            @click="showKeyCreatedModal = false"
           >
             Close
           </button>
