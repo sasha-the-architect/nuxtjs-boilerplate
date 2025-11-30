@@ -13,8 +13,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       canonicalUrl:
+        process.env.NUXT_PUBLIC_CANONICAL_URL ||
         process.env.CANONICAL_URL ||
-        'https://free-stuff-on-the-internet.vercel.app/',
+        'http://localhost:3000',
     },
   },
 
@@ -348,8 +349,9 @@ export default defineNuxtConfig({
 
   sitemap: {
     hostname:
+      process.env.NUXT_PUBLIC_CANONICAL_URL ||
       process.env.CANONICAL_URL ||
-      'https://free-stuff-on-the-internet.vercel.app',
+      'http://localhost:3000',
   },
   ogImage: {
     enabled: false, // We'll implement this later if needed
