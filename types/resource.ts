@@ -25,8 +25,26 @@ export interface Resource {
   platforms?: readonly string[] // Supported platforms
   license?: string // License type if open source
   icon?: string
-  alternatives?: string[] // Array of resource IDs that are alternatives
+  // Alternative resources
+  alternatives?: readonly string[] // IDs of alternative resources
   similarityScore?: number // For alternative relationships
+  // Moderation fields
+  status?: 'pending' | 'approved' | 'rejected' | 'deprecated' // Default is 'approved' for existing resources
+  submittedBy?: string // User ID
+  reviewedBy?: string // Moderator ID
+  reviewedAt?: string
+  rejectionReason?: string
+  qualityScore?: number
+  flags?: Flag[]
+}
+
+export interface Flag {
+  id: string
+  resourceId: string
+  reason: string
+  reportedBy: string
+  createdAt: string
+  resolved: boolean
 }
 
 export interface FilterOptions {
