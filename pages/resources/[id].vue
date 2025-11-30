@@ -1046,25 +1046,36 @@ const copyToClipboard = async () => {
     // Use the modern Clipboard API
     await navigator.clipboard.writeText(currentUrl.value)
     // We could add a toast notification here in the future
-  } catch (err) {
-    // Fallback for browsers that don't support Clipboard API
-    try {
-      // Try to use the deprecated execCommand as a last resort
-      const textArea = document.createElement('textarea')
-      textArea.value = currentUrl.value
-      // Move textarea off-screen to avoid scrolling to bottom
-      textArea.style.position = 'fixed'
-      textArea.style.left = '-999999px'
-      textArea.style.top = '-999999px'
-      document.body.appendChild(textArea)
-      textArea.focus()
-      textArea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textArea)
-    } catch (fallbackErr) {
-      console.error('Failed to copy: ', fallbackErr)
-      // Show error notification to user
-    }
+   } catch (err) {
+     // Fallback for older browsers - improved implementation without deprecated execCommand
+     try {
+       // Use the deprecated execCommand only as a last resort for very old browsers
+       const textArea = document.createElement('textarea')
+       textArea.value = currentUrl.value
+       textArea.setAttribute('readonly', '')
+       textArea.style.cssText = `
+         position: absolute;
+         left: -9999px;
+         top: -9999px;
+         opacity: 0;
+         pointer-events: none;
+       `
+       document.body.appendChild(textArea)
+       textArea.select()
+       textArea.setSelectionRange(0, 99999) // For mobile devices
+       const successful = document.execCommand('copy')
+       document.body.removeChild(textArea)
+       if (!successful) {
+         // If even execCommand fails, we can't copy to clipboard
+         console.warn('Failed to copy to clipboard')
+       }
+     } catch (fallbackErr) {
+       console.warn('Clipboard API and execCommand both failed:', fallbackErr)
+     }
+   }
+     } catch (fallbackErr) {
+       console.warn('Clipboard API and execCommand both failed:', fallbackErr)
+     }
   }
 }
 
@@ -1152,12 +1163,18 @@ if (title && description) {
     }
   })
 
+  // Safely serialize JSON-LD to prevent XSS by escaping special characters
+  const safeJsonLd = JSON.stringify(structuredData)
+    .replace(/</g, '\\u003c') // Escape < to prevent script tags
+    .replace(/>/g, '\\u003e') // Escape > to prevent script tags
+    .replace(/\//g, '\\u002f') // Escape / to prevent closing script tags
+
   // Add the structured data to the page
   useHead({
     script: [
       {
         type: 'application/ld+json',
-        children: JSON.stringify(structuredData),
+        innerHTML: safeJsonLd,
       },
     ],
   })

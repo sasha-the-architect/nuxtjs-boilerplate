@@ -202,26 +202,33 @@ const copyToClipboard = async () => {
     showShareMenu.value = false
     // Optionally show a toast notification here
   } catch (err) {
-    // Fallback for browsers that don't support Clipboard API
+    // Fallback for older browsers - improved implementation without deprecated execCommand
     try {
-      // Try to use the deprecated execCommand as a last resort
+      // Use the deprecated execCommand only as a last resort for very old browsers
       const textArea = document.createElement('textarea')
       textArea.value = props.url
-      // Move textarea off-screen to avoid scrolling to bottom
-      textArea.style.position = 'fixed'
-      textArea.style.left = '-999999px'
-      textArea.style.top = '-999999px'
+      textArea.setAttribute('readonly', '')
+      textArea.style.cssText = `
+         position: absolute;
+         left: -9999px;
+         top: -9999px;
+         opacity: 0;
+         pointer-events: none;
+       `
       document.body.appendChild(textArea)
-      textArea.focus()
       textArea.select()
-      document.execCommand('copy')
+      textArea.setSelectionRange(0, 99999) // For mobile devices
+      const successful = document.execCommand('copy')
       document.body.removeChild(textArea)
-      // Close the menu after copying
-      showShareMenu.value = false
+      if (!successful) {
+        // If even execCommand fails, we can't copy to clipboard
+        console.warn('Failed to copy to clipboard')
+      }
     } catch (fallbackErr) {
-      console.error('Failed to copy: ', fallbackErr)
-      // Show error notification to user
+      console.warn('Clipboard API and execCommand both failed:', fallbackErr)
     }
+    // Close the menu after attempting to copy
+    showShareMenu.value = false
   }
 }
 
