@@ -14,7 +14,6 @@ export default defineNuxtPlugin(() => {
       // In a real application, you would send this to an error tracking service
       // For now, we'll just log it to console in development
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
         console.error('Error details:', {
           message: event.error?.message,
           filename: event.filename,
@@ -44,7 +43,6 @@ export default defineNuxtPlugin(() => {
       // In a real application, you would send this to an error tracking service
       // For now, we'll just log it to console in development
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
         console.error('Unhandled rejection details:', event.reason)
         logError(
           'Unhandled rejection details',

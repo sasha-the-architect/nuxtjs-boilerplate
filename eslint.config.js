@@ -79,6 +79,8 @@ export default [
       'vue/html-self-closing': 'off',
       'vue/max-attributes-per-line': 'off',
       'vue/no-unused-vars': 'off', // Allow unused vars in templates
+      'vue/require-default-prop': 'off', // Allow optional props without defaults
+      'vue/no-required-prop-with-default': 'off', // Allow required props with defaults
       'prettier/prettier': 'error',
       'no-console': 'off', // Allow console statements in Vue components for error logging
       'no-debugger': 'warn',
@@ -130,7 +132,7 @@ export default [
     },
     rules: {
       'comma-dangle': ['error', 'only-multiline'],
-      'no-console': 'warn',
+      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
       'no-debugger': 'warn',
       'prettier/prettier': 'error',
       'no-unused-vars': 'off', // Disable this rule to allow unused variables in development
@@ -269,7 +271,7 @@ export default [
     },
     rules: {
       'comma-dangle': ['error', 'only-multiline'],
-      'no-console': 'warn',
+      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
       'no-debugger': 'warn',
       'prettier/prettier': 'error',
       'no-unused-vars': 'off', // Disable this rule to allow unused variables in development
