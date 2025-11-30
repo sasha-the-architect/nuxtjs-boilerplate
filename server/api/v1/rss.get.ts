@@ -50,7 +50,10 @@ export default defineEventHandler(async event => {
 
 function generateRssFeed(resources: Resource[]): string {
   const config = useRuntimeConfig()
-  const siteUrl = config.public.siteUrl
+  const siteUrl =
+    config.public.siteUrl ||
+    config.public.canonicalUrl ||
+    'http://localhost:3000' // Fallback to localhost for development
   const title = 'Free Developer Resources'
   const description = 'A collection of free resources for developers'
   const date = new Date().toUTCString()

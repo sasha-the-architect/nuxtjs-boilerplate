@@ -21,6 +21,14 @@ export default defineNuxtConfig({
         process.env.NUXT_PUBLIC_CANONICAL_URL ||
         process.env.CANONICAL_URL ||
         'http://localhost:3000',
+      siteUrl:
+        process.env.NUXT_PUBLIC_SITE_URL ||
+        process.env.SITE_URL ||
+        process.env.NUXT_PUBLIC_CANONICAL_URL ||
+        process.env.CANONICAL_URL ||
+        process.env.HOST ||
+        process.env.VERCEL_URL ||
+        'http://localhost:3000',
     },
   },
 

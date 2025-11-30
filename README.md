@@ -7,7 +7,7 @@ A comprehensive directory of free resources for developers, students, and tech e
 [![Security Scan](https://github.com/cpa02cmz/nuxtjs-boilerplate/workflows/Security%20Scan/badge.svg)](https://github.com/cpa02cmz/nuxtjs-boilerplate/actions/workflows/security.yml)
 [![CI/CD Pipeline](https://github.com/cpa02cmz/nuxtjs-boilerplate/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/cpa02cmz/nuxtjs-boilerplate/actions/workflows/ci.yml)
 
-_Live Example: <https://nuxtjs-boilerplate.vercel.app>_
+_Live Example: Available at your deployed URL_
 
 Discover amazing free resources available on the internet - from AI tools to hosting services.
 

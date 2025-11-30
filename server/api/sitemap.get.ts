@@ -10,7 +10,7 @@ export default defineEventHandler(async event => {
     const baseUrl =
       config.public.siteUrl ||
       config.public.canonicalUrl ||
-      'http://localhost:3000'
+      'http://localhost:3000' // Fallback to localhost for development
 
     // Define the static pages
     const staticPages = [
