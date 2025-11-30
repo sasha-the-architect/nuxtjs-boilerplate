@@ -52,10 +52,9 @@ export const useRecommendationEngine = (
     resourceA: Resource,
     resourceB: Resource
   ): number => {
-    if (resourceA.id === resourceB.id) return 0 // Don't recommend same resource
+    if (resourceA.id === resourceB.id) return 1 // Same resource should have maximum similarity
 
     let score = 0
-    const totalFactors = 3 // category, tags, technology
 
     // Category similarity (highest weight)
     if (resourceA.category === resourceB.category) {

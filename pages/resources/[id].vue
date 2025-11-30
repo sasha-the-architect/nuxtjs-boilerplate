@@ -843,8 +843,8 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 const resource = ref<Resource | null>(null)
 const relatedResources = ref<Resource[]>([])
- const analyticsData = ref<any>(null) // Resource analytics data
- const resourceStats = ref({
+const analyticsData = ref<any>(null) // Resource analytics data
+const resourceStats = ref({
   viewCount: 0,
   trending: false,
   lastViewed: '',
@@ -986,15 +986,15 @@ onMounted(async () => {
     if (resourcesLoading.value) {
       // We need to wait until resources are loaded
       const checkResources = () => {
-if (!resourcesLoading.value) {
-           loadResource()
-         } else {
-           setTimeout(checkResources, 100)
-         }
-       }
-       checkResources()
-     } else {
-       loadResource()
+        if (!resourcesLoading.value) {
+          loadResource()
+        } else {
+          setTimeout(checkResources, 100)
+        }
+      }
+      checkResources()
+    } else {
+      loadResource()
     }
   } catch (err) {
     error.value = 'Failed to load resource'
@@ -1109,59 +1109,8 @@ if (title && description) {
     twitterCard: 'summary_large_image',
     // Enhanced SEO with structured data
     articlePublishedTime: resource.value?.dateAdded,
-articleModifiedTime: resource.value?.dateAdded,
-   })
-
-   // Add JSON-LD structured data for better SEO
-   const structuredData = {
-     '@context': 'https://schema.org',
-     '@type': 'SoftwareApplication', // or 'WebSite' depending on the resource type
-     name: resource.value.title,
-     description: resource.value.description,
-     url: resource.value.url,
-     applicationCategory: resource.value.category,
-     isBasedOn: resource.value.url,
-     datePublished: resource.value.dateAdded,
-     offers: {
-       '@type': 'Offer',
-       price: '0', // Free tier
-       priceCurrency: 'USD',
-       availability: 'https://schema.org/InStock',
-     },
-     aggregateRating: resource.value.rating
-       ? {
-           '@type': 'AggregateRating',
-           ratingValue: resource.value.rating,
-           bestRating: 5,
-           worstRating: 1,
-           ratingCount: resource.value.viewCount || 10, // Use view count as rating count if available
-         }
-       : undefined,
-     keywords: resource.value.tags.join(', '),
-     thumbnailUrl: resource.value.icon || undefined,
-     operatingSystem: resource.value.platforms
-       ? resource.value.platforms.join(', ')
-       : undefined,
-     softwareVersion: undefined, // Add version if available
-   }
-
-   // Remove undefined properties
-   Object.keys(structuredData).forEach(key => {
-     if (structuredData[key] === undefined) {
-       delete structuredData[key]
-     }
-   })
-
-   // Add the structured data to the page
-   useHead({
-     script: [
-       {
-         type: 'application/ld+json',
-         children: JSON.stringify(structuredData),
-       },
-     ],
-   })
-   })
+    articleModifiedTime: resource.value?.dateAdded,
+  })
 
   // Add JSON-LD structured data for better SEO
   const structuredData = {
