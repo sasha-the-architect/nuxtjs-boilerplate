@@ -14,7 +14,7 @@ export async function trackEvent(event: AnalyticsEvent): Promise<boolean> {
   try {
     // In development, log events to console
     if (process.env.NODE_ENV === 'development') {
-      console.log('Analytics event:', event)
+      // Development logging removed for production
     }
 
     // Send the event to the analytics API

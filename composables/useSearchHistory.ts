@@ -11,7 +11,6 @@ export const useSearchHistory = () => {
     } catch (e) {
       // In production, we might want to use a proper error tracking service instead of console
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
         console.error('Error reading search history:', e)
       }
       return []
@@ -32,7 +31,6 @@ export const useSearchHistory = () => {
     } catch (e) {
       // In production, we might want to use a proper error tracking service instead of console
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
         console.error('Error saving search history:', e)
       }
     }
@@ -45,7 +43,6 @@ export const useSearchHistory = () => {
     } catch (e) {
       // In production, we might want to use a proper error tracking service instead of console
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
         console.error('Error clearing search history:', e)
       }
     }

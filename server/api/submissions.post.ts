@@ -110,7 +110,6 @@ export default defineEventHandler(async event => {
   } catch (error: any) {
     // In production, we might want to use a proper error tracking service instead of console
     if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
       console.error('Error processing submission:', error)
     }
 
