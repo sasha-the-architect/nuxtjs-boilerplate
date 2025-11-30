@@ -15,10 +15,7 @@ export default defineEventHandler(async event => {
 
     // Get the base URL
     const config = useRuntimeConfig()
-    const baseUrl =
-      config.public.siteUrl ||
-      config.public.canonicalUrl ||
-      'https://nuxtjs-boilerplate.com' // Using a placeholder since this isn't defined in the project
+    const baseUrl = config.public.siteUrl
 
     // Define the static pages
     const staticPages = [
