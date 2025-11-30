@@ -10,7 +10,9 @@ export default defineEventHandler(async event => {
     const baseUrl =
       config.public.siteUrl ||
       config.public.canonicalUrl ||
-      'https://free-stuff-on-the-internet.vercel.app'
+      process.env.NUXT_PUBLIC_URL ||
+      process.env.CANONICAL_URL ||
+      'http://localhost:3000'
 
     // Define the static pages
     const staticPages = [

@@ -361,7 +361,7 @@ useSeoMeta({
   ogDescription:
     'Share valuable free resources with the community. Submit free AI tools, hosting services, databases, and other developer resources.',
   ogImage: '/og-image.jpg',
-  ogUrl: `${runtimeConfig.public.siteUrl || runtimeConfig.public.canonicalUrl || 'https://free-stuff-on-the-internet.vercel.app'}/submit`,
+  ogUrl: `${runtimeConfig.public.siteUrl || runtimeConfig.public.canonicalUrl || process.env.NUXT_PUBLIC_URL || process.env.CANONICAL_URL || 'http://localhost:3000'}/submit`,
   twitterCard: 'summary_large_image',
 })
 </script>

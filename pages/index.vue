@@ -218,7 +218,9 @@ useSeoMeta({
   ogUrl:
     runtimeConfig.public.siteUrl ||
     runtimeConfig.public.canonicalUrl ||
-    'https://free-stuff-on-the-internet.vercel.app/',
+    process.env.NUXT_PUBLIC_URL ||
+    process.env.CANONICAL_URL ||
+    'http://localhost:3000',
   twitterCard: 'summary_large_image',
 })
 

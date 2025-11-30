@@ -349,6 +349,7 @@ export default defineNuxtConfig({
 
   sitemap: {
     hostname:
+      process.env.NUXT_PUBLIC_URL ||
       process.env.NUXT_PUBLIC_CANONICAL_URL ||
       process.env.CANONICAL_URL ||
       'http://localhost:3000',

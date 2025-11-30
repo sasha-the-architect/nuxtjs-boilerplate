@@ -171,7 +171,7 @@ useSeoMeta({
   ogDescription:
     'Search and filter through our collection of free resources including AI tools, hosting services, databases, and more for developers.',
   ogImage: '/og-image.jpg',
-  ogUrl: `${runtimeConfig.public.siteUrl || runtimeConfig.public.canonicalUrl || 'https://free-stuff-on-the-internet.vercel.app'}/search`,
+  ogUrl: `${runtimeConfig.public.siteUrl || runtimeConfig.public.canonicalUrl || process.env.NUXT_PUBLIC_URL || process.env.CANONICAL_URL || 'http://localhost:3000'}/search`,
   twitterCard: 'summary_large_image',
 })
 
