@@ -14,7 +14,9 @@ If you discover a security vulnerability in this project, please follow these gu
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Instead, send an email to: **security@cpa02cmz.me**
+Instead, please report security vulnerabilities using the GitHub Security Advisory system by clicking "Report a vulnerability" on the Security tab of this repository.
+
+Alternatively, you may send an email to the project maintainers. This email should be configured by the project maintainers to ensure it is monitored regularly.
 
 Include the following information in your report:
 
@@ -79,8 +81,8 @@ This project implements several security measures:
 
 ## Security Contacts
 
-- **Security Team**: security@cpa02cmz.me
-- **Maintainer**: [GitHub Maintainer Username]
+- **Primary Contact**: Use the GitHub Security Advisory system
+- **Alternative**: [MAINTAINER_EMAIL] - Project maintainers should configure this to route to active email addresses
 
 ## Security Acknowledgments
 
