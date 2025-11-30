@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import Redis from 'ioredis'
 
 interface CacheEntry {
   data: any
@@ -19,10 +20,11 @@ class CacheManager {
   private maxMemorySize: number
   private cleanupInterval: number
   private enableRedis: boolean
-  private redisClient: any | null = null
+  private redisClient: Redis | null = null
   private enableAnalytics: boolean
   private hitCount: number = 0
   private missCount: number = 0
+  private redisConnected: boolean = false
 
   constructor(config: CacheConfig = {}) {
     const {
@@ -42,17 +44,49 @@ class CacheManager {
     // Initialize Redis if enabled
     if (enableRedis && redisUrl) {
       try {
-        // In a real implementation, we would connect to Redis here
-        // For now, we'll just set a flag to indicate Redis is enabled
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('Redis caching enabled')
-        }
+        this.redisClient = new Redis(redisUrl, {
+          maxRetriesPerRequest: 3,
+          lazyConnect: true,
+          enableReadyCheck: true,
+        })
+
+        // Set up connection listeners
+        this.redisClient.on('connect', () => {
+          this.redisConnected = true
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('Successfully connected to Redis')
+          }
+        })
+
+        this.redisClient.on('error', error => {
+          console.warn('Redis connection error:', error)
+          this.redisConnected = false
+          // Fallback to memory cache only
+          this.enableRedis = false
+        })
+
+        this.redisClient.on('reconnecting', () => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('Reconnecting to Redis...')
+          }
+        })
+
+        // Attempt to connect
+        this.redisClient.connect().catch(error => {
+          console.warn(
+            'Failed to connect to Redis, falling back to memory cache:',
+            error
+          )
+          this.enableRedis = false
+          this.redisConnected = false
+        })
       } catch (error) {
         console.warn(
-          'Failed to connect to Redis, falling back to memory cache:',
+          'Failed to initialize Redis client, falling back to memory cache:',
           error
         )
         this.enableRedis = false
+        this.redisConnected = false
       }
     }
 
@@ -73,7 +107,8 @@ class CacheManager {
    */
   private cleanupExpired() {
     const now = Date.now()
-    for (const [key, entry] of this.memoryCache.entries()) {
+    const entries = Array.from(this.memoryCache.entries())
+    for (const [key, entry] of entries) {
       if (now - entry.timestamp > entry.ttl * 1000) {
         this.memoryCache.delete(key)
       }
@@ -99,18 +134,19 @@ class CacheManager {
     }
 
     // If Redis is enabled, try to get from Redis
-    if (this.enableRedis) {
+    if (this.enableRedis && this.redisClient && this.redisConnected) {
       try {
-        // In a real implementation, we would fetch from Redis here
-        // const redisValue = await this.redisClient.get(key)
-        // if (redisValue) {
-        //   // Cache in memory for faster subsequent access
-        //   await this.set(key, redisValue, memoryEntry?.ttl || 3600)
-        //   if (this.enableAnalytics) this.hitCount++
-        //   return JSON.parse(redisValue)
-        // }
+        const redisValue = await this.redisClient.get(key)
+        if (redisValue) {
+          const parsedValue = JSON.parse(redisValue)
+          // Cache in memory for faster subsequent access
+          await this.set(key, parsedValue, memoryEntry?.ttl || 3600)
+          if (this.enableAnalytics) this.hitCount++
+          return parsedValue
+        }
       } catch (error) {
-        console.warn('Redis get error:', error)
+        console.warn('Redis get error, falling back to memory cache:', error)
+        // Don't disable Redis here, just log the error and continue
       }
     }
 
@@ -148,12 +184,12 @@ class CacheManager {
     })
 
     // If Redis is enabled, also set in Redis
-    if (this.enableRedis) {
+    if (this.enableRedis && this.redisClient && this.redisConnected) {
       try {
-        // In a real implementation, we would set in Redis here
-        // await this.redisClient.setex(key, ttl, JSON.stringify(value))
+        await this.redisClient.setex(key, ttl, JSON.stringify(value))
       } catch (error) {
         console.warn('Redis set error:', error)
+        // Don't disable Redis here, just log the error and continue
       }
     }
 
@@ -173,12 +209,12 @@ class CacheManager {
     }
 
     // If Redis is enabled, also delete from Redis
-    if (this.enableRedis) {
+    if (this.enableRedis && this.redisClient && this.redisConnected) {
       try {
-        // In a real implementation, we would delete from Redis here
-        // await this.redisClient.del(key)
+        await this.redisClient.del(key)
       } catch (error) {
         console.warn('Redis delete error:', error)
+        // Don't disable Redis here, just log the error and continue
       }
     }
 
@@ -191,12 +227,12 @@ class CacheManager {
   async clear(): Promise<void> {
     this.memoryCache.clear()
 
-    if (this.enableRedis) {
+    if (this.enableRedis && this.redisClient && this.redisConnected) {
       try {
-        // In a real implementation, we would clear Redis here
-        // await this.redisClient.flushall()
+        await this.redisClient.flushall()
       } catch (error) {
         console.warn('Redis clear error:', error)
+        // Don't disable Redis here, just log the error and continue
       }
     }
   }
@@ -241,15 +277,32 @@ class CacheManager {
   }
 
   /**
-   * Invalidate cache by pattern (memory cache only for now)
+   * Invalidate cache by pattern (memory cache and Redis if configured)
    */
   async invalidate(pattern: string): Promise<number> {
     let invalidatedCount = 0
 
-    for (const [key] of this.memoryCache.entries()) {
+    // Invalidate in memory cache
+    const entries = Array.from(this.memoryCache.entries())
+    for (const [key] of entries) {
       if (this.matchPattern(key, pattern)) {
         this.memoryCache.delete(key)
         invalidatedCount++
+      }
+    }
+
+    // If Redis is enabled, also invalidate matching keys in Redis
+    if (this.enableRedis && this.redisClient && this.redisConnected) {
+      try {
+        // In Redis, we need to scan keys matching the pattern and delete them
+        const keys = await this.redisClient.keys(pattern)
+        if (keys.length > 0) {
+          await this.redisClient.del(...keys)
+          invalidatedCount += keys.length
+        }
+      } catch (error) {
+        console.warn('Redis invalidate error:', error)
+        // Don't disable Redis here, just log the error and continue
       }
     }
 
@@ -268,6 +321,20 @@ class CacheManager {
 
     const regex = new RegExp(`^${regexPattern}$`)
     return regex.test(key)
+  }
+
+  /**
+   * Close Redis connection properly
+   */
+  async disconnect(): Promise<void> {
+    if (this.redisClient) {
+      try {
+        await this.redisClient.quit()
+        this.redisConnected = false
+      } catch (error) {
+        console.warn('Error closing Redis connection:', error)
+      }
+    }
   }
 }
 
