@@ -119,7 +119,6 @@ cleanup_action_log.json
 comment.txt
 BRANCH_CLEANUP_REPORT.md
 ISSUE_*.md
-docs/ceo-*.md
 docs/*-report-*.md
 docs/*-task-*.md
 pr_intel/

@@ -5,7 +5,7 @@
  */
 
 import { getRouterParam } from 'h3'
-import { getResourceHealthStatus } from '../../../utils/resourceHealth'
+import { getResourceHealthStatus } from '../../utils/resourceHealth'
 
 export default defineEventHandler(async event => {
   try {

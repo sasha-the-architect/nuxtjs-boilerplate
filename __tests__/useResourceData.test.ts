@@ -17,7 +17,7 @@ vi.mock('#app', async () => {
             url: 'https://example.com',
             category: 'Testing',
             tags: ['test', 'resource'],
-            pricing: 'Free',
+            pricingModel: 'Free',
             difficulty: 'Beginner',
             lastUpdated: '2023-01-01',
           },
@@ -29,7 +29,7 @@ vi.mock('#app', async () => {
             url: 'https://example2.com',
             category: 'Development',
             tags: ['dev', 'tool'],
-            pricing: 'Paid',
+            pricingModel: 'Paid',
             difficulty: 'Intermediate',
             lastUpdated: '2023-01-02',
           },
@@ -52,13 +52,13 @@ describe('useResourceData', () => {
   })
 
   it('should fetch resources successfully', async () => {
-    const { resources, pending, error } = await useResourceData()
+    const { resources, loading, error } = useResourceData()
 
     expect(resources.value).toBeDefined()
     expect(resources.value).toHaveLength(2)
     expect(resources.value![0].id).toBe('1')
     expect(resources.value![1].id).toBe('2')
-    expect(pending.value).toBe(false)
+    expect(loading.value).toBe(false)
     expect(error.value).toBe(null)
   })
 
@@ -73,7 +73,7 @@ describe('useResourceData', () => {
     expect(firstResource).toHaveProperty('url')
     expect(firstResource).toHaveProperty('category')
     expect(firstResource).toHaveProperty('tags')
-    expect(firstResource).toHaveProperty('pricing')
+    expect(firstResource).toHaveProperty('pricingModel')
     expect(firstResource).toHaveProperty('difficulty')
     expect(firstResource).toHaveProperty('lastUpdated')
   })
@@ -109,7 +109,7 @@ describe('useResourceData', () => {
     expect(typeof resource.url).toBe('string')
     expect(typeof resource.category).toBe('string')
     expect(Array.isArray(resource.tags)).toBe(true)
-    expect(typeof resource.pricing).toBe('string')
+    expect(typeof resource.pricingModel).toBe('string')
     expect(typeof resource.difficulty).toBe('string')
     expect(typeof resource.lastUpdated).toBe('string')
   })
@@ -120,8 +120,8 @@ describe('useResourceData', () => {
     const resourceWithFreePricing = resources.value!.find(r => r.id === '1')
     const resourceWithPaidPricing = resources.value!.find(r => r.id === '2')
 
-    expect(resourceWithFreePricing?.pricing).toBe('Free')
-    expect(resourceWithPaidPricing?.pricing).toBe('Paid')
+    expect(resourceWithFreePricing?.pricingModel).toBe('Free')
+    expect(resourceWithPaidPricing?.pricingModel).toBe('Paid')
   })
 
   it('should handle different difficulty levels', async () => {

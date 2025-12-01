@@ -7,14 +7,24 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@nuxt/image',
     '@vite-pwa/nuxt',
+    '~/modules/openapi',
   ],
 
   // Runtime configuration for environment variables
   runtimeConfig: {
     public: {
-      canonicalUrl:
+      siteUrl:
+        process.env.NUXT_PUBLIC_SITE_URL ||
+        process.env.SITE_URL ||
+        process.env.NUXT_PUBLIC_CANONICAL_URL ||
         process.env.CANONICAL_URL ||
-        'https://free-stuff-on-the-internet.vercel.app/',
+        process.env.HOST ||
+        process.env.VERCEL_URL ||
+        'http://localhost:3000',
+      canonicalUrl:
+        process.env.NUXT_PUBLIC_CANONICAL_URL ||
+        process.env.CANONICAL_URL ||
+        'http://localhost:3000',
     },
   },
 
@@ -191,35 +201,14 @@ export default defineNuxtConfig({
     componentIslands: true,
   },
 
-  // Security headers configuration
-  routeRules: {
-    // Main routes with prerender
-    '/': {
-      prerender: true,
-    },
-    '/ai-keys': {
-      prerender: true,
-    },
-    '/about': {
-      prerender: true,
-    },
-    '/search': {
-      prerender: true,
-    },
-    '/submit': {
-      prerender: true,
-    },
-    // API routes
-    '/api/**': {
-      // Cache control handled by security headers plugin
-    },
-    // Static assets
-    '/_nuxt/**': {
-      // Cache control handled by security headers plugin
-    },
-  },
+  // Security Configuration
+  // Content Security Policy (CSP) and other security headers are implemented via
+  // server plugin at server/plugins/security-headers.ts which provides:
+  // - Dynamic nonce generation per request for inline scripts/styles
+  // - Comprehensive security header protection
+  // - Route-specific cache control headers
 
-  // Content Security Policy configuration
+  // Security and performance configuration
   nitro: {
     // Optimize server-side rendering
     minify: true,
@@ -227,23 +216,13 @@ export default defineNuxtConfig({
     compressPublicAssets: true,
     // Improve build performance
     ignore: ['**/.git/**', '**/node_modules/**', '**/dist/**'],
-    // CSP headers via middleware
+    // Security headers are handled via the security plugins
+    // to ensure proper nonce generation and dynamic header values
     plugins: [
       '~/server/plugins/security-headers.ts',
+      '~/server/plugins/html-security.ts',
       '~/server/plugins/resource-validation.ts',
     ],
-    // Security headers configuration
-    headers: {
-      'Content-Security-Policy':
-        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;",
-      'X-Content-Type-Options': 'nosniff',
-      'X-Frame-Options': 'DENY',
-      'X-XSS-Protection': '0',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Strict-Transport-Security':
-        'max-age=31536000; includeSubDomains; preload',
-      'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
-    },
   },
 
   // Image optimization configuration
@@ -380,8 +359,9 @@ export default defineNuxtConfig({
 
   sitemap: {
     hostname:
+      process.env.NUXT_PUBLIC_CANONICAL_URL ||
       process.env.CANONICAL_URL ||
-      'https://free-stuff-on-the-internet.vercel.app',
+      'http://localhost:3000',
   },
   ogImage: {
     enabled: false, // We'll implement this later if needed
@@ -394,32 +374,6 @@ export default defineNuxtConfig({
   },
   // Explicitly use Vite for faster builds
   builder: 'vite',
-
-  nitro: {
-    // Optimize server-side rendering
-    minify: true,
-    // Enable compression
-    compressPublicAssets: true,
-    // Improve build performance
-    ignore: ['**/.git/**', '**/node_modules/**', '**/dist/**'],
-    // CSP headers via middleware
-    plugins: [
-      '~/server/plugins/security-headers.ts',
-      '~/server/plugins/resource-validation.ts',
-    ],
-    // Security headers configuration
-    headers: {
-      'Content-Security-Policy':
-        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;",
-      'X-Content-Type-Options': 'nosniff',
-      'X-Frame-Options': 'DENY',
-      'X-XSS-Protection': '0',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Strict-Transport-Security':
-        'max-age=31536000; includeSubDomains; preload',
-      'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
-    },
-  },
 
   // Optimize bundle size
   vite: {
@@ -448,14 +402,25 @@ export default defineNuxtConfig({
     plugins: [
       // Add bundle analyzer for performance monitoring (only when ANALYZE_BUNDLE is true)
       ...(process.env.ANALYZE_BUNDLE === 'true'
-        ? [
-            require('rollup-plugin-visualizer').default({
-              filename: './dist/stats.html',
-              open: false,
-              gzipSize: true,
-              brotliSize: true,
-            }),
-          ]
+        ? (() => {
+            try {
+              // Safely require the visualizer plugin to avoid build failures
+              const { visualizer } = require('rollup-plugin-visualizer')
+              return [
+                visualizer({
+                  filename: './dist/stats.html',
+                  open: false,
+                  gzipSize: true,
+                  brotliSize: true,
+                }),
+              ]
+            } catch (error) {
+              console.warn(
+                'rollup-plugin-visualizer not available, skipping bundle analysis'
+              )
+              return [] // Return empty array if plugin is not available
+            }
+          })()
         : []),
     ],
     // Optimize build speed

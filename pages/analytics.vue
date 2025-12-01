@@ -296,12 +296,16 @@
           </ul>
         </div>
       </div>
+
+      <!-- Search Analytics Section -->
+      <SearchAnalytics />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import SearchAnalytics from '~/components/SearchAnalytics.vue'
 
 // Define types
 interface AnalyticsData {

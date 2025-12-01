@@ -1,5 +1,6 @@
 // Define the form data interface
 import type { HierarchicalTag } from './tag'
+import type { Resource, Flag } from './resource'
 
 export interface FormData {
   title: string
@@ -12,16 +13,11 @@ export interface FormData {
 
 export interface Submission {
   id: string
-  title: string
-  description: string
-  url: string
-  category: string
-  tags: string[] // Maintain backward compatibility
-  hierarchicalTags?: readonly HierarchicalTag[] // New hierarchical tags support
-  status: string
-  submittedAt: string
+  resourceData: Partial<Resource>
+  status: 'pending' | 'approved' | 'rejected'
   submittedBy: string
-  approvedAt: string | null
-  approvedBy: string | null
-  source?: string
+  submittedAt: string
+  reviewedBy?: string
+  reviewedAt?: string
+  notes?: string
 }

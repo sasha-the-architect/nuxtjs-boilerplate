@@ -4,6 +4,7 @@ import { useResourceFilters } from './useResourceFilters'
 import { useResourceSearch } from './useResourceSearch'
 import { useResourceSort } from './useResourceSort'
 import { useSearchHistory } from './useSearchHistory'
+import { useResourceSearchFilter } from './useResourceSearchFilter'
 import type { Resource, SortOption, FilterOptions } from '~/types/resource'
 
 // Re-export types for convenience
@@ -30,7 +31,6 @@ export const useResources = () => {
   const {
     filterOptions,
     sortOption,
-    filteredResources,
     updateSearchQuery,
     toggleCategory,
     togglePricingModel,
@@ -42,6 +42,13 @@ export const useResources = () => {
     setDateRange,
     resetFilters,
   } = useResourceFilters(resources.value)
+
+  // Use the search-filter composable to handle combining search and filters
+  const { finalResources: searchFilteredResources } = useResourceSearchFilter(
+    resources.value,
+    { value: filterOptions.value },
+    filterOptions.value.searchQuery
+  )
 
   // Extract all unique tags from resources
   const allTags = computed(() => {
@@ -56,72 +63,9 @@ export const useResources = () => {
   const { fuse, searchResources, getSuggestions, highlightSearchTerms } =
     useResourceSearch(resources.value)
 
-  // Use the sort composable
+  // Use the sort composable with the properly filtered/combined resources
   const { sortedResources } = useResourceSort(
-    computed(() => {
-      // When there's a search query, filter the search results
-      if (
-        filterOptions.value.searchQuery &&
-        filterOptions.value.searchQuery.trim() !== ''
-      ) {
-        const searchResults = searchResources(filterOptions.value.searchQuery)
-        let result = [...searchResults]
-
-        // Apply category filter
-        if (
-          filterOptions.value.categories &&
-          filterOptions.value.categories.length > 0
-        ) {
-          result = result.filter(resource =>
-            filterOptions.value.categories!.includes(resource.category)
-          )
-        }
-
-        // Apply pricing model filter
-        if (
-          filterOptions.value.pricingModels &&
-          filterOptions.value.pricingModels.length > 0
-        ) {
-          result = result.filter(resource =>
-            filterOptions.value.pricingModels!.includes(resource.pricingModel)
-          )
-        }
-
-        // Apply difficulty level filter
-        if (
-          filterOptions.value.difficultyLevels &&
-          filterOptions.value.difficultyLevels.length > 0
-        ) {
-          result = result.filter(resource =>
-            filterOptions.value.difficultyLevels!.includes(resource.difficulty)
-          )
-        }
-
-        // Apply technology filter
-        if (
-          filterOptions.value.technologies &&
-          filterOptions.value.technologies.length > 0
-        ) {
-          result = result.filter(resource =>
-            resource.technology.some(tech =>
-              filterOptions.value.technologies!.includes(tech)
-            )
-          )
-        }
-
-        // Apply tag filter
-        if (filterOptions.value.tags && filterOptions.value.tags.length > 0) {
-          result = result.filter(resource =>
-            resource.tags.some(tag => filterOptions.value.tags!.includes(tag))
-          )
-        }
-
-        return result
-      } else {
-        // Use the filtered resources from the filters composable when no search query
-        return [...filteredResources.value]
-      }
-    }),
+    searchFilteredResources,
     computed(() => sortOption.value)
   )
 

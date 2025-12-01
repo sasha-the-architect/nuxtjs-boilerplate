@@ -14,7 +14,7 @@ export async function trackEvent(event: AnalyticsEvent): Promise<boolean> {
   try {
     // In development, log events to console
     if (process.env.NODE_ENV === 'development') {
-      console.log('Analytics event:', event)
+      // Development logging removed for production
     }
 
     // Send the event to the analytics API
@@ -169,6 +169,104 @@ export async function trackFilter(
     properties: {
       filterType,
       filterValue,
+    },
+  })
+}
+
+// Track a recommendation interaction
+export async function trackRecommendationClick(
+  resourceId: string,
+  recommendationReason: string,
+  position: number,
+  recommendationId?: string
+): Promise<boolean> {
+  return trackEvent({
+    type: 'recommendation_click',
+    resourceId,
+    properties: {
+      reason: recommendationReason,
+      position,
+      recommendationId,
+      timestamp: new Date().toISOString(),
+    },
+  })
+}
+
+// Track resource rating
+export async function trackResourceRating(
+  resourceId: string,
+  rating: number, // 1-5 scale
+  title: string
+): Promise<boolean> {
+  if (rating < 1 || rating > 5) {
+    console.error('Rating must be between 1 and 5')
+    return false
+  }
+
+  return trackEvent({
+    type: 'resource_rating',
+    resourceId,
+    properties: {
+      rating,
+      title,
+      timestamp: new Date().toISOString(),
+    },
+  })
+}
+
+// Track time spent on a resource page
+export async function trackTimeSpent(
+  resourceId: string,
+  timeSpent: number, // in seconds
+  title: string,
+  category: string
+): Promise<boolean> {
+  return trackEvent({
+    type: 'time_spent',
+    resourceId,
+    category,
+    properties: {
+      timeSpent,
+      title,
+      timestamp: new Date().toISOString(),
+    },
+  })
+}
+
+// Track a bookmark event
+export async function trackBookmark(
+  resourceId: string,
+  title: string,
+  category: string,
+  action: 'add' | 'remove' = 'add'
+): Promise<boolean> {
+  return trackEvent({
+    type: 'bookmark_action',
+    resourceId,
+    category,
+    properties: {
+      title,
+      action,
+      timestamp: new Date().toISOString(),
+    },
+  })
+}
+
+// Track a resource sharing event
+export async function trackShare(
+  resourceId: string,
+  title: string,
+  category: string,
+  platform: string
+): Promise<boolean> {
+  return trackEvent({
+    type: 'resource_shared',
+    resourceId,
+    category,
+    properties: {
+      title,
+      platform,
+      timestamp: new Date().toISOString(),
     },
   })
 }

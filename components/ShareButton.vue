@@ -145,12 +145,16 @@ import { useRuntimeConfig } from '#imports'
 import { generateResourceShareUrls } from '~/utils/shareUtils'
 
 interface Props {
-  title: string
+  title?: string
   description?: string
-  url: string
+  url?: string
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  title: '',
+  description: '',
+  url: '',
+})
 
 const showShareMenu = ref(false)
 const shareButtonRef = ref<HTMLElement | null>(null)
@@ -196,19 +200,38 @@ const handleClickOutside = (event: Event) => {
 // Copy URL to clipboard
 const copyToClipboard = async () => {
   try {
+    // Use the modern Clipboard API
     await navigator.clipboard.writeText(props.url)
     // Close the menu after copying
     showShareMenu.value = false
     // Optionally show a toast notification here
   } catch (err) {
-    // Fallback for older browsers
-    const textArea = document.createElement('textarea')
-    textArea.value = props.url
-    document.body.appendChild(textArea)
-    textArea.select()
-    document.execCommand('copy')
-    document.body.removeChild(textArea)
-    // Close the menu after copying
+    // Fallback for older browsers - improved implementation without deprecated execCommand
+    try {
+      // Use the deprecated execCommand only as a last resort for very old browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = props.url
+      textArea.setAttribute('readonly', '')
+      textArea.style.cssText = `
+         position: absolute;
+         left: -9999px;
+         top: -9999px;
+         opacity: 0;
+         pointer-events: none;
+       `
+      document.body.appendChild(textArea)
+      textArea.select()
+      textArea.setSelectionRange(0, 99999) // For mobile devices
+      const successful = document.execCommand('copy')
+      document.body.removeChild(textArea)
+      if (!successful) {
+        // If even execCommand fails, we can't copy to clipboard
+        console.warn('Failed to copy to clipboard')
+      }
+    } catch (fallbackErr) {
+      console.warn('Clipboard API and execCommand both failed:', fallbackErr)
+    }
+    // Close the menu after attempting to copy
     showShareMenu.value = false
   }
 }

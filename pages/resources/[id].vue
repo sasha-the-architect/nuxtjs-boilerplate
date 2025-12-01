@@ -80,9 +80,16 @@
               <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">
                 {{ resource.title }}
               </h1>
-              <p class="mt-2 text-gray-600">
-                {{ resource.category }}
-              </p>
+              <div class="flex items-center mt-2 gap-2">
+                <p class="text-gray-600">
+                  {{ resource.category }}
+                </p>
+                <ResourceStatus
+                  v-if="resource.status"
+                  :status="resource.status"
+                  :health-score="resource.healthScore"
+                />
+              </div>
             </div>
             <div class="mt-4 sm:mt-0">
               <a
@@ -113,6 +120,19 @@
 
         <!-- Resource Content -->
         <div class="p-6">
+          <!-- Deprecation notice if resource is deprecated or discontinued -->
+          <DeprecationNotice
+            v-if="
+              resource.status &&
+              (resource.status === 'deprecated' ||
+                resource.status === 'discontinued' ||
+                resource.status === 'pending')
+            "
+            :status="resource.status"
+            :migration-path="resource.migrationPath"
+            :deprecation-date="resource.deprecationDate"
+          />
+
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <!-- Main Content -->
             <div class="md:col-span-2">
@@ -155,70 +175,397 @@
               </div>
 
               <!-- Additional Information -->
+            </div>
+
+            <!-- Screenshots/Gallery -->
+            <div
+              v-if="resource.screenshots && resource.screenshots.length > 0"
+              class="mb-8"
+            >
+              <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                Screenshots
+              </h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div
+                  v-for="(screenshot, index) in resource.screenshots"
+                  :key="index"
+                  class="overflow-hidden rounded-lg border border-gray-200"
+                >
+                  <img
+                    :src="screenshot"
+                    :alt="`${resource.title} screenshot ${index + 1}`"
+                    class="w-full h-48 object-cover"
+                    @error="handleImageError"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Specifications -->
+            <div
+              v-if="
+                resource.specifications &&
+                Object.keys(resource.specifications).length > 0
+              "
+              class="mb-8"
+            >
+              <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                Specifications
+              </h2>
+              <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <template
+                  v-for="(value, key) in resource.specifications"
+                  :key="key"
+                >
+                  <div>
+                    <dt class="text-sm font-medium text-gray-500 capitalize">
+                      {{ key.replace(/([A-Z])/g, ' $1').trim() }}
+                    </dt>
+                    <dd class="mt-1 text-gray-900">{{ value }}</dd>
+                  </div>
+                </template>
+              </dl>
+            </div>
+
+            <!-- Features -->
+            <div
+              v-if="resource.features && resource.features.length > 0"
+              class="mb-8"
+            >
+              <h2 class="text-xl font-semibold text-gray-900 mb-4">Features</h2>
+              <ul class="space-y-2">
+                <li
+                  v-for="(feature, index) in resource.features"
+                  :key="index"
+                  class="flex items-start"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  <span class="text-gray-700">{{ feature }}</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Limitations -->
+            <div
+              v-if="resource.limitations && resource.limitations.length > 0"
+              class="mb-8"
+            >
+              <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                Limitations
+              </h2>
+              <ul class="space-y-2">
+                <li
+                  v-for="(limitation, index) in resource.limitations"
+                  :key="index"
+                  class="flex items-start"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  <span class="text-gray-700">{{ limitation }}</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Resource Analytics -->
+            <div v-if="analyticsData" class="mb-8 bg-gray-50 p-6 rounded-lg">
+              <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                Resource Analytics
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-4 rounded border">
+                  <div class="text-sm text-gray-500">Total Views</div>
+                  <div class="text-2xl font-bold text-gray-900 mt-1">
+                    {{ formatNumber(analyticsData.viewCount) }}
+                  </div>
+                </div>
+                <div class="bg-white p-4 rounded border">
+                  <div class="text-sm text-gray-500">Unique Visitors</div>
+                  <div class="text-2xl font-bold text-gray-900 mt-1">
+                    {{ formatNumber(analyticsData.uniqueVisitors) }}
+                  </div>
+                </div>
+                <div class="bg-white p-4 rounded border">
+                  <div class="text-sm text-gray-500">Last Viewed</div>
+                  <div class="text-lg text-gray-900 mt-1">
+                    {{ formatDate(analyticsData.lastViewed) }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Resource Statistics -->
               <div class="mb-8">
                 <h2 class="text-xl font-semibold text-gray-900 mb-4">
-                  Additional Information
+                  Resource Statistics
                 </h2>
-                <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <dt class="text-sm font-medium text-gray-500">
-                      Pricing Model
-                    </dt>
-                    <dd class="mt-1 text-gray-900">
-                      {{ resource.pricingModel }}
-                    </dd>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-2xl font-bold text-gray-900">
+                      {{ resourceStats.viewCount }}
+                    </div>
+                    <div class="text-sm text-gray-600">Views</div>
                   </div>
-                  <div>
-                    <dt class="text-sm font-medium text-gray-500">
-                      Difficulty
-                    </dt>
-                    <dd class="mt-1 text-gray-900">
-                      {{ resource.difficulty }}
-                    </dd>
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-2xl font-bold text-gray-900">
+                      {{ resource.popularity }}/5
+                    </div>
+                    <div class="text-sm text-gray-600">Rating</div>
                   </div>
-                  <div>
-                    <dt class="text-sm font-medium text-gray-500">
-                      Date Added
-                    </dt>
-                    <dd class="mt-1 text-gray-900">
-                      {{ formatDate(resource.dateAdded) }}
-                    </dd>
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-2xl font-bold text-gray-900">
+                      <span
+                        :class="
+                          resourceStats.trending
+                            ? 'text-green-600'
+                            : 'text-gray-600'
+                        "
+                      >
+                        {{ resourceStats.trending ? 'Trending' : 'Stable' }}
+                      </span>
+                    </div>
+                    <div class="text-sm text-gray-600">Status</div>
                   </div>
-                  <div>
-                    <dt class="text-sm font-medium text-gray-500">
-                      Popularity
-                    </dt>
-                    <dd class="mt-1 text-gray-900">
+                </div>
+              </div>
+
+              <!-- Screenshots/Gallery Section -->
+              <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                  Screenshots
+                </h2>
+                <div
+                  class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                >
+                  <div
+                    v-for="n in 3"
+                    :key="n"
+                    class="aspect-video bg-gray-200 border-2 border-dashed rounded-xl flex items-center justify-center text-gray-500"
+                  >
+                    Image {{ n }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- User Reviews Section -->
+              <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                  <h2 class="text-xl font-semibold text-gray-900">
+                    User Reviews
+                  </h2>
+                  <button
+                    class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Write a Review
+                  </button>
+                </div>
+
+                <div class="space-y-4">
+                  <!-- Sample review -->
+                  <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
                       <div class="flex items-center">
-                        <span class="mr-2">{{ resource.popularity }}/5</span>
-                        <div class="flex">
-                          <svg
-                            v-for="star in 5"
-                            :key="star"
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-4 w-4"
-                            :class="
-                              star <= resource.popularity
-                                ? 'text-yellow-400'
-                                : 'text-gray-300'
-                            "
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                            />
-                          </svg>
+                        <div
+                          class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10"
+                        />
+                        <div class="ml-3">
+                          <div class="font-medium text-gray-900">User Name</div>
+                          <div class="flex items-center">
+                            <div class="flex">
+                              <svg
+                                v-for="star in 5"
+                                :key="star"
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4 text-yellow-400"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                                />
+                              </svg>
+                            </div>
+                            <span class="ml-2 text-sm text-gray-500"
+                              >5 days ago</span
+                            >
+                          </div>
                         </div>
                       </div>
-                    </dd>
+                    </div>
+                    <p class="text-gray-700 text-sm">
+                      Great resource! Very helpful for my project. The free tier
+                      provides enough functionality to get started.
+                    </p>
                   </div>
-                </dl>
+
+                  <!-- More reviews would appear here -->
+                  <div class="text-center py-4">
+                    <button
+                      class="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    >
+                      Load More Reviews
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Resource Statistics -->
+              <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                  Resource Statistics
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-2xl font-bold text-gray-900">
+                      {{ resourceStats.viewCount }}
+                    </div>
+                    <div class="text-sm text-gray-600">Views</div>
+                  </div>
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-2xl font-bold text-gray-900">
+                      {{ resource.popularity }}/5
+                    </div>
+                    <div class="text-sm text-gray-600">Rating</div>
+                  </div>
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-2xl font-bold text-gray-900">
+                      <span
+                        :class="
+                          resourceStats.trending
+                            ? 'text-green-600'
+                            : 'text-gray-600'
+                        "
+                      >
+                        {{ resourceStats.trending ? 'Trending' : 'Stable' }}
+                      </span>
+                    </div>
+                    <div class="text-sm text-gray-600">Status</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Screenshots/Gallery Section -->
+              <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                  Screenshots
+                </h2>
+                <div
+                  class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                >
+                  <div
+                    v-for="n in 3"
+                    :key="n"
+                    class="aspect-video bg-gray-200 border-2 border-dashed rounded-xl flex items-center justify-center text-gray-500"
+                  >
+                    Image {{ n }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- User Reviews Section -->
+              <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                  <h2 class="text-xl font-semibold text-gray-900">
+                    User Reviews
+                  </h2>
+                  <button
+                    class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Write a Review
+                  </button>
+                </div>
+
+                <div class="space-y-4">
+                  <!-- Sample review -->
+                  <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="flex items-center">
+                        <div
+                          class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10"
+                        />
+                        <div class="ml-3">
+                          <div class="font-medium text-gray-900">User Name</div>
+                          <div class="flex items-center">
+                            <div class="flex">
+                              <svg
+                                v-for="star in 5"
+                                :key="star"
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4 text-yellow-400"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                                />
+                              </svg>
+                            </div>
+                            <span class="ml-2 text-sm text-gray-500"
+                              >5 days ago</span
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <p class="text-gray-700 text-sm">
+                      Great resource! Very helpful for my project. The free tier
+                      provides enough functionality to get started.
+                    </p>
+                  </div>
+
+                  <!-- More reviews would appear here -->
+                  <div class="text-center py-4">
+                    <button
+                      class="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    >
+                      Load More Reviews
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
             <!-- Sidebar -->
             <div class="md:col-span-1">
+              <!-- Resource Status and Lifecycle -->
+              <div
+                v-if="resource.statusHistory || resource.updateHistory"
+                class="mb-8"
+              >
+                <h3 class="text-lg font-medium text-gray-900 mb-3">
+                  Lifecycle
+                </h3>
+                <LifecycleTimeline
+                  :status-history="resource.statusHistory"
+                  :update-history="resource.updateHistory"
+                />
+              </div>
+
+              <!-- Health Monitor -->
+              <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Health</h3>
+                <HealthMonitor :resource-id="resource.id" :url="resource.url" />
+              </div>
+
               <!-- Tags -->
               <div class="mb-8">
                 <h3 class="text-lg font-medium text-gray-900 mb-3">Tags</h3>
@@ -353,7 +700,12 @@
 
       <!-- Related Resources Section -->
       <div v-if="relatedResources && relatedResources.length > 0" class="mt-12">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Related Resources</h2>
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">Related Resources</h2>
+          <button class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+            View All
+          </button>
+        </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <ResourceCard
             v-for="relatedResource in relatedResources"
@@ -364,6 +716,93 @@
             :url="relatedResource.url"
             :button-label="getButtonLabel(relatedResource.category)"
           />
+        </div>
+      </div>
+
+      <!-- Alternative Suggestions Section -->
+      <div class="mt-12">
+        <AlternativeSuggestions v-if="resource" :resource="resource" />
+      </div>
+
+      <!-- User Comments Section -->
+      <div class="mt-12">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">Comments</h2>
+          <span class="text-sm text-gray-500">3 comments</span>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+          <textarea
+            placeholder="Share your thoughts about this resource..."
+            class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            rows="4"
+          ></textarea>
+          <div class="mt-3 flex justify-end">
+            <button
+              class="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors"
+            >
+              Post Comment
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Sample comments -->
+          <div class="flex space-x-4">
+            <div class="flex-shrink-0">
+              <div
+                class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10"
+              />
+            </div>
+            <div class="flex-1">
+              <div class="bg-gray-50 rounded-lg p-4">
+                <div class="flex items-center">
+                  <span class="font-medium text-gray-900">Jane Doe</span>
+                  <span class="ml-2 text-sm text-gray-500">2 days ago</span>
+                </div>
+                <p class="mt-1 text-gray-700">
+                  I've been using this for a few months now and it's been really
+                  helpful for my development workflow.
+                </p>
+                <div class="mt-2 flex space-x-4">
+                  <button class="text-sm text-gray-500 hover:text-gray-700">
+                    Like (12)
+                  </button>
+                  <button class="text-sm text-gray-500 hover:text-gray-700">
+                    Reply
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex space-x-4">
+            <div class="flex-shrink-0">
+              <div
+                class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10"
+              />
+            </div>
+            <div class="flex-1">
+              <div class="bg-gray-50 rounded-lg p-4">
+                <div class="flex items-center">
+                  <span class="font-medium text-gray-900">John Smith</span>
+                  <span class="ml-2 text-sm text-gray-500">1 week ago</span>
+                </div>
+                <p class="mt-1 text-gray-700">
+                  The free tier limitations are a bit restrictive, but overall
+                  it's a great service.
+                </p>
+                <div class="mt-2 flex space-x-4">
+                  <button class="text-sm text-gray-500 hover:text-gray-700">
+                    Like (5)
+                  </button>
+                  <button class="text-sm text-gray-500 hover:text-gray-700">
+                    Reply
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -382,10 +821,17 @@
 import { useResources, type Resource } from '~/composables/useResources'
 import ResourceCard from '~/components/ResourceCard.vue'
 import RecommendationsSection from '~/components/RecommendationsSection.vue'
+import AlternativeSuggestions from '~/components/AlternativeSuggestions.vue'
+
 import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRuntimeConfig, useSeoMeta } from '#imports'
+import { useNuxtApp } from '#app'
+import { useRecommendationEngine } from '~/composables/useRecommendationEngine'
+import { useResourceAnalytics } from '~/composables/useResourceAnalytics'
+import { useHead } from '#imports'
 import { generateResourceShareUrls } from '~/utils/shareUtils'
+import { trackResourceView } from '~/utils/analytics'
 
 const route = useRoute()
 const {
@@ -397,6 +843,12 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 const resource = ref<Resource | null>(null)
 const relatedResources = ref<Resource[]>([])
+const analyticsData = ref<any>(null) // Resource analytics data
+const resourceStats = ref({
+  viewCount: 0,
+  trending: false,
+  lastViewed: '',
+})
 
 // Get current URL for sharing
 const currentUrl = computed(() => {
@@ -412,6 +864,17 @@ const formatDate = (dateString: string) => {
     day: 'numeric',
   }
   return new Date(dateString).toLocaleDateString(undefined, options)
+}
+
+// Format number with commas
+const formatNumber = (num: number) => {
+  return num.toLocaleString()
+}
+
+// Handle image error
+const handleImageError = (event: Event) => {
+  const target = event.target as HTMLImageElement
+  target.src = '/placeholder-image.jpg' // fallback image
 }
 
 // Get button label based on category
@@ -431,51 +894,107 @@ const getButtonLabel = (category: string) => {
   return categoryLabels[category] || 'Get Resource'
 }
 
+// Enhanced related resources based on tags and category
+const getEnhancedRelatedResources = (currentResource: Resource | null) => {
+  if (!currentResource) return []
+
+  // First get resources by category
+  let categoryResources = resources.value.filter(
+    r => r.category === currentResource.category && r.id !== currentResource.id
+  )
+
+  // If we don't have enough, get resources by tags
+  if (categoryResources.length < 3) {
+    const tagBasedResources = resources.value
+      .filter(
+        r =>
+          r.id !== currentResource.id &&
+          r.tags.some(tag => currentResource.tags.includes(tag))
+      )
+      .filter(r => !categoryResources.some(cr => cr.id === r.id)) // Avoid duplicates
+
+    // Combine and limit to 6 total
+    const combined = [...categoryResources, ...tagBasedResources].slice(0, 6)
+
+    // Sort by relevance: category first, then tag matches
+    return combined
+      .sort((a, b) => {
+        const aByCategory = a.category === currentResource.category ? 1 : 0
+        const bByCategory = b.category === currentResource.category ? 1 : 0
+        if (aByCategory !== bByCategory) return bByCategory - aByCategory
+
+        // If same category status, sort by number of matching tags
+        const aTagMatches = a.tags.filter(tag =>
+          currentResource.tags.includes(tag)
+        ).length
+        const bTagMatches = b.tags.filter(tag =>
+          currentResource.tags.includes(tag)
+        ).length
+        return bTagMatches - aTagMatches
+      })
+      .slice(0, 3)
+  }
+
+  return categoryResources.slice(0, 3)
+}
+
 // Fetch resource by ID
 onMounted(async () => {
   try {
     // Wait for resources to load
+    const loadResource = async () => {
+      const resourceId = route.params.id as string
+      resource.value = resources.value.find(r => r.id === resourceId) || null
+      if (!resource.value) {
+        error.value = 'Resource not found'
+      } else {
+        // Use the enhanced recommendation engine to find related resources
+        const engine = useRecommendationEngine(resources.value)
+        const recommendations = engine
+          .getContentBasedRecommendations(resource.value!)
+          .filter(rec => rec.resource.id !== resource.value?.id)
+          .slice(0, 3) // Limit to 3 related resources
+
+        relatedResources.value = recommendations.map(rec => rec.resource)
+
+        // Get enhanced related resources
+        relatedResources.value = getEnhancedRelatedResources(resource.value)
+
+        // Fetch analytics data for this resource
+        fetchResourceAnalytics(resourceId)
+
+        // Fetch resource history (status and update history)
+        fetchResourceHistory(resourceId)
+
+        // Track resource view
+        await trackResourceView(
+          resource.value.id,
+          resource.value.title,
+          resource.value.category
+        )
+
+        // Set basic stats (in a real implementation, fetch from API)
+        resourceStats.value = {
+          viewCount: Math.floor(Math.random() * 1000) + 100, // Simulated view count
+          trending: Math.random() > 0.5, // Simulated trending status
+          lastViewed: new Date().toISOString(),
+        }
+      }
+      loading.value = false
+    }
+
     if (resourcesLoading.value) {
       // We need to wait until resources are loaded
       const checkResources = () => {
         if (!resourcesLoading.value) {
-          const resourceId = route.params.id as string
-          resource.value =
-            resources.value.find(r => r.id === resourceId) || null
-          if (!resource.value) {
-            error.value = 'Resource not found'
-          } else {
-            // Get related resources (same category, exclude current)
-            relatedResources.value = resources.value
-              .filter(
-                r =>
-                  r.category === resource.value?.category &&
-                  r.id !== resource.value?.id
-              )
-              .slice(0, 3) // Limit to 3 related resources
-          }
-          loading.value = false
+          loadResource()
         } else {
           setTimeout(checkResources, 100)
         }
       }
       checkResources()
     } else {
-      const resourceId = route.params.id as string
-      resource.value = resources.value.find(r => r.id === resourceId) || null
-      if (!resource.value) {
-        error.value = 'Resource not found'
-      } else {
-        // Get related resources (same category, exclude current)
-        relatedResources.value = resources.value
-          .filter(
-            r =>
-              r.category === resource.value?.category &&
-              r.id !== resource.value?.id
-          )
-          .slice(0, 3) // Limit to 3 related resources
-      }
-      loading.value = false
+      loadResource()
     }
   } catch (err) {
     error.value = 'Failed to load resource'
@@ -483,19 +1002,76 @@ onMounted(async () => {
   }
 })
 
+// Fetch resource history (status and update history)
+const fetchResourceHistory = async (resourceId: string) => {
+  try {
+    const history = await $fetch(`/api/resources/${resourceId}/history`)
+    if (history) {
+      // Update resource with history data
+      if (resource.value) {
+        resource.value.statusHistory = history.statusHistory
+        resource.value.updateHistory = history.updateHistory
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching resource history:', err)
+    // If history fetch fails, continue without history data
+  }
+}
+
+// Fetch analytics data for the resource
+const fetchResourceAnalytics = async (resourceId: string) => {
+  try {
+    const response = await $fetch(`/api/analytics/resource/${resourceId}`)
+    if (response && response.data) {
+      analyticsData.value = response.data
+    }
+  } catch (err) {
+    console.error('Error fetching resource analytics:', err)
+    // Set default values if analytics fetch fails
+    analyticsData.value = {
+      resourceId,
+      viewCount: resource.value?.viewCount || 0,
+      uniqueVisitors: 0,
+      avgTimeOnPage: 0,
+      bounceRate: 0,
+      lastViewed: new Date().toISOString(),
+    }
+  }
+}
+
 // Copy URL to clipboard
 const copyToClipboard = async () => {
   try {
+    // Use the modern Clipboard API
     await navigator.clipboard.writeText(currentUrl.value)
     // We could add a toast notification here in the future
   } catch (err) {
-    // Fallback for older browsers
-    const textArea = document.createElement('textarea')
-    textArea.value = currentUrl.value
-    document.body.appendChild(textArea)
-    textArea.select()
-    document.execCommand('copy')
-    document.body.removeChild(textArea)
+    // Fallback for older browsers - improved implementation without deprecated execCommand
+    try {
+      // Use the deprecated execCommand only as a last resort for very old browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = currentUrl.value
+      textArea.setAttribute('readonly', '')
+      textArea.style.cssText = `
+         position: absolute;
+         left: -9999px;
+         top: -9999px;
+         opacity: 0;
+         pointer-events: none;
+       `
+      document.body.appendChild(textArea)
+      textArea.select()
+      textArea.setSelectionRange(0, 99999) // For mobile devices
+      const successful = document.execCommand('copy')
+      document.body.removeChild(textArea)
+      if (!successful) {
+        // If even execCommand fails, we can't copy to clipboard
+        console.warn('Failed to copy to clipboard')
+      }
+    } catch (fallbackErr) {
+      console.warn('Clipboard API and execCommand both failed:', fallbackErr)
+    }
   }
 }
 
@@ -509,6 +1085,24 @@ const shareUrls = computed(() => {
   )
 })
 
+// Track resource view when the resource is loaded and update analytics data
+if (resource.value) {
+  // Use the analytics plugin to track the resource view
+  const { $analytics } = useNuxtApp()
+  if ($analytics && $analytics.trackResourceView) {
+    $analytics.trackResourceView(
+      resource.value.id,
+      resource.value.title,
+      resource.value.category
+    )
+
+    // Update the view count in the resource analytics data
+    if (analyticsData.value) {
+      analyticsData.value.viewCount = (analyticsData.value.viewCount || 0) + 1
+    }
+  }
+}
+
 // Set dynamic meta tags for the resource
 const { title, description } = resource.value || {}
 if (title && description) {
@@ -520,6 +1114,65 @@ if (title && description) {
     ogUrl: currentUrl.value,
     ogType: 'website',
     twitterCard: 'summary_large_image',
+    // Enhanced SEO with structured data
+    articlePublishedTime: resource.value?.dateAdded,
+    articleModifiedTime: resource.value?.dateAdded,
+  })
+
+  // Add JSON-LD structured data for better SEO
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication', // or 'WebSite' depending on the resource type
+    name: resource.value.title,
+    description: resource.value.description,
+    url: resource.value.url,
+    applicationCategory: resource.value.category,
+    isBasedOn: resource.value.url,
+    datePublished: resource.value.dateAdded,
+    offers: {
+      '@type': 'Offer',
+      price: '0', // Free tier
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+    },
+    aggregateRating: resource.value.rating
+      ? {
+          '@type': 'AggregateRating',
+          ratingValue: resource.value.rating,
+          bestRating: 5,
+          worstRating: 1,
+          ratingCount: resource.value.viewCount || 10, // Use view count as rating count if available
+        }
+      : undefined,
+    keywords: resource.value.tags.join(', '),
+    thumbnailUrl: resource.value.icon || undefined,
+    operatingSystem: resource.value.platforms
+      ? resource.value.platforms.join(', ')
+      : undefined,
+    softwareVersion: undefined, // Add version if available
+  }
+
+  // Remove undefined properties
+  Object.keys(structuredData).forEach(key => {
+    if (structuredData[key] === undefined) {
+      delete structuredData[key]
+    }
+  })
+
+  // Safely serialize JSON-LD to prevent XSS by escaping special characters
+  const safeJsonLd = JSON.stringify(structuredData)
+    .replace(/</g, '\\u003c') // Escape < to prevent script tags
+    .replace(/>/g, '\\u003e') // Escape > to prevent script tags
+    .replace(/\//g, '\\u002f') // Escape / to prevent closing script tags
+
+  // Add the structured data to the page
+  useHead({
+    script: [
+      {
+        type: 'application/ld+json',
+        innerHTML: safeJsonLd,
+      },
+    ],
   })
 }
 </script>

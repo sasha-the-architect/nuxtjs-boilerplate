@@ -146,7 +146,11 @@ interface Emits {
   (event: 'navigate', direction: 'up' | 'down'): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  suggestions: () => [],
+  searchHistory: () => [],
+  visible: false,
+})
 const emit = defineEmits<Emits>()
 
 const focusedIndex = ref(-1)

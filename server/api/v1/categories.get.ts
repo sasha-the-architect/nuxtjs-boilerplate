@@ -1,6 +1,6 @@
 import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
-import { cacheManager } from '../../utils/enhanced-cache'
+import { cacheManager } from '~/server/utils/enhanced-cache'
 
 /**
  * GET /api/v1/categories

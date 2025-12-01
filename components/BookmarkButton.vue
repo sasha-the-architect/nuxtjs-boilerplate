@@ -24,16 +24,22 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useBookmarks } from '~/composables/useBookmarks'
 
 interface Props {
-  resourceId: string
-  title: string
-  description: string
-  url: string
+  resourceId?: string
+  title?: string
+  description?: string
+  url?: string
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  resourceId: '',
+  title: '',
+  description: '',
+  url: '',
+})
 
 const { isBookmarked, toggleBookmark } = useBookmarks()
 

@@ -14,7 +14,7 @@ If you discover a security vulnerability in this project, please follow these gu
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Instead, send an email to: **security@github.com**
+Instead, please report security vulnerabilities using the [GitHub Security Advisory form](https://github.com/cpa02cmz/nuxtjs-boilerplate/security/advisories/new).
 
 Include the following information in your report:
 
@@ -79,7 +79,7 @@ This project implements several security measures:
 
 ## Security Contacts
 
-- **Security Team**: security@github.com
+- **Security Reports**: [GitHub Security Advisory form](https://github.com/cpa02cmz/nuxtjs-boilerplate/security/advisories/new)
 - **Maintainer**: [GitHub Maintainer Username]
 
 ## Security Acknowledgments

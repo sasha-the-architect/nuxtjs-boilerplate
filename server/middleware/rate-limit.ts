@@ -51,6 +51,20 @@ function getRateLimitTier(path: string): RateLimitConfig {
     return RATE_LIMIT_CONFIG.search
   } else if (path.includes('/api/v1/export')) {
     return RATE_LIMIT_CONFIG.export
+  } else if (path.includes('/api/v1/webhooks')) {
+    // Webhook endpoints have specific rate limits
+    return {
+      windowMs: 1 * 60 * 1000, // 1 minute
+      maxRequests: 20,
+      message: 'Too many webhook requests, please slow down.',
+    }
+  } else if (path.includes('/api/v1/auth/api-keys')) {
+    // API key management endpoints have specific rate limits
+    return {
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      maxRequests: 10,
+      message: 'Too many API key management requests.',
+    }
   } else if (
     path.includes('/api/v1/resources') ||
     path.includes('/api/categories')

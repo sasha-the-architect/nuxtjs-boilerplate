@@ -17,11 +17,9 @@ export default defineNuxtPlugin(() => {
         delta: number
       }) => {
         // Log metrics for debugging in development
-        /* eslint-disable no-console */
         if (process.env.NODE_ENV === 'development') {
           console.log(`${metric.name}: ${metric.value}`)
         }
-        /* eslint-enable no-console */
 
         // Store metrics in localStorage for potential later aggregation
         if (typeof window !== 'undefined') {
@@ -68,7 +66,6 @@ export default defineNuxtPlugin(() => {
               }, 0)
 
               if (process.env.NODE_ENV === 'development') {
-                // eslint-disable-next-line no-console
                 console.log(`Total resource load time: ${resourceLoadTime}ms`)
               }
             }
@@ -78,7 +75,6 @@ export default defineNuxtPlugin(() => {
               performance.timing.domContentLoadedEventEnd -
               performance.timing.navigationStart
             if (process.env.NODE_ENV === 'development') {
-              // eslint-disable-next-line no-console
               console.log(`DOM Content Loaded Time: ${domContentLoadedTime}ms`)
             }
           }, 1000)

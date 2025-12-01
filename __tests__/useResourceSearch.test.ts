@@ -12,9 +12,11 @@ describe('useResourceSearch', () => {
       url: 'https://example.com',
       category: 'Testing',
       tags: ['test', 'resource'],
-      pricing: 'Free',
+      pricingModel: 'Free',
       difficulty: 'Beginner',
-      lastUpdated: '2023-01-01',
+      technology: ['Vue.js'],
+      dateAdded: '2023-01-01',
+      popularity: 10,
     },
     {
       id: '2',
@@ -24,9 +26,11 @@ describe('useResourceSearch', () => {
       url: 'https://example2.com',
       category: 'Development',
       tags: ['dev', 'tool'],
-      pricing: 'Free',
+      pricingModel: 'Free',
       difficulty: 'Intermediate',
-      lastUpdated: '2023-01-02',
+      technology: ['React'],
+      dateAdded: '2023-01-02',
+      popularity: 8,
     },
   ]
 

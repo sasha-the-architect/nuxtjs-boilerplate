@@ -32,6 +32,13 @@ class RateLimiter {
   }
 
   /**
+   * Get the rate limit configuration (for testing purposes)
+   */
+  getConfig(): RateLimitConfig {
+    return this.config
+  }
+
+  /**
    * Check if a request should be allowed based on token bucket algorithm
    */
   async isAllowed(
@@ -292,7 +299,7 @@ export async function rateLimit(event: H3Event, key?: string): Promise<void> {
   event.node.res?.setHeader('X-RateLimit-Reset', status.resetTime.toString())
   event.node.res?.setHeader(
     'X-RateLimit-Window',
-    Math.floor(rateLimiter['config'].windowMs / 1000).toString()
+    Math.floor(rateLimiter.getConfig().windowMs / 1000).toString()
   )
 
   // If this was a bypassed request, let it through regardless

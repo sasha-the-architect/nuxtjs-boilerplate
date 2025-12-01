@@ -64,14 +64,16 @@
         v-for="rec in recommendations"
         :key="rec.resource.id"
         :resource="rec.resource"
+        :explanation="rec.explanation"
+        :reason="rec.reason"
         @bookmark="handleBookmark"
       />
     </div>
 
     <div v-if="recommendations.length > 0" class="mt-6 flex justify-center">
       <button
-        @click="refreshRecommendations"
         class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
+        @click="refreshRecommendations"
       >
         <svg
           class="mr-2 h-4 w-4"
@@ -98,6 +100,7 @@ import RecommendationCard from './RecommendationCard.vue'
 import { useRecommendationEngine } from '~/composables/useRecommendationEngine'
 import { useResourceData } from '~/composables/useResourceData'
 import { useBookmarks } from '~/composables/useBookmarks'
+import { useUserPreferences } from '~/composables/useUserPreferences'
 import type { RecommendationResult } from '~/composables/useRecommendationEngine'
 import type { Resource } from '~/types/resource'
 
@@ -106,7 +109,10 @@ interface Props {
   currentCategory?: string
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  currentResource: undefined,
+  currentCategory: '',
+})
 
 const { resources } = useResourceData()
 const { addBookmark } = useBookmarks()
@@ -127,11 +133,29 @@ const initRecommendations = async () => {
     }
 
     if (resources.value && resources.value.length > 0) {
-      const engine = useRecommendationEngine(resources.value)
-      recommendations.value = engine.getDiverseRecommendations(
-        props.currentResource,
-        props.currentCategory
-      )
+      // Get user preferences for personalized recommendations
+      const userPrefs = useUserPreferences()
+      await userPrefs.initProfile()
+
+      const engine = useRecommendationEngine(resources.value, {
+        interests: userPrefs.getUserInterests.value,
+        viewedResources: userPrefs.getViewedResources.value,
+        bookmarkedResources: userPrefs.getBookmarkedResources.value,
+        skillLevel: userPrefs.getUserSkillLevel.value,
+      })
+
+      // Use personalized recommendations if user preferences are available
+      if (userPrefs.getUserInterests.value.length > 0) {
+        recommendations.value = engine.getPersonalizedRecommendations(
+          props.currentResource,
+          props.currentCategory
+        )
+      } else {
+        recommendations.value = engine.getDiverseRecommendations(
+          props.currentResource,
+          props.currentCategory
+        )
+      }
     }
   } catch (err) {
     error.value = 'Failed to load recommendations'

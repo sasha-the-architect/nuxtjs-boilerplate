@@ -10,7 +10,7 @@ export default defineEventHandler(async event => {
     const baseUrl =
       config.public.siteUrl ||
       config.public.canonicalUrl ||
-      'https://free-stuff-on-the-internet.vercel.app'
+      'http://localhost:3000'
 
     // Define the static pages
     const staticPages = [
@@ -43,7 +43,6 @@ export default defineEventHandler(async event => {
   } catch (error: any) {
     // In production, we might want to use a proper error tracking service instead of console
     if (process.dev) {
-      // eslint-disable-next-line no-console
       console.error('Error generating sitemap.xml:', error)
     }
 

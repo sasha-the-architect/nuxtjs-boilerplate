@@ -1,5 +1,153 @@
-// Minimal test setup file for Vitest - avoids interfering with Nuxt environment
+// Test setup file for Vitest with Nuxt
 import { vi } from 'vitest'
+
+// Mock the nuxt-vitest-app-entry that causes the original error
+vi.mock('#app/nuxt-vitest-app-entry', () => ({}))
+
+// Create a basic DOM environment for Vue components
+// This is needed because Vue components expect certain browser APIs
+if (typeof global !== 'undefined') {
+  // Mock jsdom-like functionality for basic DOM operations
+  if (typeof global.window === 'undefined') {
+    global.window = {
+      document: {
+        createElement: tag => ({
+          tagName: tag.toUpperCase(),
+          style: {},
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          setAttribute: vi.fn(),
+          getAttribute: vi.fn(),
+          appendChild: vi.fn(),
+          removeChild: vi.fn(),
+          querySelector: vi.fn(),
+          querySelectorAll: vi.fn(() => []),
+          getElementById: vi.fn(),
+          createComment: vi.fn(() => ({})), // This was the missing function
+          createTextNode: vi.fn(() => ({})),
+          body: { appendChild: vi.fn(), removeChild: vi.fn() },
+        }),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        querySelector: vi.fn(),
+        querySelectorAll: vi.fn(() => []),
+        getElementById: vi.fn(),
+        createComment: vi.fn(() => ({})), // This was the missing function
+        createTextNode: vi.fn(() => ({})),
+        cookie: '',
+        readyState: 'complete',
+      },
+      localStorage: {
+        getItem: vi.fn(),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn(),
+        key: vi.fn(),
+        length: 0,
+      },
+      sessionStorage: {
+        getItem: vi.fn(),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn(),
+        key: vi.fn(),
+        length: 0,
+      },
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      location: {
+        href: 'http://localhost',
+        origin: 'http://localhost',
+        pathname: '/',
+        search: '',
+        hash: '',
+      },
+      navigator: {
+        userAgent: 'test-agent',
+        platform: 'test-platform',
+        clipboard: {
+          writeText: vi.fn(() => Promise.resolve()),
+        },
+      },
+      IntersectionObserver: vi.fn(() => ({
+        observe: vi.fn(),
+        unobserve: vi.fn(),
+        disconnect: vi.fn(),
+      })),
+      ResizeObserver: vi.fn(() => ({
+        observe: vi.fn(),
+        unobserve: vi.fn(),
+        disconnect: vi.fn(),
+      })),
+      matchMedia: vi.fn(() => ({
+        matches: false,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+      })),
+      requestAnimationFrame: vi.fn(callback => setTimeout(callback, 0)),
+      cancelAnimationFrame: vi.fn(clearTimeout),
+      dispatchEvent: vi.fn(),
+    }
+  }
+
+  if (typeof global.document === 'undefined') {
+    global.document = global.window.document
+  }
+
+  if (typeof global.localStorage === 'undefined') {
+    global.localStorage = global.window.localStorage
+  }
+
+  if (typeof global.sessionStorage === 'undefined') {
+    global.sessionStorage = global.window.sessionStorage
+  }
+
+  if (typeof global.navigator === 'undefined') {
+    global.navigator = global.window.navigator
+  }
+
+  if (typeof global.HTMLElement === 'undefined') {
+    global.HTMLElement = class HTMLElement {}
+  }
+
+  if (typeof global.HTMLInputElement === 'undefined') {
+    global.HTMLInputElement = class HTMLInputElement extends (
+      global.HTMLElement
+    ) {}
+  }
+
+  if (typeof global.HTMLTextAreaElement === 'undefined') {
+    global.HTMLTextAreaElement = class HTMLTextAreaElement extends (
+      global.HTMLElement
+    ) {}
+  }
+
+  if (typeof global.SVGElement === 'undefined') {
+    global.SVGElement = class SVGElement {}
+  }
+
+  if (typeof global.CustomEvent === 'undefined') {
+    global.CustomEvent = class CustomEvent {
+      constructor(event, params) {
+        this.event = event
+        this.params = params
+      }
+    }
+  }
+
+  if (typeof global.Event === 'undefined') {
+    global.Event = class Event {
+      constructor(event, params) {
+        this.event = event
+        this.params = params
+      }
+    }
+  }
+
+  if (typeof global.location === 'undefined') {
+    global.location = global.window.location
+  }
+}
 
 // Mock DOMPurify
 vi.mock('dompurify', async importOriginal => {
@@ -8,8 +156,7 @@ vi.mock('dompurify', async importOriginal => {
     ...actual,
     default: {
       sanitize: html => {
-        // Basic sanitization for testing - just return the input for now
-        // In real tests you'd want proper sanitization
+        // Basic sanitization for testing
         return html
           .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
           .replace(/javascript:/gi, '')
@@ -19,70 +166,19 @@ vi.mock('dompurify', async importOriginal => {
   }
 })
 
-// Only set process.env.NODE_ENV if it's not already set by Nuxt
-if (typeof process !== 'undefined' && process.env) {
-  process.env.NODE_ENV = process.env.NODE_ENV || 'test'
+// Mock fetch if not available
+if (typeof global.fetch === 'undefined') {
+  global.fetch = vi.fn(() =>
+    Promise.resolve({
+      json: () => Promise.resolve({}),
+      text: () => Promise.resolve(''),
+      ok: true,
+      status: 200,
+    })
+  )
 }
 
-// Mock Nuxt composables to prevent "nuxt instance unavailable" errors
-vi.mock('#app', async () => {
-  const actual = await vi.importActual('#app')
-  return {
-    ...actual,
-    useRuntimeConfig: () => ({
-      public: {
-        canonicalUrl: 'http://localhost:3000',
-      },
-    }),
-    useNuxtApp: () => ({
-      $pinia: null,
-      isHydrating: false,
-      payload: {
-        data: {},
-        state: {},
-        once: new Set(),
-      },
-      static: {
-        data: {},
-      },
-      provide: () => {},
-    }),
-    useState: (key: string) => vi.fn(() => vi.fn()),
-    useFetch: vi.fn(),
-    useAsyncData: vi.fn(),
-  }
-})
-
-// Mock #imports specifically for useRuntimeConfig and useHead
-vi.mock('#imports', async () => {
-  const actual = await vi.importActual('#imports')
-  return {
-    ...actual,
-    useRuntimeConfig: () => ({
-      public: {
-        canonicalUrl: 'http://localhost:3000',
-      },
-    }),
-    useHead: vi.fn(),
-  }
-})
-
-// Create a basic Nuxt app mock to handle useNuxtApp calls
-if (typeof window !== 'undefined') {
-  // @ts-ignore
-  window.__NUXT__ = {
-    serverRendered: false,
-    config: {
-      public: {
-        canonicalUrl: 'http://localhost:3000',
-      },
-      app: {
-        baseURL: '/',
-        buildAssetsDir: '/_nuxt/',
-        cdnURL: '',
-      },
-    },
-    data: {},
-    state: {},
-  }
+// Set test environment
+if (typeof process !== 'undefined' && process.env) {
+  process.env.NODE_ENV = 'test'
 }

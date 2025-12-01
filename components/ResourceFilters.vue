@@ -159,7 +159,7 @@
     </div>
 
     <!-- Tags Filter -->
-    <div>
+    <div class="mb-6">
       <h4 class="text-sm font-medium text-gray-900 mb-3">Tags</h4>
       <div
         role="group"
@@ -187,23 +187,129 @@
       </div>
     </div>
 
-    <!-- Popularity Range Filter -->
-    <div class="mb-6">
-      <h4 class="text-sm font-medium text-gray-900 mb-3">Popularity</h4>
-      <div class="space-y-4">
-        <div>
-          <label class="block text-xs text-gray-600 mb-1"
-            >Min: {{ selectedPopularityRange[0] }}</label
-          >
-          <input
-            type="range"
-            min="0"
-            max="100"
-            :value="selectedPopularityRange[0]"
-            class="w-full"
-            @input="onMinPopularityChange"
-          />
-        </div>
+<<<<<<< HEAD
+     <!-- Benefits Filter -->
+     <div v-if="allBenefits.length > 0" class="mb-6">
+       <h4 class="text-sm font-medium text-gray-900 mb-3">Benefits</h4>
+       <div
+         role="group"
+         :aria-label="'Benefit filters'"
+         class="space-y-2 max-h-40 overflow-y-auto"
+       >
+         <label
+           v-for="(benefit, index) in allBenefits"
+           :key="benefit"
+           class="flex items-center justify-between"
+           :tabindex="0"
+           @keydown.enter.prevent="toggleBenefit(benefit)"
+           @keydown.space.prevent="toggleBenefit(benefit)"
+         >
+           <div class="flex items-center">
+             <input
+               type="checkbox"
+               :value="benefit"
+               :checked="selectedBenefits.includes(benefit)"
+               class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+               :aria-label="`Filter by ${benefit} (${getCountForOption(benefit, 'benefits')} results)`"
+               @change="toggleBenefit(benefit)"
+             />
+             <span class="ml-2 text-sm text-gray-800">{{ benefit }}</span>
+           </div>
+           <span
+             class="ml-2 text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-0.5"
+             aria-label="result count"
+           >
+             {{ getCountForOption(benefit, 'benefits') }}
+           </span>
+         </label>
+       </div>
+     </div>
+
+     <!-- Popularity Range Filter -->
+     <div class="mb-6">
+       <h4 class="text-sm font-medium text-gray-900 mb-3">Popularity</h4>
+       <div class="space-y-4">
+         <div>
+           <label class="block text-xs text-gray-600 mb-1"
+             >Min: {{ selectedPopularityRange[0] }}</label
+           >
+           <input
+             type="range"
+             min="0"
+             max="100"
+             :value="selectedPopularityRange[0]"
+             class="w-full"
+             @input="onMinPopularityChange"
+           />
+         </div>
+         <div>
+           <label class="block text-xs text-gray-600 mb-1"
+             >Max: {{ selectedPopularityRange[1] }}</label
+           >
+           <input
+             type="range"
+             min="0"
+             max="100"
+             :value="selectedPopularityRange[1]"
+             class="w-full"
+             @input="onMaxPopularityChange"
+           />
+         </div>
+         <div class="flex justify-between text-xs text-gray-500">
+           <span>0</span>
+           <span>100</span>
+         </div>
+       </div>
+     </div>
+
+     <!-- Date Added Filter -->
+     <div class="mb-6">
+       <h4 class="text-sm font-medium text-gray-900 mb-3">Date Added</h4>
+       <div class="space-y-3">
+         <div>
+           <label class="block text-xs text-gray-600 mb-1">From</label>
+           <input
+             type="date"
+             :value="selectedDateRange.start"
+             class="w-full p-2 border border-gray-300 rounded text-sm"
+             @change="onDateStartChange"
+           />
+         </div>
+         <div>
+           <label class="block text-xs text-gray-600 mb-1">To</label>
+           <input
+             type="date"
+             :value="selectedDateRange.end"
+             class="w-full p-2 border border-gray-300 rounded text-sm"
+             @change="onDateEndChange"
+           />
+         </div>
+         <!-- Preset date range buttons -->
+         <div class="flex flex-wrap gap-1 mt-2">
+           <button
+             type="button"
+             class="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded"
+             @click="setDatePreset('lastWeek')"
+           >
+             Last Week
+           </button>
+           <button
+             type="button"
+             class="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded"
+             @click="setDatePreset('lastMonth')"
+           >
+             Last Month
+           </button>
+           <button
+             type="button"
+             class="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded"
+             @click="setDatePreset('lastYear')"
+           >
+             Last Year
+           </button>
+         </div>
+       </div>
+     </div>
         <div>
           <label class="block text-xs text-gray-600 mb-1"
             >Max: {{ selectedPopularityRange[1] }}</label
@@ -221,12 +327,49 @@
           <span>0</span>
           <span>100</span>
         </div>
+=======
+    <!-- Benefits Filter -->
+    <div v-if="allBenefits.length > 0" class="mb-6">
+      <h4 class="text-sm font-medium text-gray-900 mb-3">Benefits</h4>
+      <div
+        role="group"
+        :aria-label="'Benefit filters'"
+        class="space-y-2 max-h-40 overflow-y-auto"
+      >
+        <label
+          v-for="(benefit, index) in allBenefits"
+          :key="benefit"
+          class="flex items-center justify-between"
+          :tabindex="0"
+          @keydown.enter.prevent="toggleBenefit(benefit)"
+          @keydown.space.prevent="toggleBenefit(benefit)"
+        >
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              :value="benefit"
+              :checked="selectedBenefits.includes(benefit)"
+              class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+              :aria-label="`Filter by ${benefit} (${getCountForOption(benefit, 'benefits')} results)`"
+              @change="toggleBenefit(benefit)"
+            />
+            <span class="ml-2 text-sm text-gray-800">{{ benefit }}</span>
+          </div>
+          <span
+            class="ml-2 text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-0.5"
+            aria-label="result count"
+          >
+            {{ getCountForOption(benefit, 'benefits') }}
+          </span>
+        </label>
+>>>>>>> origin/main
       </div>
     </div>
 
     <!-- Date Added Filter -->
     <div class="mb-6">
       <h4 class="text-sm font-medium text-gray-900 mb-3">Date Added</h4>
+<<<<<<< HEAD
       <div class="space-y-3">
         <div>
           <label class="block text-xs text-gray-600 mb-1">From</label>
@@ -270,6 +413,49 @@
             Last Year
           </button>
         </div>
+=======
+      <div class="space-y-2">
+        <label class="flex items-center">
+          <input
+            type="radio"
+            value="anytime"
+            :checked="selectedDateRange === 'anytime'"
+            class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
+            @change="onDateRangeChange('anytime')"
+          />
+          <span class="ml-2 text-sm text-gray-800">Any time</span>
+        </label>
+        <label class="flex items-center">
+          <input
+            type="radio"
+            value="lastWeek"
+            :checked="selectedDateRange === 'lastWeek'"
+            class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
+            @change="onDateRangeChange('lastWeek')"
+          />
+          <span class="ml-2 text-sm text-gray-800">Last week</span>
+        </label>
+        <label class="flex items-center">
+          <input
+            type="radio"
+            value="lastMonth"
+            :checked="selectedDateRange === 'lastMonth'"
+            class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
+            @change="onDateRangeChange('lastMonth')"
+          />
+          <span class="ml-2 text-sm text-gray-800">Last month</span>
+        </label>
+        <label class="flex items-center">
+          <input
+            type="radio"
+            value="lastYear"
+            :checked="selectedDateRange === 'lastYear'"
+            class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
+            @change="onDateRangeChange('lastYear')"
+          />
+          <span class="ml-2 text-sm text-gray-800">Last year</span>
+        </label>
+>>>>>>> origin/main
       </div>
     </div>
 
@@ -296,11 +482,13 @@ interface Props {
   difficultyLevels: string[]
   technologies: string[]
   tags: string[]
+  benefits: string[]
   selectedCategories: string[]
   selectedPricingModels: string[]
   selectedDifficultyLevels: string[]
   selectedTechnologies: string[]
   selectedTags: string[]
+  selectedBenefits?: string[]
   selectedPopularityRange?: [number, number]
   selectedDateRange?: {
     start?: string
@@ -317,6 +505,7 @@ interface Emits {
   (event: 'toggle-difficulty-level', difficulty: string): void
   (event: 'toggle-technology', technology: string): void
   (event: 'toggle-tag', tag: string): void
+  (event: 'toggle-benefit', benefit: string): void
   (event: 'set-popularity-range', range: [number, number]): void
   (event: 'set-date-range', range: { start?: string; end?: string }): void
   (event: 'reset-filters'): void
@@ -330,6 +519,7 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   searchQuery: '',
   facetCounts: () => ({}),
+  selectedBenefits: () => [],
   selectedPopularityRange: () => [0, 100] as [number, number],
   selectedDateRange: () => ({}),
   savedSearches: () => [],
@@ -356,6 +546,10 @@ const toggleTag = (tag: string) => {
   emit('toggle-tag', tag)
 }
 
+const toggleBenefit = (benefit: string) => {
+  emit('toggle-benefit', benefit)
+}
+
 const setPopularityRange = (min: number, max: number) => {
   emit('set-popularity-range', [min, max])
 }
@@ -367,6 +561,18 @@ const setDateRange = (start?: string, end?: string) => {
 const onResetFilters = () => {
   emit('reset-filters')
 }
+
+// Computed property to get unique benefits from all resources
+const allBenefits = computed(() => {
+  const uniqueBenefits = new Set<string>()
+  Object.keys(props.facetCounts || {}).forEach(key => {
+    if (key.startsWith('benefits_')) {
+      const benefit = key.replace('benefits_', '')
+      uniqueBenefits.add(benefit)
+    }
+  })
+  return Array.from(uniqueBenefits)
+})
 
 // Helper function to get count for a specific filter option
 const getCountForOption = (option: string, filterType: string): number => {

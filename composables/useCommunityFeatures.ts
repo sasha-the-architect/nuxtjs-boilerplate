@@ -2,11 +2,12 @@
  * Composable for community features
  * Implements basic community functionality including user profiles, comments, voting, and moderation
  */
+import type { User, Comment, Vote, Flag } from '~/types/resource'
 
 export const useCommunityFeatures = (
-  initialUsers = [],
-  initialComments = [],
-  initialVotes = []
+  initialUsers: User[] = [],
+  initialComments: Comment[] = [],
+  initialVotes: Vote[] = []
 ) => {
   // User data
   const users = initialUsers
@@ -15,18 +16,18 @@ export const useCommunityFeatures = (
   // Votes data
   const votes = initialVotes
   // Flags data
-  const flags = []
+  const flags: Flag[] = []
 
   // Current user (for demo purposes)
-  let currentUser = null
+  let currentUser: User | null = null
 
   // Set current user
-  const setCurrentUser = user => {
+  const setCurrentUser = (user: User) => {
     currentUser = user
   }
 
   // User profile management
-  const createProfile = userData => {
+  const createProfile = (userData: Partial<User>) => {
     const profile = {
       id: generateId(),
       ...userData,
