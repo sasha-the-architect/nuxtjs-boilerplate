@@ -145,12 +145,16 @@ import { useRuntimeConfig } from '#imports'
 import { generateResourceShareUrls } from '~/utils/shareUtils'
 
 interface Props {
-  title: string
+  title?: string
   description?: string
-  url: string
+  url?: string
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  title: '',
+  description: '',
+  url: '',
+})
 
 const showShareMenu = ref(false)
 const shareButtonRef = ref<HTMLElement | null>(null)

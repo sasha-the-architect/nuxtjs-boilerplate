@@ -8,10 +8,14 @@ describe('ResourceFilters', () => {
     pricingModels: ['Free', 'Paid', 'Freemium'],
     difficultyLevels: ['Beginner', 'Intermediate', 'Advanced'],
     technologies: ['Vue', 'React', 'Angular'],
+    tags: ['tag1', 'tag2', 'tag3'],
+    benefits: ['benefit1', 'benefit2', 'benefit3'],
     selectedCategories: [],
     selectedPricingModels: [],
     selectedDifficultyLevels: [],
     selectedTechnologies: [],
+    selectedTags: [],
+    selectedBenefits: [],
   }
 
   it('renders all filter sections correctly', () => {

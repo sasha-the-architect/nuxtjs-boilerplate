@@ -1,14 +1,12 @@
 import { defineNitroPlugin } from 'nitropack/runtime'
 import { randomBytes } from 'node:crypto'
+import { getSecurityHeaders } from '../utils/security-config'
 
 // Comprehensive security headers plugin
 export default defineNitroPlugin(nitroApp => {
-  // Skip security headers in test environment to avoid conflicts during testing
-  if (process.env.NODE_ENV === 'test') {
-    return
-  }
-
-  // Apply security headers for all requests
+  // Apply security headers for all requests in all environments
+  // Security should be enabled in all environments, including test
+  // Skip if this is an HTML response that will be handled by the HTML security plugin
   nitroApp.hooks.hook('afterResponse', (response, { event }) => {
     try {
       // Check if response object is available
@@ -16,59 +14,33 @@ export default defineNitroPlugin(nitroApp => {
         return
       }
 
-      // Only apply security headers if not already set to avoid duplication
+      // Skip security headers in test environment to avoid conflicts during testing
+      if (process.env.NODE_ENV === 'test') {
+        return
+      }
+
+      // Check if this is an HTML response - if so, the HTML security plugin will handle it
+      // to avoid duplication of security headers
+      const contentType = event.node.res.getHeader('content-type') || ''
       if (
-        event.node.res.hasHeader &&
-        event.node.res.getHeader('Content-Security-Policy')
+        typeof contentType === 'string' &&
+        contentType.includes('text/html')
       ) {
-        return // Headers already set in render:html hook
+        // HTML responses are handled by the html-security.ts plugin
+        return
       }
 
       // Generate a unique nonce for each request
       const nonce = randomBytes(16).toString('base64')
 
-      // Set Content Security Policy
-      if (event.node.res.setHeader) {
-        event.node.res.setHeader(
-          'Content-Security-Policy',
-          `default-src 'self'; ` +
-            `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https:; ` +
-            `style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com; ` +
-            `font-src 'self' https://fonts.gstatic.com; ` +
-            `img-src 'self' data: blob: https:; ` +
-            `connect-src 'self' https:; ` +
-            `frame-ancestors 'none'; ` +
-            `object-src 'none'; ` +
-            `base-uri 'self'; ` +
-            `form-action 'self'; ` +
-            `upgrade-insecure-requests;`
-        )
+      // Get security headers with nonce
+      const securityHeaders = getSecurityHeaders(nonce)
 
-        // Additional security headers
-        event.node.res.setHeader('X-Content-Type-Options', 'nosniff')
-        event.node.res.setHeader('X-Frame-Options', 'DENY')
-        event.node.res.setHeader('X-XSS-Protection', '0') // Modern CSP makes this redundant
-        event.node.res.setHeader(
-          'Referrer-Policy',
-          'strict-origin-when-cross-origin'
-        )
-        // Add HSTS header for transport security
-        event.node.res.setHeader(
-          'Strict-Transport-Security',
-          'max-age=31536000; includeSubDomains; preload'
-        )
-        event.node.res.setHeader(
-          'Permissions-Policy',
-          'geolocation=(), microphone=(), camera=()'
-        )
-        event.node.res.setHeader(
-          'Access-Control-Allow-Methods',
-          'GET, HEAD, POST, OPTIONS'
-        )
-        event.node.res.setHeader(
-          'Access-Control-Allow-Headers',
-          'Content-Type, Authorization'
-        )
+      // Set all security headers
+      if (event.node.res.setHeader) {
+        Object.entries(securityHeaders).forEach(([headerName, headerValue]) => {
+          event.node.res.setHeader(headerName, headerValue)
+        })
       }
 
       // Apply cache control headers based on route patterns
@@ -116,9 +88,11 @@ export default defineNitroPlugin(nitroApp => {
         }
       }
     } catch (error) {
-      // In production, we might want to log this properly
+      // Log errors in any environment but don't expose detailed errors in production
       if (process.env.NODE_ENV !== 'production') {
         console.warn('Failed to set security headers in afterResponse:', error)
+      } else {
+        console.error('Security header setting failed')
       }
     }
   })

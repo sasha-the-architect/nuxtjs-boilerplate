@@ -52,7 +52,7 @@ interface SavedSearch {
 }
 
 interface Props {
-  savedSearches: SavedSearch[]
+  savedSearches?: SavedSearch[]
 }
 
 interface Emits {
@@ -60,7 +60,9 @@ interface Emits {
   (event: 'remove-saved-search', query: string): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  savedSearches: () => [],
+})
 const emit = defineEmits<Emits>()
 
 const onUseSavedSearch = (search: SavedSearch) => {

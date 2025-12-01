@@ -109,7 +109,10 @@ interface Props {
   currentCategory?: string
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  currentResource: undefined,
+  currentCategory: '',
+})
 
 const { resources } = useResourceData()
 const { addBookmark } = useBookmarks()

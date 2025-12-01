@@ -3,7 +3,7 @@ import type { Resource } from '~/types/resource'
 import { useRecommendationEngine } from '~/composables/useRecommendationEngine'
 
 // Interface for alternative suggestions
-export interface AlternativeSuggestion {
+export interface AlternativeSuggestionItem {
   resource: Resource
   score: number
   reason: string
@@ -42,10 +42,10 @@ export const useAlternativeSuggestions = (
   // Get alternatives for a specific resource
   const getAlternativesForResource = (
     targetResource: Resource
-  ): AlternativeSuggestion[] => {
+  ): AlternativeSuggestionItem[] => {
     if (!allResources || allResources.length === 0) return []
 
-    const alternatives: AlternativeSuggestion[] = []
+    const alternatives: AlternativeSuggestionItem[] = []
     const engine = useRecommendationEngine(allResources)
 
     for (const resource of allResources) {
@@ -121,7 +121,7 @@ export const useAlternativeSuggestions = (
   const getAlternativesWithCriteria = (
     targetResource: Resource,
     criteria: Partial<AlternativeConfig>
-  ): AlternativeSuggestion[] => {
+  ): AlternativeSuggestionItem[] => {
     // Temporarily update config for this request
     const originalConfig = { ...config.value }
     config.value = { ...config.value, ...criteria }

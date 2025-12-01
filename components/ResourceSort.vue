@@ -24,15 +24,18 @@
 
 <script setup lang="ts">
 interface Props {
-  selectedSortOption: string
-  totalResources: number
+  selectedSortOption?: string
+  totalResources?: number
 }
 
 interface Emits {
   (event: 'update-sort-option', option: string): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  selectedSortOption: 'popularity-desc',
+  totalResources: 0,
+})
 const emit = defineEmits<Emits>()
 
 const handleChange = (event: Event) => {

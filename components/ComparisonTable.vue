@@ -99,11 +99,14 @@ import type { ComparisonCriteria } from '~/types/comparison'
 import ComparisonValue from './ComparisonValue.vue'
 
 interface Props {
-  resources: Resource[]
-  criteria: ComparisonCriteria[]
+  resources?: Resource[]
+  criteria?: ComparisonCriteria[]
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  resources: () => [],
+  criteria: () => [],
+})
 const emit = defineEmits(['remove-resource'])
 
 const removeResource = (resourceId: string) => {

@@ -216,10 +216,11 @@ export default defineNuxtConfig({
     compressPublicAssets: true,
     // Improve build performance
     ignore: ['**/.git/**', '**/node_modules/**', '**/dist/**'],
-    // Security headers are handled via the security-headers.ts plugin
+    // Security headers are handled via the security plugins
     // to ensure proper nonce generation and dynamic header values
     plugins: [
       '~/server/plugins/security-headers.ts',
+      '~/server/plugins/html-security.ts',
       '~/server/plugins/resource-validation.ts',
     ],
   },
