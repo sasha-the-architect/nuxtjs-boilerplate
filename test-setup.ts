@@ -91,7 +91,36 @@ if (typeof global !== 'undefined') {
   }
 
   if (typeof global.document === 'undefined') {
-    global.document = global.window.document
+    // Create a more complete document mock with missing methods
+    global.document = {
+      createElement: tag => ({
+        tagName: tag.toUpperCase(),
+        style: {},
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        setAttribute: vi.fn(),
+        getAttribute: vi.fn(),
+        appendChild: vi.fn(),
+        removeChild: vi.fn(),
+        querySelector: vi.fn(),
+        querySelectorAll: vi.fn(() => []),
+        getElementById: vi.fn(),
+        body: { appendChild: vi.fn(), removeChild: vi.fn() },
+      }),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      querySelector: vi.fn(),
+      querySelectorAll: vi.fn(() => []),
+      getElementById: vi.fn(),
+      createComment: vi.fn(() => ({})), // This was the missing function
+      createTextNode: vi.fn(() => ({})),
+      createDocumentFragment: vi.fn(() => ({})),
+      cookie: '',
+      readyState: 'complete',
+      documentElement: { style: {} },
+      head: {},
+      body: { appendChild: vi.fn(), removeChild: vi.fn() },
+    }
   }
 
   if (typeof global.localStorage === 'undefined') {
