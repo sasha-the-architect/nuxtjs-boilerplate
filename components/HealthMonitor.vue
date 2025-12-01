@@ -94,9 +94,11 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+
 interface Props {
-  resourceId: string
-  url: string
+  resourceId?: string
+  url?: string
 }
 
 interface HealthStatus {
@@ -111,7 +113,10 @@ interface HealthStatus {
   validationHistory: any[]
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  resourceId: '',
+  url: '',
+})
 const healthStatus = ref<HealthStatus | null>(null)
 const isChecking = ref(false)
 

@@ -152,13 +152,16 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import type { Submission } from '~/types/submission'
 
 interface Props {
-  submissionId: string
+  submissionId?: string
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  submissionId: '',
+})
 const loading = ref(true)
 const error = ref('')
 const submission = ref<Submission | null>(null)

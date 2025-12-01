@@ -26,10 +26,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Resource } from '~/types/resource'
 
 interface Props {
-  resource: Resource
+  resource?: Resource
 }
 
 interface QualityCheck {
@@ -40,7 +41,9 @@ interface QualityCheck {
   details?: string
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  resource: () => ({}) as Resource,
+})
 
 const qualityChecks = computed<QualityCheck[]>(() => {
   const checks: QualityCheck[] = []

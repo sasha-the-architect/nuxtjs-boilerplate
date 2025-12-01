@@ -54,9 +54,12 @@
 
 <script setup lang="ts">
 interface Props {
-  value: any
-  type: 'text' | 'number' | 'boolean' | 'list'
+  value?: any
+  type?: 'text' | 'number' | 'boolean' | 'list'
 }
 
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  value: undefined,
+  type: 'text',
+})
 </script>

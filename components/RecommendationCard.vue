@@ -122,7 +122,7 @@
 import type { Resource } from '~/types/resource'
 
 interface Props {
-  resource: Resource
+  resource?: Resource
   explanation?: string
   reason?: string
 }
@@ -131,7 +131,11 @@ interface Emits {
   (e: 'bookmark', resource: Resource): void
 }
 
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  resource: () => ({}) as Resource,
+  explanation: undefined,
+  reason: undefined,
+})
 const emit = defineEmits<Emits>()
 </script>
 
