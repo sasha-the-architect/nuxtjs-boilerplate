@@ -1,6 +1,4 @@
-import { defineVitestConfig } from '@nuxt/test-utils/config'
-
-export default defineVitestConfig({
+export default {
   test: {
     globals: true,
     environment: 'node',
@@ -17,7 +15,6 @@ export default defineVitestConfig({
         'coverage/',
         '**/*.d.ts',
         '**/*.config.*',
-        'test-setup.ts',
       ],
       thresholds: {
         global: {
@@ -29,4 +26,4 @@ export default defineVitestConfig({
       },
     },
   },
-})
+}
