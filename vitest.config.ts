@@ -3,7 +3,7 @@ import { defineVitestConfig } from '@nuxt/test-utils/config'
 export default defineVitestConfig({
   test: {
     globals: true,
-    environment: 'node',
+    environment: 'happy-dom',
     testTimeout: 10000,
     setupFiles: ['./test-setup.ts'],
     coverage: {
