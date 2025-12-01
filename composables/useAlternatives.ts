@@ -1,5 +1,5 @@
 import { ref, computed, readonly } from 'vue'
-import type { Resource } from '~/types/resource'
+import type { Resource, AlternativeSuggestion } from '~/types/resource'
 import { useResourceData } from '~/composables/useResourceData'
 
 // Types for alternative suggestions
@@ -10,12 +10,6 @@ export interface AlternativeRelationship {
   similarityScore: number
   reason: string
   createdAt: string
-}
-
-export interface AlternativeSuggestion {
-  resource: Resource
-  similarityScore: number
-  reason: string
 }
 
 // Main composable for alternative suggestions

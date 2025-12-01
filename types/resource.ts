@@ -113,3 +113,10 @@ export type SortOption =
   | 'alphabetical-desc'
   | 'popularity-desc'
   | 'date-added-desc'
+
+// Alternative suggestion interfaces
+export interface AlternativeSuggestion {
+  resource: Resource
+  similarityScore: number
+  reason: string
+}
