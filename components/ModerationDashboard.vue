@@ -83,7 +83,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { logger } from '~/utils/logger'
+import logger from '~/utils/logger'
 interface ActivityItem {
   id: string
   type: 'approve' | 'reject' | 'flag' | 'submit'

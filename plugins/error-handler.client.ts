@@ -1,5 +1,6 @@
 import { defineNuxtPlugin } from '#app'
 import { logError } from '~/utils/errorLogger'
+import logger from '~/utils/logger'
 
 export default defineNuxtPlugin(() => {
   // Global error handler for uncaught errors

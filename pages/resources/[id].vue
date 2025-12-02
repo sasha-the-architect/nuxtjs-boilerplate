@@ -822,6 +822,7 @@ import { useResources, type Resource } from '~/composables/useResources'
 import ResourceCard from '~/components/ResourceCard.vue'
 import RecommendationsSection from '~/components/RecommendationsSection.vue'
 import AlternativeSuggestions from '~/components/AlternativeSuggestions.vue'
+import logger from '~/utils/logger'
 
 import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
@@ -1014,7 +1015,7 @@ const fetchResourceHistory = async (resourceId: string) => {
       }
     }
   } catch (err) {
-    console.error('Error fetching resource history:', err)
+    logger.error('Error fetching resource history:', err)
     // If history fetch fails, continue without history data
   }
 }
@@ -1027,7 +1028,7 @@ const fetchResourceAnalytics = async (resourceId: string) => {
       analyticsData.value = response.data
     }
   } catch (err) {
-    console.error('Error fetching resource analytics:', err)
+    logger.error('Error fetching resource analytics:', err)
     // Set default values if analytics fetch fails
     analyticsData.value = {
       resourceId,
@@ -1067,10 +1068,10 @@ const copyToClipboard = async () => {
       document.body.removeChild(textArea)
       if (!successful) {
         // If even execCommand fails, we can't copy to clipboard
-        console.warn('Failed to copy to clipboard')
+        logger.warn('Failed to copy to clipboard')
       }
     } catch (fallbackErr) {
-      console.warn('Clipboard API and execCommand both failed:', fallbackErr)
+      logger.warn('Clipboard API and execCommand both failed:', fallbackErr)
     }
   }
 }

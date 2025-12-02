@@ -1,6 +1,6 @@
 // Composable for managing search history
 import { ref, computed } from 'vue'
-import { logger } from '~/utils/logger'
+import logger from '~/utils/logger'
 
 export const useSearchHistory = () => {
   const SEARCH_HISTORY_KEY = 'resource_search_history'

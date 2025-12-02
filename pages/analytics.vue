@@ -305,6 +305,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import logger from '~/utils/logger'
 import SearchAnalytics from '~/components/SearchAnalytics.vue'
 
 // Define types
@@ -372,7 +373,7 @@ const fetchAnalyticsData = async () => {
 
     analyticsData.value = data
   } catch (err: any) {
-    console.error('Error fetching analytics:', err)
+    logger.error('Error fetching analytics:', err)
     error.value = err.message || 'Failed to load analytics data'
   } finally {
     loading.value = false

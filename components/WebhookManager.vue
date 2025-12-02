@@ -110,6 +110,7 @@
 </template>
 
 <script setup lang="ts">
+import logger from '~/utils/logger'
 import type { Webhook } from '~/types/webhook'
 
 const showCreateForm = ref(false)
@@ -138,7 +139,7 @@ const fetchWebhooks = async () => {
     const response = await $fetch('/api/v1/webhooks')
     webhooks.value = response.data
   } catch (error) {
-    console.error('Error fetching webhooks:', error)
+    logger.error('Error fetching webhooks:', error)
   } finally {
     loading.value = false
   }
@@ -161,7 +162,7 @@ const createWebhook = async () => {
     // Refresh list
     await fetchWebhooks()
   } catch (error) {
-    console.error('Error creating webhook:', error)
+    logger.error('Error creating webhook:', error)
   }
 }
 
@@ -176,7 +177,7 @@ const toggleWebhook = async (webhook: Webhook) => {
     // Refresh list
     await fetchWebhooks()
   } catch (error) {
-    console.error('Error toggling webhook:', error)
+    logger.error('Error toggling webhook:', error)
   }
 }
 
@@ -191,7 +192,7 @@ const deleteWebhook = async (id: string) => {
       // Refresh list
       await fetchWebhooks()
     } catch (error) {
-      console.error('Error deleting webhook:', error)
+      logger.error('Error deleting webhook:', error)
     }
   }
 }

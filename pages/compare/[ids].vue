@@ -56,6 +56,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute, navigateTo } from '#app'
+import logger from '~/utils/logger'
 import type { Resource } from '~/types/resource'
 import type { ComparisonCriteria } from '~/types/comparison'
 import ComparisonTable from '~/components/ComparisonTable.vue'
@@ -156,7 +157,7 @@ const fetchComparison = async () => {
 
     resources.value = response.resources || []
   } catch (err: any) {
-    console.error('Error fetching comparison:', err)
+    logger.error('Error fetching comparison:', err)
     error.value =
       err.data?.statusMessage || err.message || 'Failed to load comparison'
   } finally {

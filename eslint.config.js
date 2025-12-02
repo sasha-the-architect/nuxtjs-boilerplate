@@ -66,9 +66,11 @@ export default [
         sourceType: 'module',
         ecmaFeatures: {
           jsx: true,
-        },
-      },
-    },
+       },
+     },
+     rules: {
+       'no-console': ['warn', { allow: ['warn', 'error'] }], // Allow only specific console methods, prefer using logger
+     },
     plugins: {
       prettier: pluginPrettier,
       nuxt: nuxtPlugin,
@@ -82,7 +84,7 @@ export default [
       'vue/require-default-prop': 'off', // Allow optional props without defaults
       'vue/no-required-prop-with-default': 'off', // Allow required props with defaults
       'prettier/prettier': 'error',
-      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }], // Allow only specific console methods, prefer using logger
+'no-console': ['warn', { allow: ['warn', 'error', 'info'] }], // Allow only specific console methods, prefer using logger
       'no-debugger': 'warn',
       'no-unused-vars': 'off', // Disable this rule to allow unused variables in development
     },
@@ -222,7 +224,11 @@ export default [
       },
     },
     rules: {
+<<<<<<< HEAD
       'no-console': ['warn', { allow: ['warn', 'error'] }], // Allow only specific console methods, prefer using logger
+=======
+      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn', // Prevent console statements in production
+>>>>>>> c890ae9 (feat: implement structured logging utility and replace console statements)
     },
   },
   // Configuration for test files

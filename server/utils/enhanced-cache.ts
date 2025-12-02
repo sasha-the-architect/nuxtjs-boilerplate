@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import Redis from 'ioredis'
+import logger from '~/utils/logger'
 
 interface CacheEntry {
   data: any
@@ -54,12 +55,12 @@ class CacheManager {
         this.redisClient.on('connect', () => {
           this.redisConnected = true
           if (process.env.NODE_ENV !== 'production') {
-            console.log('Successfully connected to Redis')
+            logger.info('Successfully connected to Redis')
           }
         })
 
         this.redisClient.on('error', error => {
-          console.warn('Redis connection error:', error)
+          logger.warn('Redis connection error:', error)
           this.redisConnected = false
           // Fallback to memory cache only
           this.enableRedis = false
@@ -67,13 +68,13 @@ class CacheManager {
 
         this.redisClient.on('reconnecting', () => {
           if (process.env.NODE_ENV !== 'production') {
-            console.log('Reconnecting to Redis...')
+            logger.info('Reconnecting to Redis...')
           }
         })
 
         // Attempt to connect
         this.redisClient.connect().catch(error => {
-          console.warn(
+          logger.warn(
             'Failed to connect to Redis, falling back to memory cache:',
             error
           )
@@ -81,7 +82,7 @@ class CacheManager {
           this.redisConnected = false
         })
       } catch (error) {
-        console.warn(
+        logger.warn(
           'Failed to initialize Redis client, falling back to memory cache:',
           error
         )
@@ -145,7 +146,7 @@ class CacheManager {
           return parsedValue
         }
       } catch (error) {
-        console.warn('Redis get error, falling back to memory cache:', error)
+        logger.warn('Redis get error, falling back to memory cache:', error)
         // Don't disable Redis here, just log the error and continue
       }
     }
@@ -188,7 +189,7 @@ class CacheManager {
       try {
         await this.redisClient.setex(key, ttl, JSON.stringify(value))
       } catch (error) {
-        console.warn('Redis set error:', error)
+        logger.warn('Redis set error:', error)
         // Don't disable Redis here, just log the error and continue
       }
     }
@@ -213,7 +214,7 @@ class CacheManager {
       try {
         await this.redisClient.del(key)
       } catch (error) {
-        console.warn('Redis delete error:', error)
+        logger.warn('Redis delete error:', error)
         // Don't disable Redis here, just log the error and continue
       }
     }
@@ -231,7 +232,7 @@ class CacheManager {
       try {
         await this.redisClient.flushall()
       } catch (error) {
-        console.warn('Redis clear error:', error)
+        logger.warn('Redis clear error:', error)
         // Don't disable Redis here, just log the error and continue
       }
     }
@@ -301,7 +302,7 @@ class CacheManager {
           invalidatedCount += keys.length
         }
       } catch (error) {
-        console.warn('Redis invalidate error:', error)
+        logger.warn('Redis invalidate error:', error)
         // Don't disable Redis here, just log the error and continue
       }
     }
@@ -332,7 +333,7 @@ class CacheManager {
         await this.redisClient.quit()
         this.redisConnected = false
       } catch (error) {
-        console.warn('Error closing Redis connection:', error)
+        logger.warn('Error closing Redis connection:', error)
       }
     }
   }

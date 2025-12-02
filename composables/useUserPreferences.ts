@@ -2,7 +2,7 @@
 // Composable for managing user preferences and profiles
 
 import { ref, computed, readonly } from 'vue'
-import { logger } from '~/utils/logger'
+import logger from '~/utils/logger'
 import type {
   UserPreferences,
   UserProfile,
