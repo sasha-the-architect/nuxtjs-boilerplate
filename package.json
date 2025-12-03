@@ -20,7 +20,10 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --run --coverage",
     "test:watch": "vitest --watch",
-    "analyze": "ANALYZE_BUNDLE=true nuxt build"
+    "analyze": "ANALYZE_BUNDLE=true nuxt build",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -29,6 +32,7 @@
     "@nuxt/test-utils": "^3.20.1",
     "@nuxtjs/stylelint-module": "^5.1.0",
     "@nuxtjs/tailwindcss": "^6.14.0",
+    "@prisma/client": "^7.0.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@types/dompurify": "^3.0.5",
     "@types/node": "^24.10.1",
@@ -54,6 +58,7 @@
     "postcss": "^8.4.32",
     "postcss-html": "^1.5.0",
     "prettier": "^3.1.1",
+    "prisma": "^7.0.1",
     "rollup-plugin-visualizer": "^6.0.5",
     "stylelint": "^16.26.0",
     "stylelint-config-css-modules": "^4.3.0",
@@ -68,6 +73,7 @@
   },
   "dependencies": {
     "@nuxt/image": "^2.0.0",
+    "@prisma/client": "^7.0.1",
     "dompurify": "^3.3.0",
     "fuse.js": "^7.1.0",
     "nuxt-openapi": "^1.0.0",

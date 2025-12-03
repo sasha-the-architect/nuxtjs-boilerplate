@@ -1,0 +1,25 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  type       String
+  resourceId String?
+  category   String?
+  url        String?
+  userAgent  String?
+  ip         String
+  timestamp  DateTime @default(now())
+  properties Json?
+
+  @@index([timestamp])
+  @@index([resourceId])
+  @@index([type])
+  @@index([ip])
+}

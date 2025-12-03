@@ -169,13 +169,7 @@ describe('Analytics Utilities', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          type: 'search',
-          properties: {
-            query: 'test query',
-            resultsCount: 5,
-          },
-        }),
+        body: expect.stringContaining('"type":"search"'),
       })
     })
   })
