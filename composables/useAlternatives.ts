@@ -1,16 +1,12 @@
 import { ref, computed, readonly } from 'vue'
-import type { Resource, AlternativeSuggestion } from '~/types/resource'
+import type {
+  Resource,
+  AlternativeSuggestion,
+  AlternativeRelationship,
+} from '~/types/resource'
 import { useResourceData } from '~/composables/useResourceData'
 
 // Types for alternative suggestions
-export interface AlternativeRelationship {
-  id: string
-  resourceId: string
-  alternativeId: string
-  similarityScore: number
-  reason: string
-  createdAt: string
-}
 
 // Main composable for alternative suggestions
 export const useAlternatives = () => {
@@ -95,15 +91,17 @@ export const useAlternatives = () => {
       if (score >= 0.3) {
         alternatives.push({
           resource,
-          similarityScore: score,
+          score,
           reason,
+          isAlternative: true,
+          similarityFactors: [],
         })
       }
     }
 
     // Sort by similarity score and return top suggestions
     return alternatives
-      .sort((a, b) => b.similarityScore - a.similarityScore)
+      .sort((a, b) => b.score - a.score)
       .slice(0, maxSuggestions)
   }
 
@@ -120,8 +118,10 @@ export const useAlternatives = () => {
       if (alternativeResource) {
         alternativeSuggestions.push({
           resource: alternativeResource,
-          similarityScore: targetResource.similarityScore || 0.8, // Default to high score for predefined
+          score: targetResource.similarityScore || 0.8, // Default to high score for predefined
           reason: 'predefined alternative',
+          isAlternative: true,
+          similarityFactors: [],
         })
       }
     }
@@ -148,7 +148,7 @@ export const useAlternatives = () => {
 
     // Sort by similarity score and return top suggestions
     return uniqueAlternatives
-      .sort((a, b) => b.similarityScore - a.similarityScore)
+      .sort((a, b) => b.score - a.score)
       .slice(0, maxSuggestions)
   }
 

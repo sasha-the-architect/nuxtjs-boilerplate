@@ -110,8 +110,19 @@ export interface FilterOptions {
 
 export interface AlternativeSuggestion {
   resource: Resource
+  score: number
+  reason: string
+  isAlternative: boolean
+  similarityFactors: string[]
+}
+
+export interface AlternativeRelationship {
+  id: string
+  resourceId: string
+  alternativeId: string
   similarityScore: number
   reason: string
+  createdAt: string
 }
 
 export type SortOption =

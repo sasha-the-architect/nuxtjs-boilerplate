@@ -264,7 +264,7 @@ const handleImageError = () => {
     `Failed to load image for resource: ${props.title}`,
     undefined,
     'ResourceCard',
-    { resourceTitle: props.title, resourceUrl: props.image }
+    { resourceTitle: props.title, resourceUrl: props.icon }
   )
 }
 
@@ -321,21 +321,35 @@ const resourceSchema = computed(() => {
   // Only create schema if there's no error
   if (hasError.value) return null
 
-  return {
+  const schema: Record<string, any> = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication', // Using SoftwareApplication as most resources are web-based tools
     name: props.title,
     description: props.description,
     url: props.url,
-    offers: {
-      '@type': 'Offer',
-      availability: 'https://schema.org/InStock',
-      price: '0',
-      priceCurrency: 'USD',
-    },
-    applicationCategory: 'http://schema.org/BusinessApplication',
-    operatingSystem: 'Web',
   }
+
+  // Add icon if available
+  if (props.icon) {
+    schema.image = props.icon
+  }
+
+  // Add offers information
+  schema.offers = {
+    '@type': 'Offer',
+    availability: 'https://schema.org/InStock',
+    price: '0',
+    priceCurrency: 'USD',
+  }
+
+  // Add category information
+  if (props.category) {
+    schema.applicationCategory = props.category
+  }
+
+  schema.operatingSystem = 'Web'
+
+  return schema
 })
 
 // Add JSON-LD structured data to the head if no error

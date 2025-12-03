@@ -2,15 +2,6 @@ import { ref, computed, readonly } from 'vue'
 import type { Resource, AlternativeSuggestion } from '~/types/resource'
 import { useRecommendationEngine } from '~/composables/useRecommendationEngine'
 
-// Extended interface for alternative suggestions with additional metadata
-export interface AlternativeSuggestionItem {
-  resource: Resource
-  score: number
-  reason: string
-  isAlternative: boolean
-  similarityFactors: string[]
-}
-
 // Configuration for alternative suggestions
 export interface AlternativeConfig {
   minSimilarityScore: number
