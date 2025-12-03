@@ -66,9 +66,11 @@ export default [
         sourceType: 'module',
         ecmaFeatures: {
           jsx: true,
-        },
-      },
-    },
+       },
+     },
+     rules: {
+       'no-console': ['warn', { allow: ['warn', 'error'] }], // Allow only specific console methods, prefer using logger
+     },
     plugins: {
       prettier: pluginPrettier,
       nuxt: nuxtPlugin,
@@ -82,7 +84,7 @@ export default [
       'vue/require-default-prop': 'off', // Allow optional props without defaults
       'vue/no-required-prop-with-default': 'off', // Allow required props with defaults
       'prettier/prettier': 'error',
-      'no-console': 'off', // Allow console statements in Vue components for error logging
+'no-console': ['warn', { allow: ['warn', 'error', 'info'] }], // Allow only specific console methods, prefer using logger
       'no-debugger': 'warn',
       'no-unused-vars': 'off', // Disable this rule to allow unused variables in development
     },
@@ -132,7 +134,10 @@ export default [
     },
     rules: {
       'comma-dangle': ['error', 'only-multiline'],
-      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+      'no-console':
+        process.env.NODE_ENV === 'production'
+          ? 'error'
+          : ['warn', { allow: ['warn', 'error', 'info'] }], // Allow only specific console methods, prefer using logger
       'no-debugger': 'warn',
       'prettier/prettier': 'error',
       'no-unused-vars': 'off', // Disable this rule to allow unused variables in development
@@ -193,7 +198,10 @@ export default [
     },
     rules: {
       'comma-dangle': ['error', 'only-multiline'],
-      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+      'no-console':
+        process.env.NODE_ENV === 'production'
+          ? 'error'
+          : ['warn', { allow: ['warn', 'error', 'info'] }], // Allow only specific console methods, prefer using logger
       'no-debugger': 'warn',
       'prettier/prettier': 'error',
       'no-unused-vars': 'off', // Disable this rule to allow unused variables in development
@@ -216,7 +224,11 @@ export default [
       },
     },
     rules: {
-      'no-console': 'off', // Allow console statements in server-side code for error logging
+<<<<<<< HEAD
+      'no-console': ['warn', { allow: ['warn', 'error'] }], // Allow only specific console methods, prefer using logger
+=======
+      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn', // Prevent console statements in production
+>>>>>>> c890ae9 (feat: implement structured logging utility and replace console statements)
     },
   },
   // Configuration for test files
@@ -246,7 +258,7 @@ export default [
     },
     rules: {
       'vue/one-component-per-file': 'off', // Allow multiple components in test files
-      'no-console': 'off', // Allow console statements in test and validation files for debugging
+      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }], // Allow only specific console methods, prefer using logger
     },
   },
   // Configuration for script files
@@ -260,7 +272,7 @@ export default [
       },
     },
     rules: {
-      'no-console': 'off', // Allow console statements in script files
+      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }], // Allow only specific console methods, prefer using logger
     },
   },
   // Configuration for utility files
@@ -275,7 +287,7 @@ export default [
       },
     },
     rules: {
-      'no-console': 'off', // Allow console statements in utility files for error logging
+      'no-console': ['warn', { allow: ['warn', 'error'] }], // Allow only specific console methods, prefer using logger
     },
   },
   // Special configuration for error logger
@@ -304,7 +316,7 @@ export default [
       },
     },
     rules: {
-      'no-console': 'off', // Allow console statements in nuxt config for build-time logging
+      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }], // Allow only specific console methods, prefer using logger
     },
   },
   // Apply prettier config to disable conflicting rules

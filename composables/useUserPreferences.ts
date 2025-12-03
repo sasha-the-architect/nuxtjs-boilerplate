@@ -2,6 +2,7 @@
 // Composable for managing user preferences and profiles
 
 import { ref, computed, readonly } from 'vue'
+import logger from '~/utils/logger'
 import type {
   UserPreferences,
   UserProfile,
@@ -53,7 +54,7 @@ export const useUserPreferences = () => {
       }
     } catch (err) {
       error.value = 'Failed to initialize user profile'
-      console.error('Error initializing user profile:', err)
+      logger.error('Error initializing user profile:', err)
     } finally {
       loading.value = false
     }
@@ -76,7 +77,7 @@ export const useUserPreferences = () => {
       return true
     } catch (err) {
       error.value = 'Failed to update preferences'
-      console.error('Error updating preferences:', err)
+      logger.error('Error updating preferences:', err)
       return false
     }
   }
@@ -102,7 +103,7 @@ export const useUserPreferences = () => {
       return true
     } catch (err) {
       error.value = 'Failed to track interaction'
-      console.error('Error tracking interaction:', err)
+      logger.error('Error tracking interaction:', err)
       return false
     }
   }

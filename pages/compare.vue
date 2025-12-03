@@ -23,6 +23,7 @@
 <script setup lang="ts">
 import { useResourceComparison } from '~/composables/useResourceComparison'
 import { useNuxtApp } from '#app'
+import logger from '~/utils/logger'
 import type { Resource } from '~/types/resource'
 import ComparisonBuilder from '~/components/ComparisonBuilder.vue'
 
@@ -57,7 +58,7 @@ const shareComparison = () => {
       nuxtApp.$toast.success('Comparison URL copied to clipboard!')
     })
     .catch(err => {
-      console.error('Failed to copy URL: ', err)
+      logger.error('Failed to copy URL: ', err)
     })
 }
 

@@ -1,5 +1,6 @@
 // utils/analytics.ts
 // Client-side analytics tracking utilities
+import logger from '~/utils/logger'
 
 export interface AnalyticsEvent {
   type: string
@@ -29,13 +30,13 @@ export async function trackEvent(event: AnalyticsEvent): Promise<boolean> {
     const result = await response.json()
 
     if (!result.success) {
-      console.error('Failed to track analytics event:', result.message)
+      logger.error('Failed to track analytics event:', result.message)
       return false
     }
 
     return true
   } catch (error) {
-    console.error('Error tracking analytics event:', error)
+    logger.error('Error tracking analytics event:', error)
     return false
   }
 }
@@ -199,7 +200,7 @@ export async function trackResourceRating(
   title: string
 ): Promise<boolean> {
   if (rating < 1 || rating > 5) {
-    console.error('Rating must be between 1 and 5')
+    logger.error('Rating must be between 1 and 5')
     return false
   }
 

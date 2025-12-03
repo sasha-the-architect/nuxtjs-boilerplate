@@ -113,6 +113,12 @@ export interface FilterOptions {
   } // date range for filtering
 }
 
+export interface AlternativeSuggestion {
+  resource: Resource
+  similarityScore: number
+  reason: string
+}
+
 export type SortOption =
   | 'alphabetical-asc'
   | 'alphabetical-desc'

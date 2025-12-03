@@ -82,6 +82,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import logger from '~/utils/logger'
 interface ActivityItem {
   id: string
   type: 'approve' | 'reject' | 'flag' | 'submit'
@@ -140,7 +142,7 @@ const loadStatistics = async () => {
       },
     ]
   } catch (err) {
-    console.error('Error loading dashboard data:', err)
+    logger.error('Error loading dashboard data:', err)
     // Set default values in case of error
     pendingCount.value = 0
     approvedCount.value = 0

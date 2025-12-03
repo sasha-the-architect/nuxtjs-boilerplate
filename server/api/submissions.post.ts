@@ -1,5 +1,6 @@
 // For Nuxt 3, we'll use the built-in storage system instead of file system directly
 import { defineEventHandler, readBody } from 'h3'
+import { logger } from '~/utils/logger'
 import type { Submission } from '~/types/submission'
 
 export default defineEventHandler(async event => {
@@ -100,7 +101,6 @@ export default defineEventHandler(async event => {
     }
 
     // For now, we'll log the submission (in a real app, this would go to a database)
-    // console.log('New submission received:', submission) // Commented for production
 
     return {
       success: true,
@@ -108,10 +108,7 @@ export default defineEventHandler(async event => {
       submissionId: submission.id,
     }
   } catch (error: any) {
-    // In production, we might want to use a proper error tracking service instead of console
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error processing submission:', error)
-    }
+    logger.error('Error processing submission:', error)
 
     // Return proper error response
     if (error.statusCode) {

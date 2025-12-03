@@ -96,15 +96,20 @@ describe('useSearchHistory', () => {
     expect(history).toEqual([])
   })
 
-  it('should not have remove specific query functionality (only add/clear)', () => {
-    // The actual composable doesn't have a removeSearch method
-    const { getSearchHistory, addSearchToHistory, clearSearchHistory } =
-      useSearchHistory()
+  it('should have remove specific query functionality', () => {
+    // The updated composable now has a removeSearch method
+    const {
+      getSearchHistory,
+      addSearchToHistory,
+      clearSearchHistory,
+      removeSearch,
+    } = useSearchHistory()
 
-    // Verify that only the expected methods exist
+    // Verify that all expected methods exist
     expect(typeof getSearchHistory).toBe('function')
     expect(typeof addSearchToHistory).toBe('function')
     expect(typeof clearSearchHistory).toBe('function')
+    expect(typeof removeSearch).toBe('function')
   })
 
   it('should save history to localStorage when adding a query', () => {
@@ -149,6 +154,54 @@ describe('useSearchHistory', () => {
       'resource_search_history',
       expect.any(String)
     )
+  })
+
+  it('should remove a specific query from history', () => {
+    const existingHistory = ['query 1', 'query 2', 'query 3']
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(existingHistory))
+
+    const { getSearchHistory, addSearchToHistory, removeSearch } =
+      useSearchHistory()
+
+    // Add a query first to ensure it's in the list
+    addSearchToHistory('query to remove')
+    let history = getSearchHistory()
+    expect(history).toContain('query to remove')
+
+    // Remove the query
+    removeSearch('query to remove')
+    history = getSearchHistory()
+
+    expect(history).not.toContain('query to remove')
+  })
+
+  it('should handle case-insensitive removal of queries', () => {
+    const existingHistory = ['Query 1', 'query 2', 'QUERY 3']
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(existingHistory))
+
+    const { getSearchHistory, removeSearch } = useSearchHistory()
+
+    // Remove with different case
+    removeSearch('query 1')
+    const history = getSearchHistory()
+
+    expect(history).not.toContain('Query 1')
+    expect(history).toHaveLength(2) // Should have 2 items left
+  })
+
+  it('should not throw error when trying to remove non-existent query', () => {
+    const existingHistory = ['query 1', 'query 2', 'query 3']
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(existingHistory))
+
+    const { getSearchHistory, removeSearch } = useSearchHistory()
+
+    // Remove a query that doesn't exist
+    expect(() => {
+      removeSearch('non-existent query')
+    }).not.toThrow()
+
+    const history = getSearchHistory()
+    expect(history).toHaveLength(3) // Should still have all 3 original items
   })
 
   it('should handle localStorage errors gracefully', () => {

@@ -1,5 +1,6 @@
 import { ref, computed, readonly } from 'vue'
 import { logError } from '~/utils/errorLogger'
+import logger from '~/utils/logger'
 import type { Resource } from '~/types/resource'
 
 // Main composable for managing resource data
@@ -39,10 +40,8 @@ export const useResourceData = () => {
         { attempt, maxRetries, errorType: err?.constructor?.name }
       )
 
-      // In production, we might want to use a proper error tracking service instead of console
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error loading resources:', err)
-      }
+      // Log error using structured logger
+      logger.error('Error loading resources:', err)
       error.value = `Failed to load resources${attempt < maxRetries ? '. Retrying...' : ''}`
 
       // Retry if we haven't exceeded max retries

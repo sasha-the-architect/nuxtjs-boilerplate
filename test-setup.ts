@@ -1,8 +1,121 @@
 // Test setup file for Vitest with Nuxt
 import { vi } from 'vitest'
 
-// Mock the nuxt-vitest-app-entry that causes the original error
-vi.mock('#app/nuxt-vitest-app-entry', () => ({}))
+// Mock Nuxt composables and utilities
+vi.mock('#app', async importOriginal => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    useNuxtApp: vi.fn(() => ({
+      $pinia: null,
+      $router: null,
+      $route: null,
+      $config: {},
+      isHydrating: false,
+    })),
+    useRuntimeConfig: vi.fn(() => ({})),
+    useState: vi.fn((key, init) => {
+      const states = {}
+      if (!states[key]) {
+        states[key] = init ? init() : null
+      }
+      return states[key]
+    }),
+    useRequestHeaders: vi.fn(() => ({})),
+    useCookie: vi.fn(() => null),
+    useAsyncData: vi.fn(() => ({
+      data: { value: null },
+      pending: { value: false },
+      error: { value: null },
+    })),
+    useFetch: vi.fn(() => ({
+      data: { value: null },
+      pending: { value: false },
+      error: { value: null },
+    })),
+    navigateTo: vi.fn(to => Promise.resolve(to)),
+    definePageMeta: vi.fn(() => ({})),
+    useHead: vi.fn(),
+    useError: vi.fn(() => ({ value: null })),
+    showError: vi.fn(),
+    clearError: vi.fn(),
+<<<<<<< HEAD
+=======
+  }
+})
+
+// Mock #app/composables specifically
+vi.mock('#app/composables/router', () => ({
+  useRouter: vi.fn(() => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    go: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+  })),
+  useRoute: vi.fn(() => ({
+    path: '/',
+    params: {},
+    query: {},
+    fullPath: '/',
+    hash: '',
+    redirectedFrom: undefined,
+  })),
+}))
+
+// Mock vue composables
+vi.mock('vue', async importOriginal => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    getCurrentInstance: vi.fn(() => ({
+      appContext: {
+        app: {
+          config: {
+            globalProperties: {},
+          },
+        },
+      },
+    })),
+>>>>>>> 2d2b99d (fix(pr#461): resolve build system instability by updating test configuration)
+  }
+})
+
+// Mock #app/composables specifically
+vi.mock('#app/composables/router', () => ({
+  useRouter: vi.fn(() => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    go: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+  })),
+  useRoute: vi.fn(() => ({
+    path: '/',
+    params: {},
+    query: {},
+    fullPath: '/',
+    hash: '',
+    redirectedFrom: undefined,
+  })),
+}))
+
+// Mock vue composables
+vi.mock('vue', async importOriginal => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    getCurrentInstance: vi.fn(() => ({
+      appContext: {
+        app: {
+          config: {
+            globalProperties: {},
+          },
+        },
+      },
+    })),
+  }
+})
 
 // Create a basic DOM environment for Vue components
 // This is needed because Vue components expect certain browser APIs
@@ -20,12 +133,17 @@ if (typeof global !== 'undefined') {
           getAttribute: vi.fn(),
           appendChild: vi.fn(),
           removeChild: vi.fn(),
+          insertBefore: vi.fn(),
           querySelector: vi.fn(),
           querySelectorAll: vi.fn(() => []),
           getElementById: vi.fn(),
           createComment: vi.fn(() => ({})), // This was the missing function
           createTextNode: vi.fn(() => ({})),
-          body: { appendChild: vi.fn(), removeChild: vi.fn() },
+          body: {
+            appendChild: vi.fn(),
+            removeChild: vi.fn(),
+            insertBefore: vi.fn(),
+          },
         }),
         addEventListener: vi.fn(),
         removeEventListener: vi.fn(),
@@ -91,7 +209,36 @@ if (typeof global !== 'undefined') {
   }
 
   if (typeof global.document === 'undefined') {
-    global.document = global.window.document
+    // Create a more complete document mock with missing methods
+    global.document = {
+      createElement: tag => ({
+        tagName: tag.toUpperCase(),
+        style: {},
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        setAttribute: vi.fn(),
+        getAttribute: vi.fn(),
+        appendChild: vi.fn(),
+        removeChild: vi.fn(),
+        querySelector: vi.fn(),
+        querySelectorAll: vi.fn(() => []),
+        getElementById: vi.fn(),
+        body: { appendChild: vi.fn(), removeChild: vi.fn() },
+      }),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      querySelector: vi.fn(),
+      querySelectorAll: vi.fn(() => []),
+      getElementById: vi.fn(),
+      createComment: vi.fn(() => ({})), // This was the missing function
+      createTextNode: vi.fn(() => ({})),
+      createDocumentFragment: vi.fn(() => ({})),
+      cookie: '',
+      readyState: 'complete',
+      documentElement: { style: {} },
+      head: {},
+      body: { appendChild: vi.fn(), removeChild: vi.fn() },
+    }
   }
 
   if (typeof global.localStorage === 'undefined') {
@@ -106,20 +253,19 @@ if (typeof global !== 'undefined') {
     global.navigator = global.window.navigator
   }
 
+  if (typeof global.Element === 'undefined') {
+    global.Element = class Element {}
+  }
   if (typeof global.HTMLElement === 'undefined') {
     global.HTMLElement = class HTMLElement {}
   }
 
   if (typeof global.HTMLInputElement === 'undefined') {
-    global.HTMLInputElement = class HTMLInputElement extends (
-      global.HTMLElement
-    ) {}
+    global.HTMLInputElement = class HTMLInputElement {}
   }
 
   if (typeof global.HTMLTextAreaElement === 'undefined') {
-    global.HTMLTextAreaElement = class HTMLTextAreaElement extends (
-      global.HTMLElement
-    ) {}
+    global.HTMLTextAreaElement = class HTMLTextAreaElement {}
   }
 
   if (typeof global.SVGElement === 'undefined') {

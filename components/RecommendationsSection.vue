@@ -96,6 +96,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
+import logger from '~/utils/logger'
 import RecommendationCard from './RecommendationCard.vue'
 import { useRecommendationEngine } from '~/composables/useRecommendationEngine'
 import { useResourceData } from '~/composables/useResourceData'
@@ -159,7 +160,7 @@ const initRecommendations = async () => {
     }
   } catch (err) {
     error.value = 'Failed to load recommendations'
-    console.error('Error loading recommendations:', err)
+    logger.error('Error loading recommendations:', err)
   } finally {
     loading.value = false
   }

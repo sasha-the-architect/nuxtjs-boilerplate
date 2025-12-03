@@ -153,6 +153,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import logger from '~/utils/logger'
 import type { Submission } from '~/types/submission'
 
 interface Props {
@@ -182,7 +183,7 @@ const fetchSubmission = async () => {
     }
   } catch (err) {
     error.value = 'An error occurred while fetching submission'
-    console.error(err)
+    logger.error('Error fetching submission:', err)
   } finally {
     loading.value = false
   }
@@ -213,7 +214,7 @@ const approveSubmission = async () => {
       alert(response.message || 'Failed to approve submission')
     }
   } catch (err) {
-    console.error('Error approving submission:', err)
+    logger.error('Error approving submission:', err)
     alert('An error occurred while approving the submission')
   }
 }
@@ -250,7 +251,7 @@ const rejectSubmission = async () => {
       alert(response.message || 'Failed to reject submission')
     }
   } catch (err) {
-    console.error('Error rejecting submission:', err)
+    logger.error('Error rejecting submission:', err)
     alert('An error occurred while rejecting the submission')
   }
 }

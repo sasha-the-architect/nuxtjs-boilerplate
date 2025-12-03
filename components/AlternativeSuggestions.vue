@@ -26,11 +26,8 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
 import ResourceCard from './ResourceCard.vue'
-import {
-  useAlternatives,
-  type AlternativeSuggestion,
-} from '~/composables/useAlternatives'
-import type { Resource } from '~/types/resource'
+import { useAlternatives } from '~/composables/useAlternatives'
+import type { Resource, AlternativeSuggestion } from '~/types/resource'
 
 interface Props {
   resource?: Resource

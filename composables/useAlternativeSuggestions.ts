@@ -1,8 +1,8 @@
 import { ref, computed, readonly } from 'vue'
-import type { Resource } from '~/types/resource'
+import type { Resource, AlternativeSuggestion } from '~/types/resource'
 import { useRecommendationEngine } from '~/composables/useRecommendationEngine'
 
-// Interface for alternative suggestions
+// Extended interface for alternative suggestions with additional metadata
 export interface AlternativeSuggestionItem {
   resource: Resource
   score: number

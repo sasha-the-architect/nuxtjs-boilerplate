@@ -1,5 +1,6 @@
 import { getQuery } from 'h3'
 import { searchAnalyticsTracker } from '~/utils/searchAnalytics'
+import { logger } from '~/utils/logger'
 
 /**
  * GET /api/analytics/search
@@ -18,7 +19,7 @@ export default defineEventHandler(async event => {
     // Validate days parameter
     if (![7, 30, 90].includes(days)) {
       // Default to 30 if invalid
-      console.warn(`Invalid days parameter: ${days}, defaulting to 30`)
+      logger.warn(`Invalid days parameter: ${days}, defaulting to 30`)
     }
 
     // Calculate date range
@@ -110,7 +111,7 @@ export default defineEventHandler(async event => {
 
     return response
   } catch (error: any) {
-    console.error('Error fetching search analytics:', error)
+    logger.error('Error fetching search analytics:', error)
 
     // Return error response
     return {

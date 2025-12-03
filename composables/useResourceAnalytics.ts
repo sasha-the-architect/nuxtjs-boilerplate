@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import logger from '~/utils/logger'
 import type { Resource } from '~/types/resource'
 
 export interface ResourceAnalytics {
@@ -38,7 +39,7 @@ export const useResourceAnalytics = () => {
         }
       }
     } catch (err) {
-      console.error('Error fetching resource analytics:', err)
+      logger.error('Error fetching resource analytics:', err)
       error.value = 'Failed to load analytics data'
 
       // Set default values in case of error

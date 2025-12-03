@@ -8,6 +8,7 @@ import {
   getAllResourceHealthStatuses,
   getResourceHealthStats,
 } from '../utils/resourceHealth'
+import { logger } from '~/utils/logger'
 
 export default defineEventHandler(async event => {
   try {
@@ -23,7 +24,7 @@ export default defineEventHandler(async event => {
       },
     }
   } catch (error: any) {
-    console.error('Error fetching resource health:', error)
+    logger.error('Error fetching resource health:', error)
 
     return {
       success: false,

@@ -5,6 +5,7 @@
  */
 
 import { validateUrl } from '~/utils/urlValidation'
+import { logger } from '~/utils/logger'
 
 export default defineEventHandler(async event => {
   try {
@@ -28,7 +29,7 @@ export default defineEventHandler(async event => {
       data: validationResult,
     }
   } catch (error: any) {
-    console.error('Error validating URL:', error)
+    logger.error('Error validating URL:', error)
 
     return {
       success: false,

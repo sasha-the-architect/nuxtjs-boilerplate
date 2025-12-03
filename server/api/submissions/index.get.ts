@@ -1,5 +1,6 @@
 import type { Submission } from '~/types/submission'
 import { getQuery } from 'h3'
+import { logger } from '~/utils/logger'
 
 // Mock data for demonstration - in a real application, this would come from a database
 let mockSubmissions: Submission[] = []
@@ -42,7 +43,7 @@ export default defineEventHandler(async event => {
       offset,
     }
   } catch (error: any) {
-    console.error('Error fetching submissions:', error)
+    logger.error('Error fetching submissions:', error)
 
     return {
       success: false,

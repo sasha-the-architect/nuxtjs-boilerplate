@@ -1,4 +1,6 @@
 // Error logging service for consistent error tracking
+import { logger } from './logger'
+
 export interface ErrorLog {
   id: string
   timestamp: Date
@@ -43,16 +45,27 @@ class ErrorLogger {
       this.logs = this.logs.slice(-this.maxLogs)
     }
 
-    // In development, log to console
+    // In development, log to console using our new logger
     if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console[
-        severity === 'error' || severity === 'critical'
-          ? 'error'
-          : severity === 'warning'
-            ? 'warn'
-            : 'log'
-      ](`[${severity.toUpperCase()}]`, message, error, additionalInfo)
+      if (severity === 'error' || severity === 'critical') {
+        logger.error(
+          `[${severity.toUpperCase()}] ${message}`,
+          error,
+          additionalInfo
+        )
+      } else if (severity === 'warning') {
+        logger.warn(
+          `[${severity.toUpperCase()}] ${message}`,
+          error,
+          additionalInfo
+        )
+      } else {
+        logger.info(
+          `[${severity.toUpperCase()}] ${message}`,
+          error,
+          additionalInfo
+        )
+      }
     }
 
     // Here we could also send logs to an external service
@@ -88,11 +101,7 @@ class ErrorLogger {
     try {
       // Example: await fetch('/api/logs', { method: 'POST', body: JSON.stringify(log) })
     } catch (err) {
-      // In production, we might want to use a proper error tracking service instead of console
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('Failed to send log to external service:', err)
-      }
+      logger.error('Failed to send log to external service:', err)
     }
   }
 }

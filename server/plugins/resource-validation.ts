@@ -5,6 +5,7 @@
 
 import { defineNitroPlugin } from 'nitropack/runtime'
 import { updateAllResourceHealth } from '../utils/resourceHealth'
+import logger from '~/utils/logger'
 
 export default defineNitroPlugin(async nitroApp => {
   // Only log in development or test environments to prevent information disclosure in production
@@ -33,8 +34,8 @@ export default defineNitroPlugin(async nitroApp => {
         }
       }
     } catch (error) {
-      // Log errors in any environment as they might indicate system issues
-      console.error('Error during resource validation:', error)
+      // Log errors using structured logging
+      logger.error('Error during resource validation:', error)
     }
   }
 

@@ -115,16 +115,12 @@ onMounted(() => {
     // Stash the event so it can be triggered later
     deferredPrompt = e
     // Show the install button or notification
-    // console.log('PWA installation prompt available')
   })
 
   // Handle online/offline status
-  window.addEventListener('online', () => {
-    // console.log('Back online')
-  })
+  window.addEventListener('online', () => {})
 
   window.addEventListener('offline', () => {
-    // console.log('Offline')
     // Optionally redirect to offline page or show notification
   })
 

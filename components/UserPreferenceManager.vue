@@ -175,6 +175,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import logger from '~/utils/logger'
 import { useUserPreferences } from '~/composables/useUserPreferences'
 
 interface SkillLevel {
@@ -293,7 +294,7 @@ const savePreferences = async () => {
     }
   } catch (err) {
     error.value = 'An error occurred while saving preferences'
-    console.error('Error saving preferences:', err)
+    logger.error('Error saving preferences:', err)
   } finally {
     saving.value = false
   }
