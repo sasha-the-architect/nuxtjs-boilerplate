@@ -39,8 +39,6 @@ vi.mock('#app', async importOriginal => {
     useError: vi.fn(() => ({ value: null })),
     showError: vi.fn(),
     clearError: vi.fn(),
-<<<<<<< HEAD
-=======
   }
 })
 
@@ -77,7 +75,6 @@ vi.mock('vue', async importOriginal => {
         },
       },
     })),
->>>>>>> 2d2b99d (fix(pr#461): resolve build system instability by updating test configuration)
   }
 })
 

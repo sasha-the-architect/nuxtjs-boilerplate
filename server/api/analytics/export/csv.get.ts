@@ -1,7 +1,7 @@
 // server/api/analytics/export/csv.get.ts
 // API endpoint for exporting analytics data as CSV
 import { getQuery, setResponseHeader, setResponseStatus } from 'h3'
-import db from '~/server/utils/db'
+import { exportAnalyticsToCsv } from '~/server/utils/analytics-db'
 
 export default defineEventHandler(async event => {
   try {
@@ -15,54 +15,8 @@ export default defineEventHandler(async event => {
       ? new Date(query.endDate as string)
       : new Date()
 
-    // Fetch events from database by date range
-    const dbEvents = await db.analyticsEvent.findMany({
-      where: {
-        timestamp: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-      orderBy: {
-        timestamp: 'asc',
-      },
-    })
-
-    // Transform database events to the format expected by the CSV
-    const filteredEvents = dbEvents.map(event => ({
-      type: event.type,
-      resourceId: event.resourceId || undefined,
-      category: event.category || undefined,
-      url: event.url || undefined,
-      ip: event.ip || undefined,
-      timestamp: event.timestamp.getTime(),
-      properties: event.properties
-        ? JSON.parse(event.properties as string)
-        : undefined,
-    }))
-
-    // Create CSV content
-    let csvContent =
-      'Type,Resource ID,Category,URL,IP Address,Timestamp,Properties\n'
-
-    for (const event of filteredEvents) {
-      const timestamp = new Date(event.timestamp).toISOString()
-      const properties = JSON.stringify(event.properties || {}).replace(
-        /"/g,
-        '""'
-      ) // Escape quotes for CSV
-
-      csvContent +=
-        [
-          `"${event.type || ''}"`,
-          `"${event.resourceId || ''}"`,
-          `"${event.category || ''}"`,
-          `"${event.url || ''}"`,
-          `"${event.ip || ''}"`,
-          `"${timestamp}"`,
-          `"${properties}"`,
-        ].join(',') + '\n'
-    }
+    // Export analytics to CSV from database
+    const csvContent = exportAnalyticsToCsv(startDate, endDate)
 
     // Set response headers for CSV download
     setResponseHeader(event, 'Content-Type', 'text/csv')

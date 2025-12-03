@@ -1,7 +1,7 @@
 // server/api/analytics/data.get.ts
 // API endpoint for retrieving analytics data for the dashboard
 import { getQuery, setResponseStatus } from 'h3'
-import db from '~/server/utils/db'
+import { getAggregatedAnalytics } from '~/server/utils/analytics-db'
 
 export default defineEventHandler(async event => {
   try {
@@ -15,59 +15,8 @@ export default defineEventHandler(async event => {
       ? new Date(query.endDate as string)
       : new Date()
 
-    // Fetch events from database by date range
-    const dbEvents = await db.analyticsEvent.findMany({
-      where: {
-        timestamp: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-      orderBy: {
-        timestamp: 'asc',
-      },
-    })
-
-    // Transform database events to the format expected by the frontend
-    const filteredEvents = dbEvents.map(event => ({
-      type: event.type,
-      resourceId: event.resourceId || undefined,
-      category: event.category || undefined,
-      url: event.url || undefined,
-      userAgent: event.userAgent || undefined,
-      ip: event.ip || undefined,
-      timestamp: event.timestamp.getTime(),
-      properties: event.properties
-        ? JSON.parse(event.properties as string)
-        : undefined,
-    }))
-
-    // Aggregate analytics data
-    const analyticsData = {
-      totalEvents: filteredEvents.length,
-      eventsByType: {} as Record<string, number>,
-      eventsByCategory: {} as Record<string, number>,
-      resourceViews: {} as Record<string, number>,
-      topResources: [] as Array<{ id: string; title: string; views: number }>,
-      topCategories: [] as Array<{ name: string; count: number }>,
-      dailyTrends: [] as Array<{ date: string; count: number }>,
-    }
-
-    // Populate event type counts
-    for (const event of filteredEvents) {
-      analyticsData.eventsByType[event.type] =
-        (analyticsData.eventsByType[event.type] || 0) + 1
-
-      if (event.category) {
-        analyticsData.eventsByCategory[event.category] =
-          (analyticsData.eventsByCategory[event.category] || 0) + 1
-      }
-
-      if (event.resourceId && event.type === 'resource_view') {
-        analyticsData.resourceViews[event.resourceId] =
-          (analyticsData.resourceViews[event.resourceId] || 0) + 1
-      }
-    }
+    // Get aggregated analytics data from database
+    const analyticsData = getAggregatedAnalytics(startDate, endDate)
 
     // Get top resources by view count
     const resourceViewEntries = Object.entries(analyticsData.resourceViews)
@@ -90,18 +39,6 @@ export default defineEventHandler(async event => {
       .slice(0, 10) // Top 10
 
     analyticsData.topCategories = categoryEntries
-
-    // Calculate daily trends
-    const dailyCounts: Record<string, number> = {}
-    for (const event of filteredEvents) {
-      const eventDate = new Date(event.timestamp)
-      const dateStr = eventDate.toISOString().split('T')[0] // YYYY-MM-DD format
-      dailyCounts[dateStr] = (dailyCounts[dateStr] || 0) + 1
-    }
-
-    analyticsData.dailyTrends = Object.entries(dailyCounts)
-      .map(([date, count]) => ({ date, count }))
-      .sort((a, b) => a.date.localeCompare(b.date))
 
     setResponseStatus(event, 200)
     return {
