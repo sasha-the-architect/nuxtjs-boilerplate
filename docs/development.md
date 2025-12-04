@@ -1,16 +1,6 @@
 # 🔧 Development Guide
 
-## 🚨 CRITICAL STATUS NOTICE
-
-**Date**: November 22, 2025  
-**Status**: 🚨 CRITICAL INFRASTRUCTURE FAILURE  
-**Development**: Currently BLOCKED due to critical issues
-
-**Please read the [Status Report](./status.md) for current infrastructure issues before proceeding.**
-
----
-
-This document outlines the standards, conventions, and best practices for contributing to the "Free Stuff on the Internet" project.
+This document outlines the standards, conventions, and best practices for contributing to the Nuxt.js boilerplate project.
 
 ## 📋 Table of Contents
 
@@ -528,75 +518,12 @@ Each major directory should include a README.md explaining:
 - API documentation
 - Contributing guidelines
 
-## 🚨 Current Development Issues
-
-### **Blocked by Critical Infrastructure Issues**
-
-The following development workflows are currently blocked:
-
-#### **1. Environment Setup**
-
-```bash
-# npm install currently fails due to dependency conflicts
-# See Issue #126: Vitest Version Incompatibility
-npm install  # ❌ BLOCKED
-
-# Workaround (temporary):
-npm install --legacy-peer-deps  # ⚠️ Use with caution
-```
-
-#### **2. Code Quality Checks**
-
-```bash
-# ESLint currently not working
-# See Issue #128: ESLint Flat Configuration Not Detected
-npm run lint  # ❌ BLOCKED
-
-# Workaround (temporary):
-npx eslint@9.39.1 .  # ⚠️ Use specific version
-```
-
-#### **3. Testing Framework**
-
-```bash
-# Tests currently not functional
-# See Issue #126: Dependency Conflicts
-npm test  # ❌ BLOCKED
-```
-
-#### **4. Package Manager**
-
-```bash
-# Mixed package manager usage
-# See Issue #127: Package Manager Inconsistency
-# npm is now the standard, pnpm deprecated
-```
-
-### **Development Workarounds**
-
-Until critical issues are resolved:
-
-1. **Use npm for all operations** (pnpm deprecated)
-2. **Install with --legacy-peer-deps** if needed
-3. **Use npx eslint@9.39.1** for linting
-4. **Focus on documentation and planning** until build system fixed
-
-### **Priority Actions**
-
-See the [Task List](./tasks.md) for immediate action items:
-
-1. **Issue #126**: Fix dependency conflicts
-2. **Issue #127**: Standardize package manager
-3. **Issue #128**: Fix ESLint configuration
-
----
-
 ## 📋 Prerequisites
 
 ### **System Requirements**
 
 - Node.js 18.x or higher
-- **npm 9.x or higher** (pnpm support deprecated)
+- **npm 9.x or higher**
 - Git 2.x or higher
 - Modern web browser for development
 
@@ -609,9 +536,8 @@ See the [Task List](./tasks.md) for immediate action items:
 git clone https://github.com/cpa02cmz/nuxtjs-boilerplate.git
 cd nuxtjs-boilerplate
 
-# Install dependencies (npm is now the standard)
-npm install  # May fail due to Issue #126
-npm install --legacy-peer-deps  # Temporary workaround
+# Install dependencies
+npm install
 
 # Start development server
 npm run dev
@@ -620,16 +546,15 @@ npm run dev
 #### **2. Environment Configuration**
 
 ```bash
-# Copy environment template (if exists)
+# Copy environment template
 cp .env.example .env
 
 # Configure environment variables
 # NUXT_PUBLIC_SITE_URL - Your deployment URL
+# NUXT_PUBLIC_SITE_NAME - Your site name
 # Other environment variables as needed
 ```
 
 ---
 
-_Last Updated: 2025-11-22_
-_Next Review: November 23, 2025_
-_Status: 🚨 Critical Infrastructure Issues - Development Blocked_
+_Last Updated: 2025-11-29_

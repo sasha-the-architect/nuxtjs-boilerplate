@@ -4,21 +4,21 @@ This section contains documentation about the system architecture, design decisi
 
 ## 📚 Available Documentation
 
-### [System Architecture](./architecture/system-design.md)
+### [System Architecture](./system-design.md)
 
 - High-level architecture overview
 - Component relationships
 - Data flow patterns
 - Technology stack
 
-### [Project Structure](./architecture/project-structure.md)
+### [Project Structure](./project-structure.md)
 
 - Directory organization
 - File naming conventions
 - Module responsibilities
 - Code organization principles
 
-### [Technical Decisions](./architecture/technical-decisions.md)
+### [Technical Decisions](./technical-decisions.md)
 
 - Architecture decisions and rationale
 - Technology choices
@@ -27,4 +27,4 @@ This section contains documentation about the system architecture, design decisi
 
 ---
 
-_Last Updated: 2025-11-18_
+_Last Updated: 2025-11-29_

@@ -1,6 +1,6 @@
 # Repository Management and Triage Process
 
-This document outlines the repository management and triage process for maintaining the project health and addressing the backlog of issues and PRs.
+This document outlines the repository management and triage process for maintaining the Nuxt.js boilerplate project health and addressing the backlog of issues and PRs.
 
 ## Issue Triage Process
 

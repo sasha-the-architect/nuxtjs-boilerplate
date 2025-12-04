@@ -1,6 +1,6 @@
-# Free Stuff on the Internet - Refactored
+# Nuxt.js Boilerplate with Advanced Features
 
-A comprehensive directory of free resources for developers, students, and tech enthusiasts.
+A comprehensive Nuxt.js 3 boilerplate with advanced features for building modern web applications. This project serves as a foundation for resource directory applications and includes community features, search capabilities, and admin tools.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/cpa02cmz/nuxtjs-boilerplate)
 
@@ -9,27 +9,31 @@ A comprehensive directory of free resources for developers, students, and tech e
 
 _Live Example: Available at your deployed URL_
 
-Discover amazing free resources available on the internet - from AI tools to hosting services.
+A production-ready Nuxt.js 3 template with authentication, search, analytics, and community features.
 
 ## 🚀 Features
 
-- 🌐 **Curated free resources** across multiple categories
 - ⚡ **Modern, responsive design** with Nuxt.js 3
-- 🔍 **Advanced search and filtering** capabilities
+- 🔍 **Advanced search and filtering** capabilities with faceted search
 - 🎨 **Performance-optimized** with Tailwind CSS
 - 📱 **SEO-friendly and accessible**
-- 🔄 **Community-driven** with submission system
+- 👥 **Community features** with user profiles, comments, and voting
 - 🛠️ **Nuxt 3** with Vue 3 and TypeScript
 - 🔒 **Security scanning** with CodeQL and dependency review
+- 📊 **Analytics and monitoring** with comprehensive tracking
+- 🔗 **Resource management** with submission and moderation system
+- ⚖️ **Comparison tools** for resource evaluation
+- 🔔 **Webhook integration** for external service communication
 - 🏗️ **Stable infrastructure** with resolved build and dependency issues
 
-## 📋 Categories
+## 📋 Core Features
 
-- **AI API Keys and Tools** - Access to various AI platforms and APIs
-- **Free VPS and Cloud Services** - Virtual private servers and cloud computing
-- **Web Hosting Platforms** - Free hosting solutions for websites
-- **Databases and Storage** - Database services and cloud storage options
-- **CDN and Performance Tools** - Content delivery networks and optimization tools
+- **Resource Management** - Create, edit, and manage resources with submission system
+- **Advanced Search** - Full-text search with filtering, sorting, and faceted search
+- **User Authentication** - Complete user system with profiles, roles, and permissions
+- **Community Features** - Comments, voting, and user engagement tools
+- **Analytics & Monitoring** - Comprehensive tracking and performance metrics
+- **API Integration** - RESTful API with webhook support and rate limiting
 
 ### Installation
 
@@ -109,14 +113,15 @@ We're committed to maintaining a healthy repository with:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔄 Project Coordination
+## 🔄 Project Architecture
 
-This project implements a task coordination system to manage the development of multiple features across different agents:
+This boilerplate implements a comprehensive architecture for modern web applications:
 
-- **Task Coordination System**: Tracks progress of multiple development agents working on different features
-- **Resource Recommendation Engine**: Implements content-based and collaborative filtering
-- **Community Features**: Provides user profiles, comments, voting, and moderation
-- **Advanced Search**: Enhanced search and filtering capabilities
+- **Modular Design**: Component-based architecture with clear separation of concerns
+- **API-First**: RESTful API design with comprehensive endpoints
+- **Authentication System**: Complete user authentication and authorization
+- **Search & Discovery**: Advanced search with faceted filtering and recommendations
+- **Community Features**: User engagement tools and moderation system
 
 For more details, see the [coordination system documentation](./docs/coordination-system.md).
 
