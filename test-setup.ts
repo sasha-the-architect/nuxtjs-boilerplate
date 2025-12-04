@@ -1,6 +1,11 @@
 // Test setup file for Vitest with Nuxt
 import { vi } from 'vitest'
 
+// Mock the nuxt-vitest-app-entry that causes the original error
+vi.mock('#app/nuxt-vitest-app-entry', () => ({
+  default: () => {},
+}))
+
 // Mock localStorage and sessionStorage if they don't exist
 if (typeof window !== 'undefined') {
   if (typeof window.localStorage === 'undefined') {
