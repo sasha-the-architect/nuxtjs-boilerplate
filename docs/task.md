@@ -507,3 +507,69 @@ Implemented robust integration patterns to prevent cascading failures, improve s
 - No breaking changes to public APIs
 - Type safety maintained throughout
 - Performance improvements are cumulative and complementary
+
+---
+
+## [REFACTOR] Refactoring Tasks
+
+### [REFACTOR] Eliminate Code Duplication in utils/sanitize.ts
+
+- **Location**: utils/sanitize.ts (lines 46-209, 256-399)
+- **Issue**: DOMPurify configuration is duplicated across two functions (sanitizeForXSS and sanitizeAndHighlight), resulting in ~160 lines of duplicate configuration arrays (FORBID_TAGS, FORBID_ATTR, FORBID_CONTENTS)
+- **Suggestion**: Extract shared DOMPurify configuration into a constant or helper function, then reference it in both sanitization functions. This will eliminate duplication, reduce maintenance burden, and ensure consistent security settings across all sanitization operations.
+- **Priority**: High
+- **Effort**: Small
+
+### [REFACTOR] Split Large Page Component pages/resources/[id].vue
+
+- **Location**: pages/resources/[id].vue (1181 lines)
+- **Issue**: Extremely large page component with multiple responsibilities: resource details display, breadcrumb navigation, loading/error states, similar resources, analytics tracking, comments, user interactions, and SEO metadata. This violates Single Responsibility Principle and makes the component difficult to test and maintain.
+- **Suggestion**: Extract smaller, focused components:
+  - ResourceHeader.vue (title, status, actions)
+  - ResourceDetails.vue (description, benefits, metadata)
+  - ResourceBreadcrumbs.vue (navigation)
+  - ResourceSimilar.vue (similar resources section)
+  - ResourceComments.vue (comments and reviews)
+  - ResourceAnalytics.vue (analytics and tracking)
+- **Priority**: High
+- **Effort**: Large
+
+### [REFACTOR] Refactor useCommunityFeatures.ts - Extract Focused Modules
+
+- **Location**: composables/useCommunityFeatures.ts (409 lines)
+- **Issue**: God function handling user profiles, comments, replies, votes, flags, and moderation logic. Multiple functions lack proper TypeScript typing (userId, commentData, replyData are untyped). Difficult to test and maintain.
+- **Suggestion**: Split into focused composables:
+  - useUserProfile.ts (profile CRUD operations)
+  - useComments.ts (comment and reply management)
+  - useVoting.ts (upvote/downvote logic)
+  - useModeration.ts (flagging and content moderation)
+  - Add proper TypeScript interfaces for all function parameters
+  - Add unit tests for each extracted module
+- **Priority**: High
+- **Effort**: Large
+
+### [REFACTOR] Split useAdvancedResourceSearch.ts into Focused Modules
+
+- **Location**: composables/useAdvancedResourceSearch.ts (447 lines)
+- **Issue**: God function combining fuzzy search, query parsing, operators (AND/OR/NOT), search history, saved searches, faceted search, and analytics tracking. This makes the composable hard to understand, test, and extend.
+- **Suggestion**: Extract focused modules:
+  - useFuzzySearch.ts (Fuse.js integration and search logic)
+  - useQueryParser.ts (parse advanced search syntax and operators)
+  - useSearchHistory.ts (search history management - already exists, consolidate)
+  - useFacetedSearch.ts (facet counts and filtering)
+  - useSavedSearches.ts (save/load search queries)
+- **Priority**: Medium
+- **Effort**: Medium
+
+### [REFACTOR] Remove Console Statements from Production Code
+
+- **Location**: Multiple files (plugins/error-handler.client.ts, plugins/performance.client.ts, utils/searchAnalytics.ts, server/plugins/resource-validation.ts, server/plugins/analytics-cleanup.ts)
+- **Issue**: Production code contains console.log/error/warn statements that should use proper logging infrastructure. This creates inconsistent logging behavior and may expose sensitive information in production builds.
+- **Suggestion**: Replace all console statements with centralized error logger (utils/errorLogger.ts):
+  - Use `logError()` for errors
+  - Use `logWarning()` for warnings
+  - Use `logCritical()` for critical issues
+  - Configure logger to suppress debug output in production
+  - Ensure all console statements use proper log levels and context
+- **Priority**: Low
+- **Effort**: Medium
