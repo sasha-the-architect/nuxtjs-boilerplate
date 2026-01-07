@@ -4,6 +4,15 @@
  */
 import type { User, Comment, Vote, Flag } from '~/types/resource'
 
+interface CommentData {
+  resourceId: string
+  content: string
+}
+
+interface ReplyData {
+  content: string
+}
+
 export const useCommunityFeatures = (
   initialUsers: User[] = [],
   initialComments: Comment[] = [],
@@ -59,21 +68,22 @@ export const useCommunityFeatures = (
   }
 
   // Comment system
-  const addComment = commentData => {
+  const addComment = (commentData: CommentData) => {
     if (!currentUser) {
       throw new Error('User must be logged in to comment')
     }
 
     const comment = {
       id: generateId(),
-      ...commentData,
+      resourceId: commentData.resourceId,
+      content: commentData.content,
       userId: currentUser.id,
       userName: currentUser.name || currentUser.username,
       timestamp: new Date().toISOString(),
       votes: 0,
       replies: [],
       isEdited: false,
-      status: 'active', // active, flagged, removed
+      status: 'active' as const,
     }
     comments.push(comment)
 
@@ -88,7 +98,7 @@ export const useCommunityFeatures = (
     return comment
   }
 
-  const addReply = (commentId, replyData) => {
+  const addReply = (commentId: string, replyData: ReplyData) => {
     if (!currentUser) {
       throw new Error('User must be logged in to reply')
     }
@@ -106,20 +116,21 @@ export const useCommunityFeatures = (
 
     const reply = {
       id: generateId(),
-      ...replyData,
+      resourceId: parentComment.resourceId,
+      content: replyData.content,
       userId: currentUser.id,
       userName: currentUser.name || currentUser.username,
       timestamp: new Date().toISOString(),
       votes: 0,
       isEdited: false,
-      status: 'active',
+      status: 'active' as const,
     }
 
     parentComment.replies.push(reply)
     return reply
   }
 
-  const editComment = (commentId, newContent) => {
+  const editComment = (commentId: string, newContent: string) => {
     // Find comment using for loop
     for (let i = 0; i < comments.length; i++) {
       if (
@@ -135,7 +146,7 @@ export const useCommunityFeatures = (
     return null
   }
 
-  const deleteComment = commentId => {
+  const deleteComment = (commentId: string) => {
     for (let i = 0; i < comments.length; i++) {
       if (
         comments[i].id === commentId &&
@@ -151,7 +162,11 @@ export const useCommunityFeatures = (
   }
 
   // Voting system
-  const vote = (targetType, targetId, voteType) => {
+  const vote = (
+    targetType: string,
+    targetId: string,
+    voteType: 'up' | 'down'
+  ) => {
     if (!currentUser) {
       throw new Error('User must be logged in to vote')
     }
@@ -242,7 +257,12 @@ export const useCommunityFeatures = (
   }
 
   // Moderation system
-  const flagContent = (targetType, targetId, reason, details = '') => {
+  const flagContent = (
+    targetType: string,
+    targetId: string,
+    reason: string,
+    details: string = ''
+  ) => {
     if (!currentUser) {
       throw new Error('User must be logged in to flag content')
     }
@@ -263,7 +283,11 @@ export const useCommunityFeatures = (
     return flag
   }
 
-  const moderateContent = (flagId, action, moderatorNote = '') => {
+  const moderateContent = (
+    flagId: string,
+    action: string,
+    moderatorNote: string = ''
+  ) => {
     if (!currentUser || !currentUser.isModerator) {
       throw new Error('User must be a moderator to moderate content')
     }
@@ -305,7 +329,7 @@ export const useCommunityFeatures = (
   }
 
   // Get user profile
-  const getUserProfile = userId => {
+  const getUserProfile = (userId: string) => {
     for (let i = 0; i < users.length; i++) {
       if (users[i].id === userId) {
         return users[i]
@@ -315,7 +339,7 @@ export const useCommunityFeatures = (
   }
 
   // Get comments for a specific resource
-  const getCommentsForResource = resourceId => {
+  const getCommentsForResource = (resourceId: string) => {
     const result = []
     for (let i = 0; i < comments.length; i++) {
       if (
@@ -329,7 +353,7 @@ export const useCommunityFeatures = (
   }
 
   // Get user's activity history
-  const getUserActivity = userId => {
+  const getUserActivity = (userId: string) => {
     const userComments = []
     const userVotes = []
 
@@ -353,7 +377,7 @@ export const useCommunityFeatures = (
   }
 
   // Get top contributors based on reputation or activity
-  const getTopContributors = limitValue => {
+  const getTopContributors = (limitValue?: number) => {
     if (limitValue === undefined) limitValue = 10
     // Create a copy of users array and sort by reputation
     const sortedUsers = []

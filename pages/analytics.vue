@@ -93,7 +93,7 @@
             <div class="ml-4">
               <h3 class="text-sm font-medium text-gray-500">Total Events</h3>
               <p class="text-2xl font-semibold text-gray-900">
-                {{ analyticsData?.data?.totalEvents || 0 }}
+                {{ analyticsData?.totalEvents || 0 }}
               </p>
             </div>
           </div>
@@ -119,7 +119,7 @@
             <div class="ml-4">
               <h3 class="text-sm font-medium text-gray-500">Unique Views</h3>
               <p class="text-2xl font-semibold text-gray-900">
-                {{ analyticsData?.data?.eventsByType?.page_view || 0 }}
+                {{ analyticsData?.eventsByType?.page_view || 0 }}
               </p>
             </div>
           </div>
@@ -145,7 +145,7 @@
             <div class="ml-4">
               <h3 class="text-sm font-medium text-gray-500">Resource Clicks</h3>
               <p class="text-2xl font-semibold text-gray-900">
-                {{ analyticsData?.data?.eventsByType?.resource_click || 0 }}
+                {{ analyticsData?.eventsByType?.resource_click || 0 }}
               </p>
             </div>
           </div>
@@ -171,7 +171,7 @@
             <div class="ml-4">
               <h3 class="text-sm font-medium text-gray-500">Searches</h3>
               <p class="text-2xl font-semibold text-gray-900">
-                {{ analyticsData?.data?.eventsByType?.search || 0 }}
+                {{ analyticsData?.eventsByType?.search || 0 }}
               </p>
             </div>
           </div>
@@ -184,7 +184,7 @@
         <div class="bg-white p-6 rounded-lg shadow">
           <h2 class="text-lg font-medium text-gray-900 mb-4">Daily Activity</h2>
           <div
-            v-if="!analyticsData?.data?.dailyTrends?.length"
+            v-if="!analyticsData?.dailyTrends?.length"
             class="h-64 flex items-center justify-center"
           >
             <p class="text-gray-500">No data available</p>
@@ -193,7 +193,7 @@
             <!-- Simple bar chart visualization -->
             <div class="flex items-end h-48 space-x-1">
               <div
-                v-for="(day, index) in analyticsData?.data?.dailyTrends"
+                v-for="(day, index) in analyticsData?.dailyTrends"
                 :key="index"
                 class="flex flex-col items-center flex-1 min-w-0"
               >
@@ -217,14 +217,14 @@
         <div class="bg-white p-6 rounded-lg shadow">
           <h2 class="text-lg font-medium text-gray-900 mb-4">Top Resources</h2>
           <div
-            v-if="!analyticsData?.data?.topResources?.length"
+            v-if="!analyticsData?.topResources?.length"
             class="text-gray-500 text-center py-8"
           >
             No resource data available
           </div>
           <ul v-else class="space-y-3">
             <li
-              v-for="(resource, index) in analyticsData?.data?.topResources"
+              v-for="(resource, index) in analyticsData?.topResources"
               :key="resource.id"
               class="flex items-center justify-between p-3 bg-gray-50 rounded-md"
             >
@@ -251,8 +251,8 @@
           <h2 class="text-lg font-medium text-gray-900 mb-4">Events by Type</h2>
           <div
             v-if="
-              !analyticsData?.data?.eventsByType ||
-              Object.keys(analyticsData.data.eventsByType).length === 0
+              !analyticsData?.eventsByType ||
+              Object.keys(analyticsData.eventsByType).length === 0
             "
             class="text-gray-500 text-center py-8"
           >
@@ -260,7 +260,7 @@
           </div>
           <ul v-else class="space-y-2">
             <li
-              v-for="(count, type) in analyticsData.data.eventsByType"
+              v-for="(count, type) in analyticsData.eventsByType"
               :key="type"
               class="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
             >
@@ -276,14 +276,14 @@
         <div class="bg-white p-6 rounded-lg shadow">
           <h2 class="text-lg font-medium text-gray-900 mb-4">Top Categories</h2>
           <div
-            v-if="!analyticsData?.data?.topCategories?.length"
+            v-if="!analyticsData?.topCategories?.length"
             class="text-gray-500 text-center py-8"
           >
             No category data available
           </div>
           <ul v-else class="space-y-2">
             <li
-              v-for="(category, index) in analyticsData?.data?.topCategories"
+              v-for="(category, index) in analyticsData?.topCategories"
               :key="category.name"
               class="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
             >
@@ -304,83 +304,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import logger from '~/utils/logger'
+import { onMounted } from 'vue'
 import SearchAnalytics from '~/components/SearchAnalytics.vue'
+import { useAnalyticsPage } from '~/composables/useAnalyticsPage'
 
-// Define types
-interface AnalyticsData {
-  success: boolean
-  data: {
-    totalEvents: number
-    eventsByType: Record<string, number>
-    eventsByCategory: Record<string, number>
-    resourceViews: Record<string, number>
-    topResources: Array<{ id: string; title: string; views: number }>
-    topCategories: Array<{ name: string; count: number }>
-    dailyTrends: Array<{ date: string; count: number }>
-  }
-  dateRange: {
-    start: string
-    end: string
-  }
-}
-
-// State
-const analyticsData = ref<AnalyticsData | null>(null)
-const loading = ref(true)
-const error = ref<string | null>(null)
-const startDate = ref('')
-const endDate = ref('')
-
-// Initialize date range to last 30 days
-const now = new Date()
-const thirtyDaysAgo = new Date()
-thirtyDaysAgo.setDate(now.getDate() - 30)
-
-startDate.value = thirtyDaysAgo.toISOString().split('T')[0]
-endDate.value = now.toISOString().split('T')[0]
-
-// Get the maximum daily count for scaling the chart
-const maxDailyCount = computed(() => {
-  if (!analyticsData.value?.data?.dailyTrends) return 1
-  return Math.max(
-    ...analyticsData.value.data.dailyTrends.map(day => day.count),
-    1
-  )
+definePageMeta({
+  layout: 'default',
 })
 
-// Format date for display
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
+const {
+  analyticsData,
+  loading,
+  error,
+  startDate,
+  endDate,
+  maxDailyCount,
+  formatDate,
+  fetchAnalyticsData,
+} = useAnalyticsPage()
 
-// Fetch analytics data
-const fetchAnalyticsData = async () => {
-  loading.value = true
-  error.value = null
-
-  try {
-    const response = await fetch(
-      `/api/analytics/data?startDate=${startDate.value}&endDate=${endDate.value}`
-    )
-    const data = await response.json()
-
-    if (!data.success) {
-      throw new Error(data.message || 'Failed to fetch analytics data')
-    }
-
-    analyticsData.value = data
-  } catch (err: any) {
-    logger.error('Error fetching analytics:', err)
-    error.value = err.message || 'Failed to load analytics data'
-  } finally {
-    loading.value = false
-  }
-}
-
-// Initialize data on component mount
 onMounted(() => {
   fetchAnalyticsData()
 })

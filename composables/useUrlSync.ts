@@ -1,7 +1,11 @@
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import type { FilterOptions, SortOption } from '~/types/resource'
 
-export const useUrlSync = (filterOptions: any, sortOption: any) => {
+export const useUrlSync = (
+  filterOptions: Ref<FilterOptions>,
+  sortOption: Ref<SortOption>
+) => {
   const route = useRoute()
   const router = useRouter()
 
@@ -42,7 +46,7 @@ export const useUrlSync = (filterOptions: any, sortOption: any) => {
     // Update sort option
     if (sort) {
       const sortValue = Array.isArray(sort) ? sort[0] : sort
-      sortOption.value = sortValue as any
+      sortOption.value = sortValue as SortOption
     }
   }
 

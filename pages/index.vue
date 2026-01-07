@@ -193,8 +193,10 @@
 </template>
 
 <script setup lang="ts">
-import { useResources, type SortOption } from '~/composables/useResources'
+import { useResources } from '~/composables/useResources'
 import { useUrlSync } from '~/composables/useUrlSync'
+import { useHomePage } from '~/composables/useHomePage'
+import { getButtonLabel } from '~/utils/resourceHelper'
 import ResourceCard from '~/components/ResourceCard.vue'
 import SearchBar from '~/components/SearchBar.vue'
 import ResourceSort from '~/components/ResourceSort.vue'
@@ -248,19 +250,10 @@ const {
   retryResources,
 } = useResources()
 
-// Compute trending resources (top 5 by popularity)
-const trendingResources = computed(() => {
-  if (!resources.value || resources.value.length === 0) return []
+const { trendingResources } = useHomePage(resources.value)
 
-  return [...resources.value]
-    .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
-    .slice(0, 5)
-})
-
-// Set up URL synchronization
 useUrlSync(filterOptions, sortOption)
 
-// Reactive references for filters
 const searchQuery = computed({
   get: () => filterOptions.value.searchQuery || '',
   set: value => updateSearchQuery(value),
@@ -268,52 +261,12 @@ const searchQuery = computed({
 
 const selectedCategories = computed(() => filterOptions.value.categories || [])
 
-// Handle search
 const handleSearch = (query: string) => {
   updateSearchQuery(query)
 }
 
-// Reset all filters
 const resetAllFilters = () => {
   resetFilters()
   searchQuery.value = ''
-}
-
-// Helper function to get button label based on category
-const getButtonLabel = (category: string) => {
-  switch (category.toLowerCase()) {
-    case 'ai tools':
-      return 'Explore AI Tools'
-    case 'vps':
-      return 'Get VPS'
-    case 'web hosting':
-      return 'Find Hosting'
-    case 'databases':
-      return 'Explore Databases'
-    case 'cdn':
-      return 'Get CDN'
-    default:
-      return 'Get Free Access'
-  }
-}
-
-// Function to get related resources based on category
-const getRelatedResources = (currentResource: any, allResources: any[]) => {
-  if (!currentResource?.category) return []
-
-  return allResources
-    .filter(
-      (resource: any) =>
-        resource.category === currentResource.category &&
-        resource.id !== currentResource.id
-    )
-    .slice(0, 3) // Limit to 3 related resources
-}
-
-// Function to get trending resources (top 5 by popularity)
-const getTrendingResources = (allResources: any[]) => {
-  return [...allResources]
-    .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
-    .slice(0, 5)
 }
 </script>
