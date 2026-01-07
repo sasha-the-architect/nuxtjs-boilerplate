@@ -89,7 +89,7 @@ jobs:
 
       - name: Comment instruksi untuk fork
         if: steps.forkcheck.outputs.fork == 'true'
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: >
@@ -209,7 +209,7 @@ jobs:
 
       - name: Beritahu jika PR dari fork
         if: steps.pr.outputs.head_repo_fork == 'true'
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ github.event.issue.number }}
           body: "PR dari fork: maintainer tidak bisa mem-push. Mohon author memperbarui cabangnya."
