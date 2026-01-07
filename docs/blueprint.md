@@ -858,9 +858,40 @@ export async function insertAnalyticsEvent(event: AnalyticsEvent): Promise<boole
 #### Application-Level Validation
 
 - Type safety via TypeScript
-- Zod schemas for API input validation
+- Zod schemas for API input validation (`server/utils/validation-schemas.ts`)
 - Input sanitization (DOMPurify for XSS prevention)
-- Rate limiting for abuse prevention
+- Rate limiting for abuse prevention (database-level aggregation)
+- Event type validation (lowercase letters and underscores only)
+- IP address format validation (IPv4/IPv6)
+
+#### Rate Limiting Implementation
+
+**Location**: `server/utils/rate-limiter.ts`
+
+- **Database-level aggregation**: Uses Prisma `count()` with time window filters
+- **Scalable**: Works across multiple instances (no in-memory state)
+- **Efficient**: Single query to check event count vs. client-side filtering
+- **Fail-safe**: On database errors, allows request (prevents blocking)
+
+**Configuration**:
+
+- Max requests: 10 per IP per minute
+- Time window: 60 seconds
+- Endpoint: `/api/analytics/events`
+
+**Rate Limit Response**:
+
+```typescript
+{
+  success: false,
+  error: {
+    code: 'RATE_LIMIT_EXCEEDED',
+    message: 'Rate limit exceeded. Please try again later.',
+    category: 'rate_limit',
+    details: { retryAfter: 45 } // seconds until reset
+  }
+}
+```
 
 ### Performance Characteristics
 
@@ -962,6 +993,9 @@ export async function cleanupOldEvents(
 | 2025-01-07 | Add composite indexes                  | Optimize common query patterns (timestamp + resourceId, timestamp + type) |
 | 2025-01-07 | Refactor to database-level aggregation | Fix N+1 queries, 95% reduction in data transfer                           |
 | 2025-01-07 | Implement Prisma Migrate               | Version-controlled schema changes, reversible migrations                  |
+| 2025-01-07 | Enhanced data validation at boundary   | Centralized Zod schemas, consistent error responses, better type safety   |
+| 2025-01-07 | Made IP field optional in schema       | Handle edge cases where IP unavailable, better data model flexibility     |
+| 2025-01-07 | Database-based rate limiting           | Scalable across instances, efficient aggregation, no in-memory state      |
 
 ---
 

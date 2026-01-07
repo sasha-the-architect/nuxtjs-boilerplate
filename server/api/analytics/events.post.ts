@@ -1,24 +1,22 @@
 // server/api/analytics/events.post.ts
-// API endpoint for collecting analytics events from the client
-import { defineEventHandler, readBody, getHeaders, getRequestIP, setResponseStatus } from 'h3'
+// API endpoint for collecting analytics events from client
+import { defineEventHandler, readBody, getHeaders, getRequestIP } from 'h3'
+import { insertAnalyticsEvent } from '~/server/utils/analytics-db'
+import { analyticsEventSchema } from '~/server/utils/validation-schemas'
 import {
-  insertAnalyticsEvent,
-  getAnalyticsEventsByDateRange,
-} from '~/server/utils/analytics-db'
-
-export interface AnalyticsEvent {
-  type: string
-  resourceId?: string
-  category?: string
-  url?: string
-  userAgent?: string
-  ip?: string
-  timestamp: number
-  properties?: Record<string, any>
-}
-
-// Rate limiting: store last event time per IP
-const ipEventTimes = new Map<string, number>()
+  sendValidationError,
+  sendRateLimitError,
+  sendApiError,
+} from '~/server/utils/api-response'
+import {
+  createApiError,
+  ErrorCode,
+  ErrorCategory,
+} from '~/server/utils/api-error'
+import {
+  checkRateLimit,
+  recordRateLimitedEvent,
+} from '~/server/utils/rate-limiter'
 
 export default defineEventHandler(async event => {
   try {
@@ -26,81 +24,89 @@ export default defineEventHandler(async event => {
     const headers = getHeaders(event)
     const clientIP = getRequestIP(event) || 'unknown'
 
-    // Rate limiting: max 10 events per IP per minute
-    const now = Date.now()
-    const lastEventTime = ipEventTimes.get(clientIP) || 0
-    if (now - lastEventTime < 60000) {
-      // 60 seconds
-      // For rate limiting, we still need to check recent events from the database
-      // Get events from the last minute for this IP
-      const oneMinuteAgo = new Date(now - 60000)
-      const recentEvents = getAnalyticsEventsByDateRange(
-        oneMinuteAgo,
-        new Date(),
-        1000
-      ).filter(e => e.ip === clientIP)
+    // Rate limiting: max 10 events per IP per minute using database aggregation
+    const rateLimitCheck = await checkRateLimit(clientIP, 10, 60)
 
-      if (recentEvents.length >= 10) {
-        setResponseStatus(event, 429)
-        return {
-          success: false,
-          message: 'Rate limit exceeded: max 10 events per minute per IP',
-        }
-      }
+    if (!rateLimitCheck.allowed) {
+      // Record rate limit event for analytics
+      await recordRateLimitedEvent(clientIP, '/api/analytics/events')
+
+      // Calculate retry after time (seconds until reset)
+      const retryAfter = Math.ceil(
+        (rateLimitCheck.resetTime - Date.now()) / 1000
+      )
+
+      return sendRateLimitError(event, retryAfter)
     }
 
-    // Validate required fields
-    if (!body.type || typeof body.type !== 'string') {
-      setResponseStatus(event, 400)
-      return {
-        success: false,
-        message: 'Event type is required and must be a string',
-      }
-    }
-
-    // Create analytics event object
-    const analyticsEvent: AnalyticsEvent = {
+    // Validate request body using Zod schema
+    const validationResult = analyticsEventSchema.safeParse({
       type: body.type,
       resourceId: body.resourceId,
       category: body.category,
       url: body.url,
-      userAgent: headers['user-agent'] as string,
+      userAgent: headers['user-agent'],
       ip: clientIP,
-      timestamp: now,
-      properties: body.properties || {},
+      timestamp: Date.now(),
+      properties: body.properties,
+    })
+
+    if (!validationResult.success) {
+      const firstError = validationResult.error.issues[0]
+      return sendValidationError(
+        event,
+        firstError.path[0] as string,
+        firstError.message,
+        (firstError as any).received
+      )
+    }
+
+    // Create analytics event object with validated data
+    const validatedData = validationResult.data
+    const analyticsEvent = {
+      type: validatedData.type,
+      resourceId: validatedData.resourceId,
+      category: validatedData.category,
+      url: validatedData.url,
+      userAgent: validatedData.userAgent,
+      ip: validatedData.ip || clientIP,
+      timestamp: validatedData.timestamp || Date.now(),
+      properties: validatedData.properties,
     }
 
     // Store the event in the database
-    const success = insertAnalyticsEvent(analyticsEvent)
+    const success = await insertAnalyticsEvent(analyticsEvent)
     if (!success) {
-      setResponseStatus(event, 500)
-      return {
-        success: false,
-        message: 'Failed to store analytics event',
-      }
+      const error = createApiError(
+        ErrorCode.INTERNAL_SERVER_ERROR,
+        'Failed to store analytics event',
+        ErrorCategory.INTERNAL
+      )
+      return sendApiError(event, error)
     }
 
-    // Update IP event time
-    ipEventTimes.set(clientIP, now)
-
-    // Clean up old IP entries (older than 1 hour)
-    const oneHourAgo = now - 3600000
-    for (const [ip, time] of ipEventTimes.entries()) {
-      if (time < oneHourAgo) {
-        ipEventTimes.delete(ip)
-      }
-    }
-
+    // Return response with rate limit metadata
     return {
       success: true,
-      eventId: analyticsEvent.timestamp, // Using timestamp as a unique identifier since we don't have a DB ID
+      eventId: analyticsEvent.timestamp,
+      rateLimit: {
+        remaining: rateLimitCheck.remainingRequests - 1, // -1 for this request
+        limit: 10,
+        reset: new Date(rateLimitCheck.resetTime).toISOString(),
+      },
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Analytics event error:', error)
-    setResponseStatus(event, 500)
-    return {
-      success: false,
-      message: error.message || 'Internal server error',
-    }
+    const apiError = createApiError(
+      ErrorCode.INTERNAL_SERVER_ERROR,
+      'Failed to process analytics event',
+      ErrorCategory.INTERNAL,
+      process.env.NODE_ENV === 'development'
+        ? error instanceof Error
+          ? error.message
+          : String(error)
+        : undefined
+    )
+    return sendApiError(event, apiError)
   }
 })

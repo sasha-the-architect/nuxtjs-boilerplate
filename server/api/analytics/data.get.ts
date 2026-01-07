@@ -1,7 +1,6 @@
 // server/api/analytics/data.get.ts
 // API endpoint for retrieving analytics data for the dashboard
-import { defineEventHandler, getQuery, setResponseStatus } from 'h3'
-import { defineEventHandler, getQuery, setResponseStatus } from 'h3'
+import { defineEventHandler, getQuery } from 'h3'
 import { getAggregatedAnalytics } from '~/server/utils/analytics-db'
 import { logError } from '~/utils/errorLogger'
 
@@ -18,17 +17,17 @@ export default defineEventHandler(async event => {
       : new Date()
 
     // Get aggregated analytics data from database
-    const analyticsData = getAggregatedAnalytics(startDate, endDate)
+    const analyticsData = await getAggregatedAnalytics(startDate, endDate)
 
     // Get top resources by view count
     const resourceViewEntries = Object.entries(analyticsData.resourceViews)
-      .map(([id, views]) => ({ id, views }))
+      .map(([id, views]) => ({ id, views: views as number }))
       .sort((a, b) => b.views - a.views)
       .slice(0, 10) // Top 10
 
     // For each top resource, we'd normally fetch the title from the resources data
     // Since we don't have access to the actual resource data here, we'll just return the IDs
-    analyticsData.topResources = resourceViewEntries.map(item => ({
+    const topResources = resourceViewEntries.map(item => ({
       id: item.id,
       title: `Resource ${item.id}`, // Placeholder - in real implementation, fetch from resources
       views: item.views,
@@ -36,16 +35,17 @@ export default defineEventHandler(async event => {
 
     // Get top categories by event count
     const categoryEntries = Object.entries(analyticsData.eventsByCategory)
-      .map(([name, count]) => ({ name, count }))
+      .map(([name, count]) => ({ name, count: count as number }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10) // Top 10
 
-    analyticsData.topCategories = categoryEntries
-
-    setResponseStatus(event, 200)
     return {
       success: true,
-      data: analyticsData,
+      data: {
+        ...analyticsData,
+        topResources,
+        topCategories: categoryEntries,
+      },
       dateRange: {
         start: startDate.toISOString(),
         end: endDate.toISOString(),
@@ -53,7 +53,6 @@ export default defineEventHandler(async event => {
     }
   } catch (error: any) {
     logError('Analytics data error:', error, 'analytics/data.get')
-    setResponseStatus(event, 500)
     return {
       success: false,
       message: error.message || 'Internal server error',
