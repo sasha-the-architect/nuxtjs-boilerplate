@@ -1,10 +1,12 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { Resource } from '~/types/resource'
+import { rateLimit } from '~/server/utils/enhanced-rate-limit'
 
 // In-memory storage for resource status updates (in production, this would be a database)
 const resourceStatusHistory = new Map<string, any[]>()
 
 export default defineEventHandler(async event => {
+  await rateLimit(event)
   const { resourceIds, status, reason, notes } = await readBody(event)
 
   // Validate required fields

@@ -2,6 +2,7 @@
 // API endpoint to update user preferences (mock implementation)
 
 import { readBody, getQuery } from 'h3'
+import { rateLimit } from '~/server/utils/enhanced-rate-limit'
 
 interface UpdatePreferencesBody {
   categories?: string[]
@@ -21,6 +22,8 @@ interface UpdatePreferencesBody {
 }
 
 export default defineEventHandler(async event => {
+  await rateLimit(event)
+
   try {
     const body = await readBody<UpdatePreferencesBody>(event)
     const query = getQuery(event)

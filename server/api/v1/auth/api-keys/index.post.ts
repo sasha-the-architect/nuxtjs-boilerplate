@@ -1,8 +1,10 @@
 import type { ApiKey } from '~/types/webhook'
 import { randomUUID } from 'node:crypto'
 import { webhookStorage } from '~/server/utils/webhookStorage'
+import { rateLimit } from '~/server/utils/enhanced-rate-limit'
 
 export default defineEventHandler(async event => {
+  await rateLimit(event)
   const body = await readBody<{
     name: string
     permissions?: string[]
