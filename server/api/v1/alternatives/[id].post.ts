@@ -1,7 +1,7 @@
 import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
-import { getRouterParam } from 'h3'
+{ createError, defineEventHandler, getRouterParam, readBody 
 
 // This is a simplified implementation for demonstration
 // In a real implementation, you'd want to persist these relationships in a database

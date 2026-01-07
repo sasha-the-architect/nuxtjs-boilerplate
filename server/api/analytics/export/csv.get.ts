@@ -1,6 +1,6 @@
 // server/api/analytics/export/csv.get.ts
 // API endpoint for exporting analytics data as CSV
-import { getQuery, setResponseHeader, setResponseStatus } from 'h3'
+import { defineEventHandler, getQuery, setResponseHeader, setResponseStatus } from 'h3'
 import { exportAnalyticsToCsv } from '~/server/utils/analytics-db'
 
 export default defineEventHandler(async event => {

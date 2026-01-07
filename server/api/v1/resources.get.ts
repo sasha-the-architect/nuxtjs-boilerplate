@@ -1,15 +1,13 @@
-import { getQuery, setResponseHeader, setResponseStatus } from 'h3'
+import {
+  defineEventHandler,
+  getQuery,
+  setResponseHeader,
+  setResponseStatus,
+} from 'h3'
 import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
-import {
-  cacheManager,
-  cacheSetWithTags,
-  invalidateCacheByTag,
-} from '~/server/utils/enhanced-cache'
-import {
-  rateLimit,
-  getRateLimiterForPath,
-} from '~/server/utils/enhanced-rate-limit'
+import { cacheManager, cacheSetWithTags } from '~/server/utils/enhanced-cache'
+import { rateLimit } from '~/server/utils/enhanced-rate-limit'
 import { convertResourcesToHierarchicalTags } from '~/utils/tags'
 
 /**

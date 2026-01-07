@@ -1,6 +1,6 @@
 // Define the form data interface
 import type { HierarchicalTag } from './tag'
-import type { Resource, Flag } from './resource'
+import type { Resource } from './resource'
 
 export interface FormData {
   title: string

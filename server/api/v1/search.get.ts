@@ -1,4 +1,4 @@
-import { getQuery, setResponseStatus } from 'h3'
+import { defineEventHandler, getQuery, setResponseStatus } from 'h3'
 import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
 import {

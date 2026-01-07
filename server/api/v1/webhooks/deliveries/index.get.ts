@@ -1,4 +1,4 @@
-import { getQuery } from 'h3'
+import { defineEventHandler, getQuery } from 'h3'
 import type { WebhookDelivery } from '~/types/webhook'
 import { webhookStorage } from '~/server/utils/webhookStorage'
 

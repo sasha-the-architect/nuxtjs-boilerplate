@@ -1,6 +1,7 @@
+import { defineEventHandler } from 'h3'
 import { getAllResourceHealthStatuses } from '~/server/utils/resourceHealth'
 
-export default defineEventHandler(async event => {
+export default defineEventHandler(async () => {
   const healthStatuses = getAllResourceHealthStatuses()
 
   return {

@@ -1,6 +1,6 @@
 // server/api/analytics/events.post.ts
 // API endpoint for collecting analytics events from the client
-import { readBody, getHeaders, getRequestIP, setResponseStatus } from 'h3'
+import { defineEventHandler, readBody, getHeaders, getRequestIP, setResponseStatus } from 'h3'
 import {
   insertAnalyticsEvent,
   getAnalyticsEventsByDateRange,

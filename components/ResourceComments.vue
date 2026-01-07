@@ -15,8 +15,8 @@
       />
       <div class="mt-3 flex justify-end">
         <button
-          @click="submitComment"
           class="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors"
+          @click="submitComment"
         >
           Post Comment
         </button>

@@ -1,4 +1,4 @@
-import { getQuery } from 'h3'
+import { defineEventHandler, getQuery } from 'h3'
 import { searchAnalyticsTracker } from '~/utils/searchAnalytics'
 import { logger } from '~/utils/logger'
 

@@ -3,7 +3,7 @@ import type { ResourceComparison } from '~/types/comparison'
 import { logError } from '~/utils/errorLogger'
 import { cacheManager, cacheSetWithTags } from '~/server/utils/enhanced-cache'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
-import { getQuery } from 'h3'
+{ createError, defineEventHandler, getQuery 
 
 export default defineEventHandler(async event => {
   try {

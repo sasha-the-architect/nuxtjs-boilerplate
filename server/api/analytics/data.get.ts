@@ -1,7 +1,7 @@
 // server/api/analytics/data.get.ts
 // API endpoint for retrieving analytics data for the dashboard
-import { getQuery, setResponseStatus } from 'h3'
-import { getQuery, setResponseStatus } from 'h3'
+import { defineEventHandler, getQuery, setResponseStatus } from 'h3'
+import { defineEventHandler, getQuery, setResponseStatus } from 'h3'
 import { getAggregatedAnalytics } from '~/server/utils/analytics-db'
 import { logError } from '~/utils/errorLogger'
 

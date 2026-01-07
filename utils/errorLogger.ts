@@ -95,11 +95,11 @@ class ErrorLogger {
   }
 
   // Send logs to external service (placeholder)
-  private async sendToExternalService(log: ErrorLog): Promise<void> {
+  private async sendToExternalService(_log: ErrorLog): Promise<void> {
     // This is a placeholder for sending logs to an external service like Sentry, LogRocket, etc.
-    // In a real implementation, you would send the log to your preferred error tracking service
+    // In a real implementation, you would send log to your preferred error tracking service
     try {
-      // Example: await fetch('/api/logs', { method: 'POST', body: JSON.stringify(log) })
+      // Example: await fetch('/api/logs', { method: 'POST', body: JSON.stringify(_log) })
     } catch (err) {
       logger.error('Failed to send log to external service:', err)
     }

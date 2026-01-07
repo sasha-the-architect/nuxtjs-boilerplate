@@ -1,3 +1,4 @@
+import { createError, defineEventHandler, readBody } from 'h3'
 import { Resource } from '~/types/resource'
 
 // In-memory storage for resource status updates (in production, this would be a database)

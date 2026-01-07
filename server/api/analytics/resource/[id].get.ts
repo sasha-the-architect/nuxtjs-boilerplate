@@ -1,6 +1,6 @@
 // server/api/analytics/resource/[id].get.ts
 // API endpoint for retrieving analytics data for a specific resource
-import { getQuery, setResponseStatus } from 'h3'
+import { defineEventHandler, getQuery, setResponseStatus } from 'h3'
 import { getResourceAnalytics } from '~/server/utils/analytics-db'
 
 export default defineEventHandler(async event => {

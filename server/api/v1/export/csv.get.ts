@@ -1,4 +1,4 @@
-import { setResponseHeader } from 'h3'
+import { defineEventHandler, setResponseHeader } from 'h3'
 import type { Resource } from '~/types/resource'
 import { resourcesToCsv } from '~/utils/csv'
 import { logError } from '~/utils/errorLogger'
