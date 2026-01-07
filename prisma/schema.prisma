@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 model AnalyticsEvent {
@@ -15,11 +15,14 @@ model AnalyticsEvent {
   url        String?
   userAgent  String?
   ip         String
-  timestamp  DateTime @default(now())
-  properties Json?
+  timestamp  Int
+  properties String?
 
   @@index([timestamp])
   @@index([resourceId])
   @@index([type])
   @@index([ip])
+  @@index([timestamp, type])
+  @@index([timestamp, resourceId])
+  @@index([resourceId, type])
 }

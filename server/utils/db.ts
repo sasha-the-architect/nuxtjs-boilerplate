@@ -1,32 +1,21 @@
-// server/utils/db.ts
-import { createRequire } from 'module'
-const require = createRequire(import.meta.url)
+import { PrismaClient } from '@prisma/client'
 
-// Declare global Prisma client instance for development
 declare global {
-  var prisma: any | undefined
+  var prisma: PrismaClient | undefined
 }
 
-let prismaClient: any
+export const prisma =
+  global.prisma ??
+  new PrismaClient({
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL || 'file:./data/dev.db',
+      },
+    },
+  })
 
-try {
-  // Try to import Prisma from CommonJS module
-  // This may fail during build/prerendering, which is expected
-  const { PrismaClient } = require('@prisma/client')
-
-  // Create a single instance of PrismaClient for production
-  prismaClient = global.prisma || new PrismaClient()
-
-  // In development, store global instance to prevent multiple instances
-  if (process.env.NODE_ENV === 'development') {
-    global.prisma = prismaClient
-  }
-} catch (error) {
-  // Prisma is not available during build/prerendering
-  // This is expected - db will be initialized at runtime
-  console.warn(
-    'Prisma client not available during build - will be initialized at runtime'
-  )
+if (process.env.NODE_ENV !== 'production') {
+  global.prisma = prisma
 }
 
-export default prismaClient
+export default prisma
