@@ -105,7 +105,9 @@ Implemented in `utils/sanitize.ts`:
 | Cache Strategy    | nuxt.config.ts (workbox section) | PWA caching policies           |
 | Bundle Analysis   | nuxt.config.analyze.ts           | Separate analyzer config       |
 | Route Rules       | nuxt.config.ts                   | Prerendering and routing       |
-| Error Handling    | composables/useErrorHandler.ts   | Centralized error management   |
+
+<<<<<<< HEAD
+| Error Handling | composables/useErrorHandler.ts | Centralized error management |
 
 ## 🛡️ Error Handling Architecture
 
@@ -138,6 +140,7 @@ Logger (console/output)
 3. **Error Boundaries**: Use app/error.vue for global error handling
 4. **User Feedback**: Display user-friendly error messages
 5. **Error Tracking**: Maintain error history for debugging
+   > > > > > > > f02fc3a (Refactor architecture: Eliminate code duplication and anti-patterns)
 
 ## 🧩 Composable Architecture
 
@@ -384,13 +387,22 @@ tests/
 
 ## 🔄 Decision Log
 
-| Date       | Category     | Decision                                                            | Impact                                                                 |
+<<<<<<< HEAD
+| Date | Category | Decision | Impact |
 | ---------- | ------------ | ------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| 2025-01-07 | Code Quality | Removed duplicate Google Fonts caching in nuxt.config.ts            | Eliminated code duplication, reduced config size                       |
-| 2025-01-07 | Build System | Created separate nuxt.config.analyze.ts for bundle analysis         | Removed dynamic import anti-pattern, improved build predictability     |
-| 2025-01-07 | Security     | Removed static CSP meta tag from nuxt.config.ts                     | Centralized CSP in server plugin with nonce support, improved security |
-| 2025-01-07 | Architecture | Verified no circular dependencies exist in composables              | Confirmed clean dependency hierarchy                                   |
-| 2025-01-07 | Architecture | Created useErrorHandler composable for centralized error management | Standardized error handling, improved debugging and user feedback      |
+| 2025-01-07 | Code Quality | Removed duplicate Google Fonts caching in nuxt.config.ts | Eliminated code duplication, reduced config size |
+| 2025-01-07 | Build System | Created separate nuxt.config.analyze.ts for bundle analysis | Removed dynamic import anti-pattern, improved build predictability |
+| 2025-01-07 | Security | Removed static CSP meta tag from nuxt.config.ts | Centralized CSP in server plugin with nonce support, improved security |
+| 2025-01-07 | Architecture | Verified no circular dependencies exist in composables | Confirmed clean dependency hierarchy |
+| 2025-01-07 | Architecture | Created useErrorHandler composable for centralized error management | Standardized error handling, improved debugging and user feedback |
+| Date | Category | Decision | Impact |
+| ---------- | ------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------- |
+| 2025-01-07 | Code Quality | Removed duplicate Google Fonts caching in nuxt.config.ts | Eliminated code duplication, reduced config size |
+| 2025-01-07 | Build System | Created separate nuxt.config.analyze.ts for bundle analysis | Removed dynamic import anti-pattern, improved build predictability |
+| 2025-01-07 | Security | Removed static CSP meta tag from nuxt.config.ts | Centralized CSP in server plugin with nonce support, improved security |
+| 2025-01-07 | Architecture | Verified no circular dependencies exist in composables | Confirmed clean dependency hierarchy |
+
+> > > > > > > f02fc3a (Refactor architecture: Eliminate code duplication and anti-patterns)
 
 ## 🎓 Design Principles Applied
 
