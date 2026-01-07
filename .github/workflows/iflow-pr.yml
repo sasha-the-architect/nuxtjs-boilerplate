@@ -42,7 +42,7 @@ jobs:
 
       - name: Upload PR intel
         if: env.skip_jobs == 'false'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: pr-intel-data-${{ github.run_id }}
           path: pr_intel/
