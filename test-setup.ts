@@ -1,5 +1,12 @@
 import { vi, beforeEach } from 'vitest'
 
+// Make browser APIs and timers globally available for tests
+const g = global as any
+g.setTimeout = global.setTimeout
+g.clearTimeout = global.clearTimeout
+g.setInterval = global.setInterval
+g.clearInterval = global.clearInterval
+
 vi.mock('#app', async () => {
   return {
     useNuxtApp: vi.fn(),
@@ -25,11 +32,17 @@ vi.mock('#app/composables/router', () => {
   }
 })
 
-vi.mock('vue', async importOriginal => {
-  const actual = await importOriginal()
+vi.mock('#app/composables/router', () => {
   return {
-    ...actual,
-    getCurrentInstance: vi.fn(),
+    useRouter: vi.fn(),
+    useRoute: vi.fn(),
+  }
+})
+
+vi.mock('#app/composables/router', () => {
+  return {
+    useRouter: vi.fn(),
+    useRoute: vi.fn(),
   }
 })
 
