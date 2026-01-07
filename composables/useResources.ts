@@ -44,7 +44,7 @@ export const useResources = () => {
   // Use the search-filter composable to handle combining search and filters
   const { finalResources: searchFilteredResources } = useResourceSearchFilter(
     resources.value,
-    { value: filterOptions.value },
+    { value: { ...filterOptions.value } },
     filterOptions.value.searchQuery
   )
 

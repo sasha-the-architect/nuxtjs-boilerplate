@@ -65,30 +65,41 @@ export const useResourceData = () => {
     await initResources()
   }
 
-  // Get unique categories
-  const categories = computed(() => {
-    if (!resources.value || !Array.isArray(resources.value)) return []
-    return [...new Set(resources.value.map(r => r.category))]
+  // Compute all unique values in a single pass
+  const filterValues = computed(() => {
+    if (!resources.value || !Array.isArray(resources.value)) {
+      return {
+        categories: [],
+        pricingModels: [],
+        difficultyLevels: [],
+        technologies: [],
+      }
+    }
+
+    const categoriesSet = new Set<string>()
+    const pricingModelsSet = new Set<string>()
+    const difficultyLevelsSet = new Set<string>()
+    const technologiesSet = new Set<string>()
+
+    resources.value.forEach(resource => {
+      categoriesSet.add(resource.category)
+      pricingModelsSet.add(resource.pricingModel)
+      difficultyLevelsSet.add(resource.difficulty)
+      resource.technology.forEach(tech => technologiesSet.add(tech))
+    })
+
+    return {
+      categories: Array.from(categoriesSet),
+      pricingModels: Array.from(pricingModelsSet),
+      difficultyLevels: Array.from(difficultyLevelsSet),
+      technologies: Array.from(technologiesSet),
+    }
   })
 
-  // Get unique pricing models
-  const pricingModels = computed(() => {
-    if (!resources.value || !Array.isArray(resources.value)) return []
-    return [...new Set(resources.value.map(r => r.pricingModel))]
-  })
-
-  // Get unique difficulty levels
-  const difficultyLevels = computed(() => {
-    if (!resources.value || !Array.isArray(resources.value)) return []
-    return [...new Set(resources.value.map(r => r.difficulty))]
-  })
-
-  // Get unique technologies
-  const technologies = computed(() => {
-    if (!resources.value || !Array.isArray(resources.value)) return []
-    const allTechnologies = resources.value.flatMap(r => r.technology)
-    return [...new Set(allTechnologies)]
-  })
+  const categories = computed(() => filterValues.value.categories)
+  const pricingModels = computed(() => filterValues.value.pricingModels)
+  const difficultyLevels = computed(() => filterValues.value.difficultyLevels)
+  const technologies = computed(() => filterValues.value.technologies)
 
   // Initialize resources when composable is created
   initResources()

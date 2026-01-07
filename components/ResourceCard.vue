@@ -192,6 +192,7 @@ import ShareButton from '~/components/ShareButton.vue'
 import ResourceStatus from '~/components/ResourceStatus.vue'
 import { trackResourceView, trackResourceClick } from '~/utils/analytics'
 import { sanitizeAndHighlight } from '~/utils/sanitize'
+import { memoizeHighlight } from '~/utils/memoize'
 import { logError } from '~/utils/errorLogger'
 
 interface Props {
@@ -231,6 +232,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const hasError = ref(false)
 
+// Memoized highlight function to prevent recomputation
+const memoizedHighlight = memoizeHighlight(sanitizeAndHighlight)
+
 // Track resource view when component mounts
 onMounted(() => {
   if (props.id) {
@@ -238,11 +242,10 @@ onMounted(() => {
   }
 })
 
-// Sanitize highlighted content to prevent XSS using centralized utility
+// Sanitize highlighted content to prevent XSS using centralized utility with memoization
 const sanitizedHighlightedTitle = computed(() => {
   if (!props.highlightedTitle) return ''
-  // Use the centralized sanitization utility with the actual search query
-  return sanitizeAndHighlight(
+  return memoizedHighlight(
     props.highlightedTitle,
     props.searchQuery || props.highlightedTitle
   )
@@ -250,8 +253,7 @@ const sanitizedHighlightedTitle = computed(() => {
 
 const sanitizedHighlightedDescription = computed(() => {
   if (!props.highlightedDescription) return ''
-  // Use the centralized sanitization utility with the actual search query
-  return sanitizeAndHighlight(
+  return memoizedHighlight(
     props.highlightedDescription,
     props.searchQuery || props.highlightedDescription
   )

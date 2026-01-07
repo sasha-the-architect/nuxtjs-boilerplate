@@ -101,11 +101,11 @@ export interface Vote {
 
 export interface FilterOptions {
   searchQuery?: string
-  categories?: string[]
-  pricingModels?: string[]
-  difficultyLevels?: string[]
-  technologies?: string[]
-  tags?: string[]
+  categories?: string[] | readonly string[]
+  pricingModels?: string[] | readonly string[]
+  difficultyLevels?: string[] | readonly string[]
+  technologies?: string[] | readonly string[]
+  tags?: string[] | readonly string[]
 }
 
 export interface AlternativeSuggestion {

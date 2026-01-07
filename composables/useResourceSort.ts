@@ -1,12 +1,14 @@
 import { computed, type ComputedRef } from 'vue'
 import type { Resource, SortOption } from '~/types/resource'
+import { useFilterUtils } from './useFilterUtils'
 
 // Composable for handling resource sorting
 export const useResourceSort = (
   resources: ComputedRef<Resource[]>,
   sortOption: ComputedRef<SortOption>
 ) => {
-  // Computed sorted resources
+  const { parseDate } = useFilterUtils()
+
   const sortedResources = computed(() => {
     if (!resources.value || !resources.value.length) {
       return []
@@ -23,9 +25,7 @@ export const useResourceSort = (
         case 'popularity-desc':
           return b.popularity - a.popularity
         case 'date-added-desc':
-          return (
-            new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime()
-          )
+          return parseDate(b.dateAdded) - parseDate(a.dateAdded)
         default:
           return 0
       }

@@ -1,52 +1,53 @@
-import { ref, readonly } from 'vue'
+import { readonly, computed } from 'vue'
 import Fuse from 'fuse.js'
 import type { Resource } from '~/types/resource'
 import { sanitizeAndHighlight } from '~/utils/sanitize'
 
-// Composable for managing resource search functionality
+const fuseCache = new WeakMap<readonly Resource[], Fuse<Resource>>()
+
+const createFuseInstance = (resources: readonly Resource[]): Fuse<Resource> => {
+  return new Fuse([...resources], {
+    keys: [
+      { name: 'title', weight: 0.4 },
+      { name: 'description', weight: 0.3 },
+      { name: 'benefits', weight: 0.2 },
+      { name: 'tags', weight: 0.1 },
+    ],
+    threshold: 0.3,
+    includeScore: true,
+  })
+}
+
+const getCachedFuse = (resources: readonly Resource[]): Fuse<Resource> => {
+  if (!fuseCache.has(resources)) {
+    fuseCache.set(resources, createFuseInstance(resources))
+  }
+  return fuseCache.get(resources)!
+}
+
 export const useResourceSearch = (resources: readonly Resource[]) => {
-  const fuse = ref<Fuse<Resource> | null>(null)
+  const fuse = computed(() => getCachedFuse(resources))
 
-  // Initialize Fuse.js for fuzzy search
-  const initSearch = () => {
-    fuse.value = new Fuse([...resources], {
-      keys: [
-        { name: 'title', weight: 0.4 },
-        { name: 'description', weight: 0.3 },
-        { name: 'benefits', weight: 0.2 },
-        { name: 'tags', weight: 0.1 },
-      ],
-      threshold: 0.3,
-      includeScore: true,
-    })
-  }
-
-  // Search resources
   const searchResources = (query: string): Resource[] => {
-    if (!query || !fuse.value) return [...resources]
+    if (!query) return [...resources]
 
-    const searchResults = fuse.value.search(query)
+    const fuseInstance = getCachedFuse(resources)
+    const searchResults = fuseInstance.search(query)
     return searchResults.map(item => item.item)
   }
 
-  // Search suggestions functionality
   const getSuggestions = (query: string, limit: number = 5): Resource[] => {
-    if (!query || !fuse.value) return []
+    if (!query) return []
 
-    const searchResults = fuse.value.search(query, { limit })
+    const fuseInstance = getCachedFuse(resources)
+    const searchResults = fuseInstance.search(query, { limit })
     return searchResults.map(item => item.item)
   }
 
-  // Function to highlight search terms in text
   const highlightSearchTerms = (text: string, searchQuery: string): string => {
     if (!searchQuery || !text) return text || ''
-
-    // Use the centralized sanitization utility
     return sanitizeAndHighlight(text, searchQuery)
   }
-
-  // Initialize search when composable is created
-  initSearch()
 
   return {
     fuse: readonly(fuse),

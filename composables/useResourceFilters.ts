@@ -1,8 +1,11 @@
 import { ref, computed, readonly } from 'vue'
 import type { Resource, FilterOptions, SortOption } from '~/types/resource'
+import { useFilterUtils } from './useFilterUtils'
 
 // Composable for managing resource filters
 export const useResourceFilters = (resources: readonly Resource[]) => {
+  const { filterByAllCriteria, parseDate } = useFilterUtils()
+
   // Filter options
   const filterOptions = ref<FilterOptions>({
     searchQuery: '',
@@ -22,58 +25,8 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
       return []
     }
 
-    let result: Resource[] = [...resources]
+    const result = filterByAllCriteria([...resources], filterOptions.value)
 
-    // Apply category filter
-    if (
-      filterOptions.value.categories &&
-      filterOptions.value.categories.length > 0
-    ) {
-      result = result.filter(resource =>
-        filterOptions.value.categories!.includes(resource.category)
-      )
-    }
-
-    // Apply pricing model filter
-    if (
-      filterOptions.value.pricingModels &&
-      filterOptions.value.pricingModels.length > 0
-    ) {
-      result = result.filter(resource =>
-        filterOptions.value.pricingModels!.includes(resource.pricingModel)
-      )
-    }
-
-    // Apply difficulty level filter
-    if (
-      filterOptions.value.difficultyLevels &&
-      filterOptions.value.difficultyLevels.length > 0
-    ) {
-      result = result.filter(resource =>
-        filterOptions.value.difficultyLevels!.includes(resource.difficulty)
-      )
-    }
-
-    // Apply technology filter
-    if (
-      filterOptions.value.technologies &&
-      filterOptions.value.technologies.length > 0
-    ) {
-      result = result.filter(resource =>
-        resource.technology.some(tech =>
-          filterOptions.value.technologies!.includes(tech)
-        )
-      )
-    }
-
-    // Apply tag filter
-    if (filterOptions.value.tags && filterOptions.value.tags.length > 0) {
-      result = result.filter(resource =>
-        resource.tags.some(tag => filterOptions.value.tags!.includes(tag))
-      )
-    }
-
-    // Apply sorting
     result.sort((a, b) => {
       switch (sortOption.value) {
         case 'alphabetical-asc':
@@ -83,9 +36,7 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
         case 'popularity-desc':
           return b.popularity - a.popularity
         case 'date-added-desc':
-          return (
-            new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime()
-          )
+          return parseDate(b.dateAdded) - parseDate(a.dateAdded)
         default:
           return 0
       }
@@ -100,55 +51,58 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
   }
 
   const toggleCategory = (category: string) => {
-    if (!filterOptions.value.categories) filterOptions.value.categories = []
-    const index = filterOptions.value.categories.indexOf(category)
+    const current = [...(filterOptions.value.categories || [])]
+    const index = current.indexOf(category)
     if (index > -1) {
-      filterOptions.value.categories.splice(index, 1)
+      current.splice(index, 1)
     } else {
-      filterOptions.value.categories.push(category)
+      current.push(category)
     }
+    filterOptions.value.categories = current
   }
 
   const togglePricingModel = (pricingModel: string) => {
-    if (!filterOptions.value.pricingModels)
-      filterOptions.value.pricingModels = []
-    const index = filterOptions.value.pricingModels.indexOf(pricingModel)
+    const current = [...(filterOptions.value.pricingModels || [])]
+    const index = current.indexOf(pricingModel)
     if (index > -1) {
-      filterOptions.value.pricingModels.splice(index, 1)
+      current.splice(index, 1)
     } else {
-      filterOptions.value.pricingModels.push(pricingModel)
+      current.push(pricingModel)
     }
+    filterOptions.value.pricingModels = current
   }
 
   const toggleDifficultyLevel = (difficulty: string) => {
-    if (!filterOptions.value.difficultyLevels)
-      filterOptions.value.difficultyLevels = []
-    const index = filterOptions.value.difficultyLevels.indexOf(difficulty)
+    const current = [...(filterOptions.value.difficultyLevels || [])]
+    const index = current.indexOf(difficulty)
     if (index > -1) {
-      filterOptions.value.difficultyLevels.splice(index, 1)
+      current.splice(index, 1)
     } else {
-      filterOptions.value.difficultyLevels.push(difficulty)
+      current.push(difficulty)
     }
+    filterOptions.value.difficultyLevels = current
   }
 
   const toggleTechnology = (technology: string) => {
-    if (!filterOptions.value.technologies) filterOptions.value.technologies = []
-    const index = filterOptions.value.technologies.indexOf(technology)
+    const current = [...(filterOptions.value.technologies || [])]
+    const index = current.indexOf(technology)
     if (index > -1) {
-      filterOptions.value.technologies.splice(index, 1)
+      current.splice(index, 1)
     } else {
-      filterOptions.value.technologies.push(technology)
+      current.push(technology)
     }
+    filterOptions.value.technologies = current
   }
 
   const toggleTag = (tag: string) => {
-    if (!filterOptions.value.tags) filterOptions.value.tags = []
-    const index = filterOptions.value.tags.indexOf(tag)
+    const current = [...(filterOptions.value.tags || [])]
+    const index = current.indexOf(tag)
     if (index > -1) {
-      filterOptions.value.tags.splice(index, 1)
+      current.splice(index, 1)
     } else {
-      filterOptions.value.tags.push(tag)
+      current.push(tag)
     }
+    filterOptions.value.tags = current
   }
 
   const setSortOption = (option: SortOption) => {

@@ -105,6 +105,39 @@ Implemented in `utils/sanitize.ts`:
 | Cache Strategy    | nuxt.config.ts (workbox section) | PWA caching policies           |
 | Bundle Analysis   | nuxt.config.analyze.ts           | Separate analyzer config       |
 | Route Rules       | nuxt.config.ts                   | Prerendering and routing       |
+| Error Handling    | composables/useErrorHandler.ts   | Centralized error management   |
+
+## 🛡️ Error Handling Architecture
+
+### Centralized Error Management
+
+Implemented via `composables/useErrorHandler.ts`:
+
+- **Error State Management**: Unified error state across application
+- **Error Logging**: Consistent logging via `errorLogger` utility
+- **Global Error Tracking**: Maintain history of errors for debugging
+- **Async Error Handling**: Wrapper for async operations with error handling
+- **Severity Levels**: Support for info, warning, error, critical levels
+
+### Error Handling Pattern
+
+```
+Component/Page
+    ↓
+useErrorHandler (composable)
+    ↓
+errorLogger (utility)
+    ↓
+Logger (console/output)
+```
+
+### Error Handling Best Practices
+
+1. **Use useErrorHandler**: All components should use centralized error handler
+2. **Consistent Logging**: Always use `logError`, `logWarning`, `logCritical`
+3. **Error Boundaries**: Use app/error.vue for global error handling
+4. **User Feedback**: Display user-friendly error messages
+5. **Error Tracking**: Maintain error history for debugging
 
 ## 🧩 Composable Architecture
 
@@ -351,12 +384,13 @@ tests/
 
 ## 🔄 Decision Log
 
-| Date       | Category     | Decision                                                    | Impact                                                                 |
-| ---------- | ------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------- |
-| 2025-01-07 | Code Quality | Removed duplicate Google Fonts caching in nuxt.config.ts    | Eliminated code duplication, reduced config size                       |
-| 2025-01-07 | Build System | Created separate nuxt.config.analyze.ts for bundle analysis | Removed dynamic import anti-pattern, improved build predictability     |
-| 2025-01-07 | Security     | Removed static CSP meta tag from nuxt.config.ts             | Centralized CSP in server plugin with nonce support, improved security |
-| 2025-01-07 | Architecture | Verified no circular dependencies exist in composables      | Confirmed clean dependency hierarchy                                   |
+| Date       | Category     | Decision                                                            | Impact                                                                 |
+| ---------- | ------------ | ------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| 2025-01-07 | Code Quality | Removed duplicate Google Fonts caching in nuxt.config.ts            | Eliminated code duplication, reduced config size                       |
+| 2025-01-07 | Build System | Created separate nuxt.config.analyze.ts for bundle analysis         | Removed dynamic import anti-pattern, improved build predictability     |
+| 2025-01-07 | Security     | Removed static CSP meta tag from nuxt.config.ts                     | Centralized CSP in server plugin with nonce support, improved security |
+| 2025-01-07 | Architecture | Verified no circular dependencies exist in composables              | Confirmed clean dependency hierarchy                                   |
+| 2025-01-07 | Architecture | Created useErrorHandler composable for centralized error management | Standardized error handling, improved debugging and user feedback      |
 
 ## 🎓 Design Principles Applied
 
