@@ -952,8 +952,244 @@ export async function cleanupOldEvents(
 
 ---
 
-**Last Updated**: 2025-01-07
-**Maintained By**: Data Architect
-**Status**: ✅ Active Data Architecture
+## 🔌 API Documentation Architecture
 
-💾 **DATA ARCHITECTURE ESTABLISHED**
+### OpenAPI Specification
+
+**Location**: `server/api/api-docs/spec.get.ts`
+
+The API uses OpenAPI 3.0.3 specification for comprehensive documentation:
+
+- **Interactive UI**: Swagger UI available at `/api-docs`
+- **JSON Spec**: Machine-readable spec at `/api-docs/spec.json`
+- **Standardized Format**: Consistent documentation across all endpoints
+- **Error Documentation**: All error codes and categories documented
+- **Rate Limiting Info**: Rate limit details documented per endpoint
+
+### Documentation Coverage
+
+#### Documented Endpoints (18 endpoints)
+
+**Resources**:
+
+- `GET /api/v1/resources` - List resources with filtering and pagination
+- `GET /api/v1/resources/{id}` - Get resource by ID
+- `POST /api/resources/bulk-status` - Bulk update resource status
+
+**Search**:
+
+- `GET /api/v1/search` - Advanced search with fuzzy matching
+
+**Webhooks**:
+
+- `GET /api/v1/webhooks` - List webhooks
+- `POST /api/v1/webhooks` - Create webhook
+- `PUT /api/v1/webhooks/{id}` - Update webhook
+- `DELETE /api/v1/webhooks/{id}` - Delete webhook
+- `POST /api/v1/webhooks/trigger` - Test webhook delivery
+- `GET /api/v1/webhooks/deliveries` - List webhook deliveries
+
+**Analytics**:
+
+- `POST /api/analytics/events` - Record analytics event
+- `GET /api/analytics/search` - Query analytics data
+- `GET /api/analytics/resource/{id}` - Get resource analytics
+
+**Submissions**:
+
+- `POST /api/submissions` - Submit new resource
+
+**Moderation**:
+
+- `GET /api/moderation/queue` - Get moderation queue
+- `POST /api/moderation/approve` - Approve submission
+- `POST /api/moderation/reject` - Reject submission
+
+**Export**:
+
+- `GET /api/v1/export/csv` - Export resources as CSV
+
+**Validation**:
+
+- `POST /api/validate-url` - Validate URL with resilience patterns
+
+### Error Response Documentation
+
+All endpoints use standardized error response format:
+
+```typescript
+{
+  success: false,
+  error: {
+    code: 'VALIDATION_ERROR',
+    message: 'Validation failed for field: email',
+    category: 'validation',
+    details: {
+      field: 'email',
+      message: 'Invalid email format',
+      value: 'not-an-email'
+    },
+    timestamp: '2025-01-07T12:00:00Z',
+    requestId: 'req_abc123',
+    path: '/api/v1/resources'
+  }
+}
+```
+
+**Error Codes** (12 documented):
+
+| Code                   | HTTP | Category         | Description                      |
+| ---------------------- | ---- | ---------------- | -------------------------------- |
+| INTERNAL_SERVER_ERROR  | 500  | internal         | Unexpected server error          |
+| BAD_REQUEST            | 400  | validation       | Malformed request                |
+| UNAUTHORIZED           | 401  | authentication   | Missing or invalid auth          |
+| FORBIDDEN              | 403  | authorization    | Insufficient permissions         |
+| NOT_FOUND              | 404  | not_found        | Resource not found               |
+| CONFLICT               | 409  | validation       | Duplicate or conflicting data    |
+| VALIDATION_ERROR       | 400  | validation       | Input validation failed          |
+| RATE_LIMIT_EXCEEDED    | 429  | rate_limit       | Too many requests                |
+| SERVICE_UNAVAILABLE    | 503  | external_service | Service temporarily unavailable  |
+| GATEWAY_TIMEOUT        | 504  | network          | External service timeout         |
+| CIRCUIT_BREAKER_OPEN   | 503  | external_service | Circuit breaker preventing calls |
+| EXTERNAL_SERVICE_ERROR | 502  | external_service | Third-party service failure      |
+
+### Integration Pattern Documentation
+
+#### Circuit Breaker Pattern
+
+**Endpoints with Circuit Breakers**:
+
+- `/api/validate-url` - Per-hostname circuit breakers
+- `/api/v1/webhooks/*` - Per-webhook circuit breakers
+
+**Configuration**:
+
+- Failure threshold: 5 failures
+- Success threshold: 2 successes
+- Timeout: 60 seconds
+- States: CLOSED, OPEN, HALF-OPEN
+
+**Error Handling**: Returns `CIRCUIT_BREAKER_OPEN` error when circuit is open
+
+#### Retry with Exponential Backoff
+
+**Endpoints with Retry**:
+
+- `/api/validate-url` - Configurable retry attempts
+- `/api/v1/webhooks/*` - Automatic webhook delivery retry
+
+**Configuration**:
+
+- Default: 3 attempts
+- Base delay: 1000ms
+- Max delay: 30000ms
+- Jitter: Enabled (prevents thundering herd)
+
+**Retryable Errors**:
+
+- HTTP: 408, 429, 500, 502, 503, 504
+- Network: ECONNRESET, ETIMEDOUT, ENOTFOUND, ECONNREFUSED
+
+#### Rate Limiting
+
+**Endpoints with Rate Limiting**:
+
+- `/api/analytics/events` - 10 events/minute per IP
+- `/api/v1/resources/*` - Path-based rate limiting
+- `/api/v1/search` - Path-based rate limiting
+
+**Response Headers**:
+
+- `Retry-After`: Seconds until retry allowed
+- `X-RateLimit-Remaining`: Requests remaining in window
+
+**Rate Limit Categories**:
+
+- General: 100 requests/minute
+- Search: 30 requests/minute
+- Heavy operations: 10 requests/minute
+- Export: 5 requests/minute
+- API keys: 50 requests/minute
+
+#### Validation
+
+**Validation Layers**:
+
+1. **Request Schema Validation** (Zod schemas)
+   - Location: `server/utils/validation-schemas.ts`
+   - Type-safe input validation
+   - Field-level error messages
+
+2. **Business Logic Validation**
+   - Custom validation in endpoint handlers
+   - Returns `VALIDATION_ERROR` with details
+
+3. **Output Encoding**
+   - DOMPurify for XSS prevention
+   - URL validation before external calls
+   - Sanitized HTML for user-generated content
+
+### Documentation Best Practices
+
+#### DO:
+
+✅ Document all error responses with codes and categories
+✅ Include rate limiting information in endpoint descriptions
+✅ Document retry and timeout behaviors
+✅ Provide example requests and responses
+✅ Document authentication requirements
+✅ Include cache behavior (X-Cache headers)
+✅ Document circuit breaker states for resilience
+
+#### DO NOT:
+
+❌ Document endpoints that don't exist
+❌ Omit error response documentation
+❌ Forget to document rate limits
+❌ Ignore authentication requirements
+❌ Skip retry behavior documentation
+❌ Document internal implementation details
+
+### API Documentation Decision Log
+
+| Date       | Decision                             | Rationale                                                             |
+| ---------- | ------------------------------------ | --------------------------------------------------------------------- |
+| 2025-01-07 | Create comprehensive OpenAPI spec    | Document 18 core endpoints with standardized error format             |
+| 2025-01-07 | Document all integration patterns    | Include circuit breaker, retry, rate limiting, and validation details |
+| 2025-01-07 | Add Swagger UI integration           | Provide interactive API documentation for developers                  |
+| 2025-01-07 | Standardize error code documentation | List all 12 error codes with HTTP mappings and categories             |
+
+### Documentation Maintenance
+
+**Update Triggers**:
+
+1. **New Endpoint Added**:
+   - Add endpoint to OpenAPI spec
+   - Document request/response schemas
+   - Include error responses
+   - Note rate limiting behavior
+
+2. **Error Code Added**:
+   - Add to `server/utils/api-error.ts`
+   - Update OpenAPI spec error codes list
+   - Update blueprint documentation
+
+3. **Integration Pattern Changed**:
+   - Update blueprint.md with new pattern
+   - Document configuration changes
+   - Update affected endpoint docs
+
+**Documentation Review**:
+
+- Monthly review of spec completeness
+- Compare OpenAPI spec with actual endpoints
+- Verify error code accuracy
+- Check rate limiting documentation
+
+---
+
+**Last Updated**: 2025-01-07
+**Maintained By**: Senior Integration Engineer
+**Status**: ✅ Active API Documentation
+
+📚 **API DOCUMENTATION ESTABLISHED**
