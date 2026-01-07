@@ -1,27 +1,28 @@
 // plugins/analytics.client.ts
 // Client-side analytics plugin for automatic tracking
 
-import { defineNuxtPlugin, useRuntimeConfig } from '#app'
-import { trackPageView } from '~/utils/analytics'
+import { defineNuxtPlugin } from '#app'
 
 export default defineNuxtPlugin(nuxtApp => {
   // Track initial page view
   if (process.client) {
-    // Wait for the page to load before tracking
-    if (window && document) {
-      setTimeout(() => {
-        trackPageView(window.location.pathname, document.title)
-      }, 100)
-    }
-
-    // Track route changes
-    nuxtApp.$router?.afterEach((to, from) => {
-      // Only track if the route actually changed
-      if (to.path !== from.path) {
+    import('~/utils/analytics').then(({ trackPageView }) => {
+      // Wait for page to load before tracking
+      if (window && document) {
         setTimeout(() => {
-          trackPageView(to.path, document.title)
+          trackPageView(window.location.pathname, document.title)
         }, 100)
       }
+
+      // Track route changes
+      nuxtApp.$router?.afterEach((to, from) => {
+        // Only track if route actually changed
+        if (to.path !== from.path) {
+          setTimeout(() => {
+            trackPageView(to.path, document.title)
+          }, 100)
+        }
+      })
     })
   }
 
@@ -36,7 +37,14 @@ export default defineNuxtPlugin(nuxtApp => {
           }
           return Promise.resolve(false)
         },
-        trackPageView,
+        trackPageView: (url: string, title?: string) => {
+          if (process.client) {
+            return import('~/utils/analytics').then(({ trackPageView }) =>
+              trackPageView(url, title)
+            )
+          }
+          return Promise.resolve(false)
+        },
         trackResourceClick: (
           resourceId: string,
           title: string,
