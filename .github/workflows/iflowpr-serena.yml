@@ -232,7 +232,7 @@ jobs:
           path: ./artifacts
 
       - name: Run iFlow CLI with Serena auto-fix
-        uses: iflow-ai/iflow-cli-action@v2.1.0
+        uses: iflow-ai/iflow-cli-action@v2.2.1
         env:
           # Token GitHub untuk gh CLI dan operasi git
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -64,7 +64,7 @@ jobs:
           path: ./pr_intel
 
       - name: Run iFlow CLI to handle problematic PRs
-        uses: iflow-ai/iflow-cli-action@v2.1.0
+        uses: iflow-ai/iflow-cli-action@v2.2.1
         with:
           api_key: ${{ secrets.IFLOW_API_KEY }}
           timeout: "5400"
