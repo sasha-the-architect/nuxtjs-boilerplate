@@ -1,4 +1,5 @@
 import type { Resource } from '~/types/resource'
+import { logError } from './errorLogger'
 
 // Interface for search analytics data
 export interface SearchAnalytics {
@@ -272,7 +273,12 @@ export class SearchAnalyticsTracker {
           )
         }
       } catch (error) {
-        console.error('Error loading search analytics from storage:', error)
+        logError(
+          'Error loading search analytics from storage',
+          error as Error,
+          'SearchAnalytics',
+          { action: 'loadFromStorage' }
+        )
       }
     }
   }
@@ -294,7 +300,12 @@ export class SearchAnalyticsTracker {
           JSON.stringify(this.performanceHistory)
         )
       } catch (error) {
-        console.error('Error saving search analytics to storage:', error)
+        logError(
+          'Error saving search analytics to storage',
+          error as Error,
+          'SearchAnalytics',
+          { action: 'saveToStorage' }
+        )
       }
     }
   }

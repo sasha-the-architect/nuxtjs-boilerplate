@@ -85,7 +85,7 @@ export function createValidationError(
 
 export function createNotFoundError(
   resource: string,
-  identifier?: string
+  identifier?: string | number
 ): ApiError {
   const message = identifier
     ? `${resource} not found: ${identifier}`

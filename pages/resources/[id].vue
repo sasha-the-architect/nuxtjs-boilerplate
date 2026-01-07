@@ -2,29 +2,7 @@
   <div class="py-8">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Breadcrumb Navigation -->
-      <nav class="mb-6" aria-label="Breadcrumb">
-        <ol class="flex items-center space-x-2 text-sm">
-          <li>
-            <NuxtLink to="/" class="text-blue-600 hover:text-blue-800">
-              Home
-            </NuxtLink>
-          </li>
-          <li>
-            <span class="mx-2 text-gray-400">/</span>
-          </li>
-          <li>
-            <NuxtLink to="/search" class="text-blue-600 hover:text-blue-800">
-              Resources
-            </NuxtLink>
-          </li>
-          <li>
-            <span class="mx-2 text-gray-400">/</span>
-          </li>
-          <li class="text-gray-500 truncate" aria-current="page">
-            {{ resource?.title }}
-          </li>
-        </ol>
-      </nav>
+      <ResourceBreadcrumbs :title="resource?.title || ''" />
 
       <!-- Loading State -->
       <div v-if="loading" class="bg-white shadow rounded-lg p-6 animate-pulse">
@@ -820,6 +798,7 @@
 <script setup lang="ts">
 import { useResources, type Resource } from '~/composables/useResources'
 import ResourceCard from '~/components/ResourceCard.vue'
+import ResourceBreadcrumbs from '~/components/ResourceBreadcrumbs.vue'
 import RecommendationsSection from '~/components/RecommendationsSection.vue'
 import AlternativeSuggestions from '~/components/AlternativeSuggestions.vue'
 import logger from '~/utils/logger'

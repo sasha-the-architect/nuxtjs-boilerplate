@@ -6,6 +6,11 @@ import db from './db'
  * @param daysToKeep Number of days to keep analytics data (default: 90 days)
  */
 export async function cleanupOldAnalyticsEvents(daysToKeep: number = 90) {
+  if (!db || !db.analyticsEvent) {
+    console.warn('Database not available - skipping analytics cleanup')
+    return 0
+  }
+
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
 

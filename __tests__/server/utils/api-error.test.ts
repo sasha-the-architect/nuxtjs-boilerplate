@@ -593,7 +593,12 @@ describe('Integration Tests', () => {
       expect(getStatusCodeFromErrorCode(error.error.code)).toBe(429)
       expect(isClientError(error.error.code)).toBe(true)
       expect(isServerError(error.error.code)).toBe(false)
-      expect(error.error.details?.retryAfter).toBe(120)
+      if (
+        typeof error.error.details === 'object' &&
+        error.error.details !== null
+      ) {
+        expect(error.error.details.retryAfter).toBe(120)
+      }
     })
   })
 

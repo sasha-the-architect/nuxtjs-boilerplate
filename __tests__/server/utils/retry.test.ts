@@ -8,34 +8,35 @@ import {
   retryPresets,
   RetryError,
 } from '~/server/utils/retry'
+import { afterEach } from 'vitest'
 
 describe('isRetryableError', () => {
   describe('Happy Path - Retryable errors identified correctly', () => {
     it('should return true when retryableErrors is empty', () => {
       const error = new Error('any error')
       const result = isRetryableError(error, [])
-      
+
       expect(result).toBe(true)
     })
 
     it('should match error by HTTP status code string', () => {
       const error = new Error('HTTP 500 error')
       const result = isRetryableError(error, [500])
-      
+
       expect(result).toBe(true)
     })
 
     it('should match error by string pattern', () => {
       const error = new Error('ECONNRESET connection lost')
       const result = isRetryableError(error, ['ECONNRESET'])
-      
+
       expect(result).toBe(true)
     })
 
     it('should match error by Error instance', () => {
       const customError = new Error('Custom error message')
       const result = isRetryableError(customError, [customError])
-      
+
       expect(result).toBe(true)
     })
   })
@@ -44,7 +45,7 @@ describe('isRetryableError', () => {
     it('should return false when error does not match any retryable errors', () => {
       const error = new Error('HTTP 400 error')
       const result = isRetryableError(error, [500, 502, 503])
-      
+
       expect(result).toBe(false)
     })
 
@@ -52,7 +53,7 @@ describe('isRetryableError', () => {
       const customError = new Error('Error message')
       const differentError = new Error('Error message')
       const result = isRetryableError(customError, [differentError])
-      
+
       expect(result).toBe(false)
     })
   })
@@ -70,31 +71,32 @@ describe('retryWithBackoff', () => {
   describe('Happy Path - Succeeds on first attempt', () => {
     it('should return result immediately when function succeeds on first try', async () => {
       const successFn = vi.fn().mockResolvedValue('success')
-      
+
       const result = await retryWithBackoff(successFn)
-      
+
       expect(result).toBe('success')
       expect(successFn).toHaveBeenCalledTimes(1)
     })
 
     it('should not delay when function succeeds immediately', async () => {
       const successFn = vi.fn().mockResolvedValue('success')
-      
+
       const startTime = Date.now()
       await retryWithBackoff(successFn)
       const endTime = Date.now()
-      
+
       expect(endTime - startTime).toBeLessThan(100)
     })
   })
 
   describe('Retry Behavior - Retries on failures with backoff', () => {
     it('should retry on failure with exponential backoff', async () => {
-      const failFn = vi.fn()
+      const failFn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockResolvedValue('success')
-      
+
       const result = await retryWithBackoff(failFn, {
         maxRetries: 3,
         baseDelayMs: 100,
@@ -102,24 +104,25 @@ describe('retryWithBackoff', () => {
         backoffMultiplier: 2,
         jitterEnabled: false,
       })
-      
+
       expect(result).toBe('success')
       expect(failFn).toHaveBeenCalledTimes(3)
     })
 
     it('should use exponential backoff delay between retries', async () => {
-      const failFn = vi.fn()
+      const failFn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockResolvedValue('success')
-      
+
       const delays: number[] = []
       const originalSetTimeout = global.setTimeout
       global.setTimeout = vi.fn((cb, delay) => {
         delays.push(delay as number)
         return originalSetTimeout(cb, delay)
       }) as any
-      
+
       await retryWithBackoff(failFn, {
         maxRetries: 3,
         baseDelayMs: 100,
@@ -127,28 +130,28 @@ describe('retryWithBackoff', () => {
         backoffMultiplier: 2,
         jitterEnabled: false,
       })
-      
+
       expect(delays).toEqual([100, 200])
-      
+
       global.setTimeout = originalSetTimeout
     })
 
     it('should stop retrying after max retries when all attempts fail', async () => {
       const failFn = vi.fn().mockRejectedValue(new Error('fail'))
-      
+
       await expect(
         retryWithBackoff(failFn, {
           maxRetries: 2,
           baseDelayMs: 100,
         })
       ).rejects.toThrow('All 3 retry attempts failed')
-      
+
       expect(failFn).toHaveBeenCalledTimes(3)
     })
 
     it('should throw RetryError with all attempt details when all retries fail', async () => {
       const failFn = vi.fn().mockRejectedValue(new Error('fail'))
-      
+
       let error: Error | undefined
       try {
         await retryWithBackoff(failFn, {
@@ -158,7 +161,7 @@ describe('retryWithBackoff', () => {
       } catch (e) {
         error = e as Error
       }
-      
+
       expect(error).toBeInstanceOf(RetryError)
       if (error instanceof RetryError) {
         expect(error.attempts).toBe(3)
@@ -173,28 +176,29 @@ describe('retryWithBackoff', () => {
   describe('Retryable Error Filtering', () => {
     it('should not retry non-retryable errors', async () => {
       const failFn = vi.fn().mockRejectedValue(new Error('non-retryable error'))
-      
+
       await expect(
         retryWithBackoff(failFn, {
           maxRetries: 3,
           retryableErrors: [500, 502, 503],
         })
       ).rejects.toThrow('non-retryable error')
-      
+
       expect(failFn).toHaveBeenCalledTimes(1)
     })
 
     it('should retry only retryable errors', async () => {
-      const failFn = vi.fn()
+      const failFn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('HTTP 500 error'))
         .mockRejectedValueOnce(new Error('HTTP 500 error'))
         .mockResolvedValue('success')
-      
+
       const result = await retryWithBackoff(failFn, {
         maxRetries: 3,
         retryableErrors: [500],
       })
-      
+
       expect(result).toBe('success')
       expect(failFn).toHaveBeenCalledTimes(3)
     })
@@ -202,76 +206,79 @@ describe('retryWithBackoff', () => {
 
   describe('Jitter - Random delay variation', () => {
     it('should add jitter to delay when enabled', async () => {
-      const failFn = vi.fn()
+      const failFn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockResolvedValue('success')
-      
+
       const delays: number[] = []
       const originalSetTimeout = global.setTimeout
       global.setTimeout = vi.fn((cb, delay) => {
         delays.push(delay as number)
         return originalSetTimeout(cb, delay)
       }) as any
-      
+
       await retryWithBackoff(failFn, {
         maxRetries: 3,
         baseDelayMs: 100,
         jitterEnabled: true,
         jitterFactor: 0.1,
       })
-      
+
       expect(delays).toHaveLength(2)
       delays.forEach(delay => {
         expect(delay).toBeGreaterThanOrEqual(90)
         expect(delay).toBeLessThanOrEqual(110)
       })
-      
+
       global.setTimeout = originalSetTimeout
     })
 
     it('should not add jitter when disabled', async () => {
-      const failFn = vi.fn()
+      const failFn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockResolvedValue('success')
-      
+
       const delays: number[] = []
       const originalSetTimeout = global.setTimeout
       global.setTimeout = vi.fn((cb, delay) => {
         delays.push(delay as number)
         return originalSetTimeout(cb, delay)
       }) as any
-      
+
       await retryWithBackoff(failFn, {
         maxRetries: 3,
         baseDelayMs: 100,
         backoffMultiplier: 2,
         jitterEnabled: false,
       })
-      
+
       expect(delays).toEqual([100, 200])
-      
+
       global.setTimeout = originalSetTimeout
     })
   })
 
   describe('Max Delay Capping', () => {
     it('should cap delay at maxDelayMs', async () => {
-      const failFn = vi.fn()
+      const failFn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockRejectedValueOnce(new Error('fail 3'))
         .mockRejectedValueOnce(new Error('fail 4'))
         .mockResolvedValue('success')
-      
+
       const delays: number[] = []
       const originalSetTimeout = global.setTimeout
       global.setTimeout = vi.fn((cb, delay) => {
         delays.push(delay as number)
         return originalSetTimeout(cb, delay)
       }) as any
-      
+
       await retryWithBackoff(failFn, {
         maxRetries: 5,
         baseDelayMs: 100,
@@ -279,9 +286,9 @@ describe('retryWithBackoff', () => {
         backoffMultiplier: 2,
         jitterEnabled: false,
       })
-      
+
       expect(delays).toEqual([100, 150, 150, 150])
-      
+
       global.setTimeout = originalSetTimeout
     })
   })
@@ -289,19 +296,19 @@ describe('retryWithBackoff', () => {
   describe('Edge Cases and Boundary Conditions', () => {
     it('should handle maxRetries of 0', async () => {
       const failFn = vi.fn().mockRejectedValue(new Error('fail'))
-      
+
       await expect(
         retryWithBackoff(failFn, {
           maxRetries: 0,
         })
       ).rejects.toThrow('fail')
-      
+
       expect(failFn).toHaveBeenCalledTimes(1)
     })
 
     it('should handle negative delay values (should be capped at 0)', async () => {
       const successFn = vi.fn().mockResolvedValue('success')
-      
+
       await expect(
         retryWithBackoff(successFn, {
           maxRetries: 1,
@@ -312,7 +319,7 @@ describe('retryWithBackoff', () => {
 
     it('should handle non-Error exceptions', async () => {
       const throwString = vi.fn().mockRejectedValue('string error')
-      
+
       await expect(
         retryWithBackoff(throwString, {
           maxRetries: 1,
@@ -325,7 +332,7 @@ describe('retryWithBackoff', () => {
       const syncErrorFn = vi.fn(() => {
         throw new Error('sync error')
       })
-      
+
       await expect(
         retryWithBackoff(syncErrorFn as any, {
           maxRetries: 1,
@@ -347,9 +354,9 @@ describe('retryWithResult', () => {
   describe('Happy Path - Returns success result', () => {
     it('should return success result when function succeeds', async () => {
       const successFn = vi.fn().mockResolvedValue('success')
-      
+
       const result = await retryWithResult(successFn)
-      
+
       expect(result.success).toBe(true)
       expect(result.data).toBe('success')
       expect(result.error).toBeNull()
@@ -358,18 +365,19 @@ describe('retryWithResult', () => {
     })
 
     it('should return success result after retries', async () => {
-      const failFn = vi.fn()
+      const failFn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockResolvedValue('success')
-      
+
       const result = await retryWithResult(failFn, {
         maxRetries: 3,
         baseDelayMs: 100,
         backoffMultiplier: 2,
         jitterEnabled: false,
       })
-      
+
       expect(result.success).toBe(true)
       expect(result.data).toBe('success')
       expect(result.error).toBeNull()
@@ -381,11 +389,11 @@ describe('retryWithResult', () => {
   describe('Sad Path - Returns failure result', () => {
     it('should return failure result when all attempts fail', async () => {
       const failFn = vi.fn().mockRejectedValue(new Error('fail'))
-      
+
       const result = await retryWithResult(failFn, {
         maxRetries: 2,
       })
-      
+
       expect(result.success).toBe(false)
       expect(result.data).toBeNull()
       expect(result.error).toBeInstanceOf(RetryError)
@@ -395,12 +403,12 @@ describe('retryWithResult', () => {
 
     it('should return failure result for non-retryable error', async () => {
       const failFn = vi.fn().mockRejectedValue(new Error('non-retryable'))
-      
+
       const result = await retryWithResult(failFn, {
         maxRetries: 3,
         retryableErrors: [500],
       })
-      
+
       expect(result.success).toBe(false)
       expect(result.data).toBeNull()
       expect(result.error).toBeInstanceOf(Error)
@@ -411,18 +419,19 @@ describe('retryWithResult', () => {
 
   describe('Delay Tracking', () => {
     it('should track total delay time correctly', async () => {
-      const failFn = vi.fn()
+      const failFn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockResolvedValue('success')
-      
+
       const result = await retryWithResult(failFn, {
         maxRetries: 3,
         baseDelayMs: 100,
         backoffMultiplier: 2,
         jitterEnabled: false,
       })
-      
+
       expect(result.totalDelayMs).toBe(300)
     })
   })
@@ -432,7 +441,7 @@ describe('HTTP Code Helpers', () => {
   describe('getRetryableHttpCodes', () => {
     it('should return array of retryable HTTP status codes', () => {
       const codes = getRetryableHttpCodes()
-      
+
       expect(codes).toEqual([408, 429, 500, 502, 503, 504])
       expect(codes).toContain(408)
       expect(codes).toContain(429)
@@ -517,31 +526,35 @@ describe('Retry Presets', () => {
       expect(retryPresets.httpRetry).toHaveProperty('backoffMultiplier', 2)
       expect(retryPresets.httpRetry).toHaveProperty('jitterEnabled', true)
       expect(retryPresets.httpRetry).toHaveProperty('jitterFactor', 0.1)
-      expect(retryPresets.httpRetry.retryableErrors).toEqual(getRetryableHttpCodes())
+      expect(retryPresets.httpRetry.retryableErrors).toEqual(
+        getRetryableHttpCodes()
+      )
     })
   })
 
   describe('Using Presets', () => {
     it('should work with quick preset', async () => {
-      const failFn = vi.fn()
+      const failFn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockResolvedValue('success')
-      
+
       const result = await retryWithBackoff(failFn, retryPresets.quick)
-      
+
       expect(result).toBe('success')
       expect(failFn).toHaveBeenCalledTimes(3)
     })
 
     it('should work with httpRetry preset', async () => {
-      const failFn = vi.fn()
+      const failFn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('HTTP 500 error'))
         .mockRejectedValueOnce(new Error('HTTP 500 error'))
         .mockResolvedValue('success')
-      
+
       const result = await retryWithBackoff(failFn, retryPresets.httpRetry)
-      
+
       expect(result).toBe('success')
       expect(failFn).toHaveBeenCalledTimes(3)
     })
@@ -559,46 +572,50 @@ describe('Integration Tests', () => {
 
   describe('Real-world scenarios', () => {
     it('should handle external API call with transient failures', async () => {
-      const apiCall = vi.fn()
+      const apiCall = vi
+        .fn()
         .mockRejectedValueOnce(new Error('ECONNRESET'))
         .mockRejectedValueOnce(new Error('ETIMEDOUT'))
         .mockResolvedValue({ data: 'response' })
-      
+
       const result = await retryWithBackoff(apiCall, {
         maxRetries: 3,
         retryableErrors: ['ECONNRESET', 'ETIMEDOUT'],
         baseDelayMs: 100,
         jitterEnabled: false,
       })
-      
+
       expect(result).toEqual({ data: 'response' })
       expect(apiCall).toHaveBeenCalledTimes(3)
     })
 
     it('should give up on persistent errors', async () => {
-      const apiCall = vi.fn().mockRejectedValue(new Error('HTTP 400 Bad Request'))
-      
+      const apiCall = vi
+        .fn()
+        .mockRejectedValue(new Error('HTTP 400 Bad Request'))
+
       await expect(
         retryWithBackoff(apiCall, {
           maxRetries: 3,
           retryableErrors: [500, 502, 503],
         })
       ).rejects.toThrow('HTTP 400 Bad Request')
-      
+
       expect(apiCall).toHaveBeenCalledTimes(1)
     })
 
     it('should handle mixed success and failure patterns', async () => {
-      const apiCall = vi.fn()
+      const apiCall = vi
+        .fn()
         .mockResolvedValueOnce({ data: 'response 1' })
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValueOnce({ data: 'response 2' })
         .mockRejectedValueOnce(new Error('Timeout'))
         .mockResolvedValueOnce({ data: 'response 3' })
-      
+
       let callCount = 0
       const results = []
-      
+
       for (let i = 0; i < 5; i++) {
         const result = await retryWithBackoff(
           () => {
@@ -614,7 +631,7 @@ describe('Integration Tests', () => {
         )
         results.push(result)
       }
-      
+
       expect(results).toHaveLength(5)
       expect(results[0]).toEqual({ data: 'response 1' })
       expect(results[1]).toEqual({ data: 'response 2' })

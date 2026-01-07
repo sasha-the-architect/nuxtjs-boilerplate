@@ -16,7 +16,7 @@
         :benefits="[...alternative.resource.benefits]"
         :url="alternative.resource.url"
         :button-label="getButtonLabel(alternative.resource.category)"
-        :similarity-score="alternative.similarityScore"
+        :similarity-score="alternative.score"
         :similarity-reason="alternative.reason"
       />
     </div>

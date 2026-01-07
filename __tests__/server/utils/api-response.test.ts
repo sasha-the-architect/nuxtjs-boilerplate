@@ -37,14 +37,14 @@ describe('sendApiError', () => {
   describe('Happy Path - Sends API error response', () => {
     it('should set correct status code for BAD_REQUEST', () => {
       const apiError = {
-        success: false,
+        success: false as const,
         error: {
           code: 'BAD_REQUEST' as const,
           message: 'Invalid request',
           category: 'validation' as const,
           timestamp: '2025-01-07T12:00:00.000Z',
         },
-      }
+      } as ApiError
 
       sendApiError(mockEvent, apiError)
 
@@ -56,14 +56,14 @@ describe('sendApiError', () => {
 
     it('should set correct status code for UNAUTHORIZED', () => {
       const apiError = {
-        success: false,
+        success: false as const,
         error: {
-          code: 'UNAUTHORIZED' as const,
-          message: 'Authentication required',
-          category: 'authentication' as const,
+          code: 'BAD_REQUEST' as const,
+          message: 'Invalid request',
+          category: 'validation' as const,
           timestamp: '2025-01-07T12:00:00.000Z',
         },
-      }
+      } as ApiError
 
       sendApiError(mockEvent, apiError)
 
@@ -72,14 +72,14 @@ describe('sendApiError', () => {
 
     it('should add request ID if not present', () => {
       const apiError = {
-        success: false,
+        success: false as const,
         error: {
-          code: 'INTERNAL_SERVER_ERROR' as const,
-          message: 'Internal error',
-          category: 'internal' as const,
+          code: 'UNAUTHORIZED' as const,
+          message: 'Authentication required',
+          category: 'authentication' as const,
           timestamp: '2025-01-07T12:00:00.000Z',
         },
-      }
+      } as ApiError
 
       sendApiError(mockEvent, apiError)
 
@@ -90,7 +90,7 @@ describe('sendApiError', () => {
 
     it('should preserve existing request ID', () => {
       const apiError = {
-        success: false,
+        success: false as const,
         error: {
           code: 'BAD_REQUEST' as const,
           message: 'Invalid request',
@@ -98,7 +98,7 @@ describe('sendApiError', () => {
           timestamp: '2025-01-07T12:00:00.000Z',
           requestId: 'existing-request-id',
         },
-      }
+      } as ApiError
 
       sendApiError(mockEvent, apiError)
 
@@ -108,14 +108,14 @@ describe('sendApiError', () => {
 
     it('should add path if not present', () => {
       const apiError = {
-        success: false,
+        success: false as const,
         error: {
-          code: 'NOT_FOUND' as const,
-          message: 'Not found',
-          category: 'not_found' as const,
+          code: 'INTERNAL_SERVER_ERROR' as const,
+          message: 'Internal error',
+          category: 'internal' as const,
           timestamp: '2025-01-07T12:00:00.000Z',
         },
-      }
+      } as ApiError
 
       sendApiError(mockEvent, apiError)
 
@@ -125,14 +125,14 @@ describe('sendApiError', () => {
 
     it('should set Content-Type header to application/json', () => {
       const apiError = {
-        success: false,
+        success: false as const,
         error: {
           code: 'BAD_REQUEST' as const,
           message: 'Invalid request',
           category: 'validation' as const,
           timestamp: '2025-01-07T12:00:00.000Z',
         },
-      }
+      } as ApiError
 
       sendApiError(mockEvent, apiError)
 

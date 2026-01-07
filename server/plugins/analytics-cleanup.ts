@@ -1,8 +1,9 @@
 // server/plugins/analytics-cleanup.ts
 import { defineNitroPlugin } from 'nitropack/runtime'
+import logger from '~/utils/logger'
 
 export default defineNitroPlugin(async () => {
-  console.log('Analytics cleanup plugin initialized')
+  logger.info('Analytics cleanup plugin initialized')
 
   // Dynamically import analytics cleanup only at runtime, not during build/prerendering
   try {
@@ -10,15 +11,15 @@ export default defineNitroPlugin(async () => {
 
     // Run cleanup once when the server starts
     await runAnalyticsCleanup().catch(error => {
-      console.error('Error during initial analytics cleanup:', error)
+      logger.error('Error during initial analytics cleanup', error)
     })
 
     // Set up periodic cleanup (every 24 hours)
     const cleanupInterval = setInterval(
       () => {
-        console.log('Running scheduled analytics cleanup...')
+        logger.info('Running scheduled analytics cleanup...')
         runAnalyticsCleanup().catch(error => {
-          console.error('Error during scheduled analytics cleanup:', error)
+          logger.error('Error during scheduled analytics cleanup', error)
         })
       },
       24 * 60 * 60 * 1000
@@ -27,11 +28,11 @@ export default defineNitroPlugin(async () => {
     // Clean up interval when Nitro shuts down
     process.on('SIGINT', () => {
       clearInterval(cleanupInterval)
-      console.log('Analytics cleanup interval cleared')
+      logger.info('Analytics cleanup interval cleared')
     })
   } catch (error) {
-    console.warn(
-      'Analytics cleanup not available (likely during build/prerendering):',
+    logger.warn(
+      'Analytics cleanup not available (likely during build/prerendering)',
       error
     )
   }
