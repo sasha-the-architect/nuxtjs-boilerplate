@@ -299,9 +299,7 @@ getAllCircuitBreakerStats()
 | Cache Strategy    | nuxt.config.ts (workbox section) | PWA caching policies           |
 | Bundle Analysis   | nuxt.config.analyze.ts           | Separate analyzer config       |
 | Route Rules       | nuxt.config.ts                   | Prerendering and routing       |
-
-<<<<<<< HEAD
-| Error Handling | composables/useErrorHandler.ts | Centralized error management |
+| Error Handling    | composables/useErrorHandler.ts   | Centralized error management   |
 
 ## 🛡️ Error Handling Architecture
 
@@ -334,7 +332,6 @@ Logger (console/output)
 3. **Error Boundaries**: Use app/error.vue for global error handling
 4. **User Feedback**: Display user-friendly error messages
 5. **Error Tracking**: Maintain error history for debugging
-   > > > > > > > f02fc3a (Refactor architecture: Eliminate code duplication and anti-patterns)
 
 ## 🧩 Composable Architecture
 
@@ -344,6 +341,7 @@ Logger (console/output)
 High-Level (Orchestrators)
 ├── useResources.ts (main orchestrator)
 ├── useSearchPage.ts (search page orchestrator)
+├── useRecommendationEngine.ts (recommendation orchestrator)
 ├── useAlternativeSuggestions.ts
 ├── useAdvancedResourceSearch.ts (advanced search with operators)
 └── useSearchSuggestions.ts (search suggestions)
@@ -351,7 +349,11 @@ High-Level (Orchestrators)
 Mid-Level (Feature-Specific)
 ├── useResourceFilters.ts
 ├── useResourceSearchFilter.ts
-├── useRecommendationEngine.ts
+├── recommendation-strategies/useContentBasedRecommendations.ts
+├── recommendation-strategies/useTrendingRecommendations.ts
+├── recommendation-strategies/usePopularRecommendations.ts
+├── recommendation-strategies/useCategoryBasedRecommendations.ts
+├── recommendation-strategies/usePersonalizedRecommendations.ts
 └── useUrlSync.ts
 
 Low-Level (Core Functionality)
@@ -370,6 +372,7 @@ Utilities (Pure Functions)
 ├── utils/queryParser.ts (query parsing with operators)
 ├── utils/searchHighlighting.ts (search term highlighting)
 ├── utils/fuseHelper.ts (Fuse.js initialization)
+├── utils/recommendation-algorithms.ts (recommendation algorithms)
 └── [other utilities...]
 ```
 
@@ -379,6 +382,96 @@ Utilities (Pure Functions)
 2. **Mid-level composables**: May import low-level composables
 3. **High-level composables**: May import mid-level and low-level composables
 4. **No circular dependencies**: Enforced by architecture
+
+## 🎯 Recommendation Architecture
+
+### Strategy Pattern Implementation
+
+The recommendation engine follows the Strategy Pattern to provide flexible, testable recommendation algorithms:
+
+```
+useRecommendationEngine (Orchestrator)
+├── Config Management
+├── Strategy Composition
+│   ├── useContentBasedRecommendations (content similarity)
+│   ├── useTrendingRecommendations (recently popular)
+│   ├── usePopularRecommendations (all-time popular)
+│   ├── useCategoryBasedRecommendations (category filtering)
+│   └── usePersonalizedRecommendations (user preferences)
+└── getDiverseRecommendations (main API)
+
+utils/recommendation-algorithms.ts (Pure Functions)
+├── calculateSimilarity (resource similarity)
+├── calculateInterestMatch (user interest matching)
+├── calculateSkillMatch (skill level matching)
+├── calculateCollaborativeScore (collaborative filtering)
+└── applyDiversity (diversity algorithm)
+```
+
+### Recommendation Strategies
+
+#### 1. Content-Based Recommendations
+
+- **File**: `composables/recommendation-strategies/useContentBasedRecommendations.ts`
+- **Algorithm**: Calculates similarity between resources based on category, tags, and technology
+- **Use Case**: When user is viewing a specific resource, recommend similar resources
+
+#### 2. Trending Recommendations
+
+- **File**: `composables/recommendation-strategies/useTrendingRecommendations.ts`
+- **Algorithm**: Identifies recently added resources with high popularity (> 5)
+- **Use Case**: Discover new, popular resources
+
+#### 3. Popular Recommendations
+
+- **File**: `composables/recommendation-strategies/usePopularRecommendations.ts`
+- **Algorithm**: Ranks all resources by popularity score
+- **Use Case**: Discover all-time popular resources
+
+#### 4. Category-Based Recommendations
+
+- **File**: `composables/recommendation-strategies/useCategoryBasedRecommendations.ts`
+- **Algorithm**: Filters resources by category and ranks by popularity
+- **Use Case**: Explore resources within a specific category
+
+#### 5. Personalized Recommendations
+
+- **File**: `composables/recommendation-strategies/usePersonalizedRecommendations.ts`
+- **Algorithm**: Combines multiple factors:
+  - Content similarity (if viewing specific resource)
+  - User interest matching (interests, tags, technology)
+  - Collaborative filtering (past interactions)
+  - Popularity score
+  - Skill level matching
+- **Use Case**: Personalized recommendations based on user behavior and preferences
+
+### Recommendation Orchestration
+
+The orchestrator (`useRecommendationEngine`) coordinates all strategies:
+
+```typescript
+const engine = useRecommendationEngine(resources, userPreferences)
+
+// Get diverse recommendations combining all strategies
+const recommendations = engine.getDiverseRecommendations(
+  currentResource,
+  currentCategory
+)
+
+// Get personalized recommendations
+const personalized = engine.getPersonalizedRecommendations(currentResource)
+
+// Update configuration
+engine.updateConfig({ maxRecommendations: 15 })
+```
+
+### Architectural Benefits
+
+1. **Single Responsibility**: Each strategy focuses on one recommendation algorithm
+2. **Open/Closed**: New strategies can be added without modifying existing code
+3. **Testability**: Pure functions and isolated strategies are easy to test
+4. **Flexibility**: Strategies can be composed in different combinations
+5. **Maintainability**: Each strategy is ~50-80 lines, easy to understand and modify
 
 ### Data Flow Pattern
 
@@ -619,16 +712,17 @@ tests/
 
 ## 🔄 Decision Log
 
-| Date       | Category     | Decision                                                        | Impact                                                                             |
-| ---------- | ------------ | --------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| 2025-01-07 | Code Quality | Removed duplicate Google Fonts caching in nuxt.config.ts        | Eliminated code duplication, reduced config size                                   |
-| 2025-01-07 | Build System | Created separate nuxt.config.analyze.ts for bundle analysis     | Removed dynamic import anti-pattern, improved build predictability                 |
-| 2025-01-07 | Security     | Removed static CSP meta tag from nuxt.config.ts                 | Centralized CSP in server plugin with nonce support, improved security             |
-| 2025-01-07 | Architecture | Verified no circular dependencies exist in composables          | Confirmed clean dependency hierarchy                                               |
-| 2025-01-07 | Code Quality | Extracted shared DOMPurify configuration from utils/sanitize.ts | Eliminated 158 lines of duplicate configuration, improved maintainability          |
-| 2025-01-07 | Architecture | Created useSearchPage orchestrator composable for search page   | Implemented Layer Separation pattern, moved business logic from page to composable |
-| 2025-01-07 | Architecture | Refactored pages/search.vue to use orchestrator pattern         | Eliminated 200+ lines of inline filtering logic, improved maintainability          |
-| 2025-01-07 | Architecture | Search module refactoring to eliminate code duplication         | Eliminated 315 lines of duplicate code, created 4 single-responsibility utilities  |
+| Date       | Category     | Decision                                                        | Impact                                                                                                                   |
+| ---------- | ------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 2025-01-07 | Code Quality | Removed duplicate Google Fonts caching in nuxt.config.ts        | Eliminated code duplication, reduced config size                                                                         |
+| 2025-01-07 | Build System | Created separate nuxt.config.analyze.ts for bundle analysis     | Removed dynamic import anti-pattern, improved build predictability                                                       |
+| 2025-01-07 | Security     | Removed static CSP meta tag from nuxt.config.ts                 | Centralized CSP in server plugin with nonce support, improved security                                                   |
+| 2025-01-07 | Architecture | Verified no circular dependencies exist in composables          | Confirmed clean dependency hierarchy                                                                                     |
+| 2025-01-07 | Code Quality | Extracted shared DOMPurify configuration from utils/sanitize.ts | Eliminated 158 lines of duplicate configuration, improved maintainability                                                |
+| 2025-01-07 | Architecture | Created useSearchPage orchestrator composable for search page   | Implemented Layer Separation pattern, moved business logic from page to composable                                       |
+| 2025-01-07 | Architecture | Refactored pages/search.vue to use orchestrator pattern         | Eliminated 200+ lines of inline filtering logic, improved maintainability                                                |
+| 2025-01-07 | Architecture | Search module refactoring to eliminate code duplication         | Eliminated 315 lines of duplicate code, created 4 single-responsibility utilities                                        |
+| 2025-01-07 | Architecture | Refactored useRecommendationEngine to Strategy Pattern          | Eliminated God Class anti-pattern (437→~80 lines orchestrator), 5 single-responsibility strategies, improved testability |
 
 ## 🎓 Design Principles Applied
 
