@@ -1,12 +1,11 @@
 // ESLint flat config for Nuxt 3 project
 import js from '@eslint/js'
 import vuePlugin from 'eslint-plugin-vue'
-import nuxtPlugin from 'eslint-plugin-nuxt'
 import globals from 'globals'
 import vueParser from 'vue-eslint-parser'
 import tsParser from '@typescript-eslint/parser'
-import pluginPrettier from 'eslint-plugin-prettier'
 import configPrettier from 'eslint-config-prettier'
+import * as tsParserCore from '@typescript-eslint/parser'
 
 // Get the vue recommended config
 const vueRecommendedConfig = vuePlugin.configs['flat/recommended']
@@ -14,6 +13,22 @@ const vueRecommendedConfig = vuePlugin.configs['flat/recommended']
 export default [
   js.configs.recommended,
   ...vueRecommendedConfig,
+  // Base configuration for TypeScript files
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: tsParserCore,
+      parserOptions: {
+        ecmaVersion: 2024,
+        sourceType: 'module',
+        project: ['./tsconfig.json'],
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+  },
   // Base configuration for Vue files
   {
     files: ['**/*.vue'],
@@ -23,6 +38,7 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.node,
+        process: 'readonly',
         // Nuxt 3 composables and utilities
         definePageMeta: 'readonly',
         defineNuxtConfig: 'readonly',
@@ -45,7 +61,6 @@ export default [
         createError: 'readonly',
         vi: 'readonly',
         window: 'readonly',
-        process: 'readonly',
         console: 'readonly',
         performance: 'readonly',
         // Vue 3 composition API
@@ -68,9 +83,9 @@ export default [
           jsx: true,
         },
       },
-      rules: {
-        'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn', // Prevent console statements in production
-      },
+    },
+    rules: {
+      'no-console': process?.env?.NODE_ENV === 'production' ? 'error' : 'warn', // Prevent console statements in production
     },
   },
   // Configuration for test files
@@ -86,6 +101,11 @@ export default [
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'module',
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2024,
+        sourceType: 'module',
+      },
       globals: {
         ...globals.node,
         vi: 'readonly',
@@ -123,6 +143,11 @@ export default [
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'module',
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2024,
+        sourceType: 'module',
+      },
       globals: {
         ...globals.browser,
         ...globals.node,
@@ -138,13 +163,19 @@ export default [
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'module',
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2024,
+        sourceType: 'module',
+      },
       globals: {
         ...globals.browser,
         ...globals.node,
+        process: 'readonly',
       },
     },
     rules: {
-      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn', // Allow console in development for error logger
+      'no-console': process?.env?.NODE_ENV === 'production' ? 'error' : 'warn', // Allow console in development for error logger
     },
   },
   // Configuration for Nuxt config file
@@ -153,12 +184,29 @@ export default [
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'module',
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2024,
+        sourceType: 'module',
+      },
       globals: {
         ...globals.node,
       },
     },
     rules: {
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }], // Allow only specific console methods, prefer using logger
+    },
+  },
+  // Configuration for ESLint config file
+  {
+    files: ['eslint.config.js'],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+        process: 'readonly',
+      },
     },
   },
   // Apply prettier config to disable conflicting rules

@@ -359,19 +359,19 @@ if (typeof useHead === 'function') {
     if (hasError.value || !resourceSchema.value) {
       return {}
     }
-     // Safely serialize JSON-LD data to prevent XSS by escaping </script> tags
-     const serializedSchema = JSON.stringify(resourceSchema.value)
-       .replace(/</g, '\\u003c')  // Escape < to prevent script tag breaking
-       .replace(/>/g, '\\u003e')  // Escape > to prevent script tag breaking
-       .replace(/\//g, '\\u002f') // Escape / to prevent closing script tags
-     return {
-       script: [
-         {
-           type: 'application/ld+json',
-           innerHTML: serializedSchema,
-         },
-       ],
-     }
+    // Safely serialize JSON-LD data to prevent XSS
+    const serializedSchema = JSON.stringify(resourceSchema.value)
+      .replace(new RegExp('<', 'g'), '\\u003c') // Escape < to prevent script tag breaking
+      .replace(new RegExp('>', 'g'), '\\u003e') // Escape > to prevent script tag breaking
+      .replace(new RegExp('/', 'g'), '\\u002f') // Escape / to prevent closing script tags
+    return {
+      script: [
+        {
+          type: 'application/ld+json',
+          innerHTML: serializedSchema,
+        },
+      ],
+    }
   })
 }
 </script>
