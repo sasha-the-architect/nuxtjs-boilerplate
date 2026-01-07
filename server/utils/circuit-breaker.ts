@@ -1,5 +1,6 @@
 interface CircuitBreakerState {
   isOpen: boolean
+  isHalfOpen: boolean
   failureCount: number
   lastFailureTime: number | null
   successCount: number
@@ -30,6 +31,7 @@ export class CircuitBreaker {
     this.config = config
     this.state = {
       isOpen: false,
+      isHalfOpen: false,
       failureCount: 0,
       lastFailureTime: null,
       successCount: 0,
@@ -44,7 +46,9 @@ export class CircuitBreaker {
     if (this.state.isOpen) {
       if (this.shouldAttemptReset()) {
         this.state.isOpen = false
+        this.state.isHalfOpen = true
         this.state.successCount = 0
+        this.state.failureCount = 0
       } else {
         if (fallback) {
           return fallback()
@@ -78,6 +82,12 @@ export class CircuitBreaker {
         this.state.failureCount = 0
         this.state.successCount = 0
       }
+    } else if (this.state.isHalfOpen) {
+      if (this.state.successCount >= this.config.successThreshold) {
+        this.state.isHalfOpen = false
+        this.state.failureCount = 0
+        this.state.successCount = 0
+      }
     } else {
       this.state.failureCount = 0
     }
@@ -87,7 +97,11 @@ export class CircuitBreaker {
     this.state.failureCount++
     this.state.lastFailureTime = Date.now()
 
-    if (this.state.failureCount >= this.config.failureThreshold) {
+    if (this.state.isHalfOpen) {
+      this.state.isOpen = true
+      this.state.isHalfOpen = false
+      this.state.successCount = 0
+    } else if (this.state.failureCount >= this.config.failureThreshold) {
       this.state.isOpen = true
       this.state.successCount = 0
     }
@@ -106,8 +120,7 @@ export class CircuitBreaker {
     return {
       state: this.state.isOpen
         ? 'open'
-        : this.state.lastFailureTime &&
-            Date.now() - this.state.lastFailureTime >= this.config.timeoutMs
+        : this.state.isHalfOpen
           ? 'half-open'
           : 'closed',
       failureCount: this.state.failureCount,
@@ -121,6 +134,7 @@ export class CircuitBreaker {
   reset(): void {
     this.state = {
       isOpen: false,
+      isHalfOpen: false,
       failureCount: 0,
       lastFailureTime: null,
       successCount: 0,

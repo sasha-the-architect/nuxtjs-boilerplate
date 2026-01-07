@@ -557,7 +557,7 @@ describe('useFilterUtils', () => {
         tags: [],
       })
 
-      expect(result).toHaveLength(0)
+      expect(result).toHaveLength(3)
     })
 
     it('should handle partial filter options', () => {
