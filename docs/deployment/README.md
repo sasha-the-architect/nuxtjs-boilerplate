@@ -44,10 +44,10 @@ This section contains guides for deploying the Free Stuff on the Internet websit
 
 Before deploying to any platform:
 
-1. **Build Test**: Ensure the project builds successfully
+1. **Build Test**: Ensure that project builds successfully
 
    ```bash
-   pnpm build
+   npm run build
    ```
 
 2. **Environment Variables**: Configure required environment variables
@@ -58,6 +58,20 @@ Before deploying to any platform:
    ```
 
 3. **Performance Check**: Run performance audits
+
+   ```bash
+   npm run generate
+   # Test generated .output/public folder
+   ```
+
+4. **Environment Variables**: Configure required environment variables
+
+   ```env
+   NUXT_PUBLIC_SITE_URL=https://your-domain.com
+   NUXT_PUBLIC_SITE_NAME="Free Stuff on the Internet"
+   ```
+
+5. **Performance Check**: Run performance audits
    ```bash
    pnpm generate
    # Test the generated .output/public folder
@@ -90,7 +104,7 @@ Each deployment guide includes:
 1. **Bundle Analysis**
 
    ```bash
-   pnpm nuxi analyze
+   npm run analyze
    ```
 
 2. **Image Optimization**
@@ -130,4 +144,4 @@ Each deployment guide includes platform-specific troubleshooting steps.
 
 ---
 
-_Last Updated: 2025-11-18_
+_Last Updated: 2025-01-07_

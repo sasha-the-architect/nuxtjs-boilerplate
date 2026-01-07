@@ -150,9 +150,13 @@ describe('useResources', () => {
     const mockResources = ref([
       { id: '1', name: 'Resource 1', tags: ['tag1', 'tag2'] } as Resource,
       { id: '2', name: 'Resource 2', tags: ['tag2', 'tag3'] } as Resource,
-      { id: '3', name: 'Resource 3', tags: ['tag1', 'tag3', 'tag4'] } as Resource,
+      {
+        id: '3',
+        name: 'Resource 3',
+        tags: ['tag1', 'tag3', 'tag4'],
+      } as Resource,
     ])
-    
+
     // Update the mock to return these resources
     vi.mocked(useResourceData).mockReturnValue({
       resources: mockResources,
@@ -167,19 +171,9 @@ describe('useResources', () => {
       technologies: ref([]),
       retryResources: vi.fn(),
     })
-    
+
     // Create new instance after mock update
     const { allTags } = useResources()
-    
-    // The allTags should contain unique tags in sorted order
-    expect(allTags.value).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
-  })
-
-    // Need to re-import to use the updated mock
-    const {
-      useResources: useResourcesWithMock,
-    } = require('~/composables/useResources')
-    const { allTags } = useResourcesWithMock()
 
     // The allTags should contain unique tags in sorted order
     expect(allTags.value).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])

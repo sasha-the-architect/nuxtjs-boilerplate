@@ -6,36 +6,33 @@
 
 import { validateUrl } from '~/utils/urlValidation'
 import { logger } from '~/utils/logger'
+import {
+  sendBadRequestError,
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
+
+export {}
 
 export default defineEventHandler(async event => {
   try {
     const body = await readBody(event)
 
     if (!body || !body.url) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'URL is required in request body',
-      })
+      sendBadRequestError(event, 'URL is required in request body')
+      return
     }
 
     const validationResult = await validateUrl(body.url, {
       timeout: body.timeout || 10000,
       retries: body.retries || 3,
       retryDelay: body.retryDelay || 1000,
+      useCircuitBreaker: body.useCircuitBreaker !== false,
     })
 
-    return {
-      success: true,
-      data: validationResult,
-    }
-  } catch (error: any) {
+    sendSuccessResponse(event, { validationResult })
+  } catch (error) {
     logger.error('Error validating URL:', error)
-
-    return {
-      success: false,
-      message:
-        error.statusMessage || 'An error occurred while validating the URL',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-    }
+    handleApiRouteError(event, error)
   }
 })

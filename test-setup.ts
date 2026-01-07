@@ -1,4 +1,4 @@
-import { vi } from 'vitest'
+import { vi, beforeEach } from 'vitest'
 
 vi.mock('#app', async () => {
   return {
@@ -33,9 +33,36 @@ vi.mock('vue', async importOriginal => {
   }
 })
 
+// Setup global localStorage and sessionStorage mocks
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
+// Set up mocks for browser APIs that tests expect
 if (typeof global !== 'undefined') {
-  if (typeof global.window === 'undefined') {
-    global.window = {
+  const localStorageMock = {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+    length: 0,
+    key: vi.fn(),
+  }
+
+  const sessionStorageMock = {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+    length: 0,
+    key: vi.fn(),
+  }
+
+  // @ts-ignore - Type assertion needed for testing environment
+  const g = global as any
+
+  if (typeof g.window === 'undefined') {
+    g.window = {
       document: {
         createElement: vi.fn(),
         addEventListener: vi.fn(),
@@ -50,18 +77,8 @@ if (typeof global !== 'undefined') {
         createComment: vi.fn(),
         createTextNode: vi.fn(),
       },
-      localStorage: {
-        getItem: vi.fn(),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-        clear: vi.fn(),
-      },
-      sessionStorage: {
-        getItem: vi.fn(),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-        clear: vi.fn(),
-      },
+      localStorage: localStorageMock,
+      sessionStorage: sessionStorageMock,
       location: {
         href: 'http://localhost',
       },
@@ -69,5 +86,19 @@ if (typeof global !== 'undefined') {
         userAgent: 'test-agent',
       },
     }
+  } else {
+    // If window exists (jsdom env), assign mocks to it
+    Object.defineProperty(g.window, 'localStorage', {
+      value: localStorageMock,
+      writable: true,
+    })
+    Object.defineProperty(g.window, 'sessionStorage', {
+      value: sessionStorageMock,
+      writable: true,
+    })
+
+    // Also make available globally for tests that reference global.localStorage
+    g.localStorage = g.window.localStorage
+    g.sessionStorage = g.window.sessionStorage
   }
 }

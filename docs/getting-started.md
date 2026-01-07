@@ -33,16 +33,6 @@ cd nuxtjs-boilerplate
 npm install
 ```
 
-**Using pnpm:**
-
-```bash
-# Install pnpm if not already installed
-npm install -g pnpm
-
-# Install project dependencies
-pnpm install
-```
-
 > **Note**: The project uses `packageManager: npm` in package.json, so npm is the recommended package manager.
 
 ### 3. Environment Setup
@@ -86,10 +76,13 @@ npm run lint          # Run linting
 npm run lint:fix      # Fix linting issues
 npm run format        # Format code with Prettier
 
-# Testing (when implemented)
+# Testing
 npm run test          # Run tests
 npm run test:watch    # Run tests in watch mode
 npm run test:coverage # Run tests with coverage
+
+# Analysis
+npm run analyze      # Analyze bundle size
 ```
 
 ## 📁 Project Structure
@@ -322,4 +315,4 @@ We welcome contributions! Please read our [Development Guidelines](./development
 
 ---
 
-_Last Updated: 2025-11-23_
+_Last Updated: 2025-01-07_

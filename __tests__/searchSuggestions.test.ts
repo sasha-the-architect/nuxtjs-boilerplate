@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { useSearchSuggestions } from '~/composables/useSearchSuggestions'
 import type { Resource } from '~/types/resource'
 
-// Import the internal implementation
+// Import internal implementation
 import type { SearchQuery, SuggestionResult } from '~/types/search'
 import Fuse from 'fuse.js'
 

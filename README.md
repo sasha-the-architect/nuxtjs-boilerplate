@@ -88,6 +88,7 @@ npm run build
 
 - [Getting Started](./docs/getting-started.md)
 - [Development Guide](./docs/development.md)
+- [Integration Patterns](./docs/integration-patterns.md)
 - [API Reference](./docs/api/README.md)
 - [Deployment Guide](./docs/deployment/README.md)
 
@@ -123,7 +124,7 @@ This boilerplate implements a comprehensive architecture for modern web applicat
 - **Search & Discovery**: Advanced search with faceted filtering and recommendations
 - **Community Features**: User engagement tools and moderation system
 
-For more details, see the [coordination system documentation](./docs/coordination-system.md).
+For more details, see the [coordination system documentation](./docs/coordination-system.md) and [integration patterns guide](./docs/integration-patterns.md).
 
 ## 🏗️ Infrastructure Status
 

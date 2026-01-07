@@ -89,6 +89,200 @@ Implemented in `utils/sanitize.ts`:
 | ---------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | 2025-01-07 | Remove static CSP meta tag from nuxt.config.ts | CSP now handled exclusively by server plugin with dynamic nonce generation for better security |
 
+## 🔌 Integration Architecture
+
+### Resilience Patterns
+
+The application implements industry-standard resilience patterns for external service integrations:
+
+#### 1. **Circuit Breaker Pattern**
+
+**Location**: `server/utils/circuit-breaker.ts`
+
+The circuit breaker prevents cascading failures by stopping calls to failing services:
+
+- **States**: CLOSED (normal), OPEN (failing), HALF-OPEN (testing recovery)
+- **Configuration**:
+  - `failureThreshold`: Number of failures before opening (default: 5)
+  - `successThreshold`: Number of successes to close (default: 2)
+  - `timeoutMs`: Time before attempting reset (default: 60000ms)
+
+**Usage Example**:
+
+```typescript
+const breaker = getCircuitBreaker('service-name', {
+  failureThreshold: 5,
+  successThreshold: 2,
+  timeoutMs: 60000,
+})
+
+const result = await breaker.execute(
+  async () => await externalApiCall(),
+  () => fallbackData()
+)
+```
+
+**Integration Points**:
+
+- Webhook delivery (`server/utils/webhookDelivery.ts`)
+- URL validation (`utils/urlValidation.ts`)
+- Per-service circuit breakers with hostname-based keys
+
+#### 2. **Retry with Exponential Backoff**
+
+**Location**: `server/utils/retry.ts`
+
+Sophisticated retry mechanism to handle transient failures:
+
+- **Exponential Backoff**: Delay increases with each retry (baseDelayMs × 2^attempt)
+- **Jitter**: Random variation in delay to prevent thundering herd
+- **Configurable Presets**:
+  - `quick`: Fast retries (500ms-5s, max 2 attempts)
+  - `standard`: Balanced (1s-30s, max 3 attempts)
+  - `slow`: Persistent failures (2s-60s, max 5 attempts)
+  - `aggressive`: High throughput (100ms-5s, max 3 attempts)
+
+**Usage Example**:
+
+```typescript
+const result = await retryWithBackoff(async () => await externalApiCall(), {
+  maxRetries: 3,
+  baseDelayMs: 1000,
+  maxDelayMs: 30000,
+  jitterEnabled: true,
+})
+```
+
+**Retryable Errors**:
+
+- HTTP: 408, 429, 500, 502, 503, 504
+- Network: ECONNRESET, ETIMEDOUT, ENOTFOUND, ECONNREFUSED
+
+#### 3. **Standardized Error Responses**
+
+**Location**: `server/utils/api-error.ts`, `server/utils/api-response.ts`
+
+Consistent error format across all API endpoints:
+
+```typescript
+{
+  success: false,
+  error: {
+    code: ErrorCode,
+    message: string,
+    category: ErrorCategory,
+    details?: string | Record<string, unknown>,
+    timestamp: string,
+    requestId?: string,
+    path?: string
+  }
+}
+```
+
+**Error Categories**:
+
+- `validation`: Request validation failures
+- `authentication`: Authentication required
+- `authorization`: Access forbidden
+- `not_found`: Resource not found
+- `rate_limit`: Rate limit exceeded
+- `external_service`: Third-party service failures
+- `internal`: Server errors
+- `network`: Network-related errors
+
+**Helper Functions**:
+
+- `sendApiError()`: Send standardized error response
+- `sendBadRequestError()`: 400 errors
+- `sendUnauthorizedError()`: 401 errors
+- `sendNotFoundError()`: 404 errors
+- `sendRateLimitError()`: 429 errors with Retry-After header
+
+#### 4. **Health Monitoring**
+
+All resilience patterns include built-in monitoring:
+
+- **Circuit Breaker Stats**:
+  - State (closed/open/half-open)
+  - Failure/success counts
+  - Last failure/success time
+  - Failure rate percentage
+
+- **Retry Stats**:
+  - Total attempts
+  - Total delay time
+  - Individual attempt errors
+
+**Monitoring Endpoint**:
+
+```typescript
+// Get all circuit breaker stats
+getAllCircuitBreakerStats()
+```
+
+### Integration Best Practices
+
+#### DO:
+
+✅ Use circuit breakers for all external service calls
+✅ Configure appropriate retry strategies based on operation type
+✅ Implement fallback mechanisms for critical paths
+✅ Log all failures with contextual information
+✅ Set reasonable timeouts (10s for webhooks, configurable for other services)
+✅ Use jitter in retry delays to prevent thundering herd
+✅ Monitor circuit breaker states for proactive intervention
+
+#### DO NOT:
+
+❌ Call external services without circuit breakers
+❌ Use infinite retries
+❌ Retry non-idempotent operations without idempotency keys
+❌ Expose internal errors to clients in production
+❌ Hardcode timeout values across all operations
+❌ Retry without backoff or jitter
+❌ Ignore circuit breaker open states
+
+### Integration Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────┐
+│              API Endpoint / Service                │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────┐
+│              Circuit Breaker                      │
+│  • Check state (closed/open/half-open)          │
+│  • Track failures/successes                     │
+│  • Execute or return fallback                   │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────┐
+│              Retry Logic                          │
+│  • Exponential backoff                          │
+│  • Jitter for distributed load                  │
+│  • Configurable max retries                     │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────┐
+│          External Service Call                    │
+│  • HTTP request with timeout                     │
+│  • Response handling                            │
+└─────────────────────────────────────────────────────┘
+```
+
+### Integration Decision Log
+
+| Date       | Decision                                              | Rationale                                                                 |
+| ---------- | ----------------------------------------------------- | ------------------------------------------------------------------------- |
+| 2025-01-07 | Implement circuit breaker pattern                     | Prevent cascading failures from external services                         |
+| 2025-01-07 | Add exponential backoff with jitter                   | Prevent thundering herd on retries, improve distributed system resilience |
+| 2025-01-07 | Standardize error responses with codes and categories | Consistent client error handling, better debugging and monitoring         |
+| 2025-01-07 | Create retry presets for different operation types    | Appropriate retry strategies for different use cases                      |
+| 2025-01-07 | Add circuit breaker stats monitoring                  | Proactive identification of failing services                              |
+
 ## 📦 Configuration Architecture
 
 ### Nuxt Configuration Structure
@@ -105,7 +299,9 @@ Implemented in `utils/sanitize.ts`:
 | Cache Strategy    | nuxt.config.ts (workbox section) | PWA caching policies           |
 | Bundle Analysis   | nuxt.config.analyze.ts           | Separate analyzer config       |
 | Route Rules       | nuxt.config.ts                   | Prerendering and routing       |
-| Error Handling    | composables/useErrorHandler.ts   | Centralized error management   |
+
+<<<<<<< HEAD
+| Error Handling | composables/useErrorHandler.ts | Centralized error management |
 
 ## 🛡️ Error Handling Architecture
 
@@ -138,6 +334,7 @@ Logger (console/output)
 3. **Error Boundaries**: Use app/error.vue for global error handling
 4. **User Feedback**: Display user-friendly error messages
 5. **Error Tracking**: Maintain error history for debugging
+   > > > > > > > f02fc3a (Refactor architecture: Eliminate code duplication and anti-patterns)
 
 ## 🧩 Composable Architecture
 
@@ -334,12 +531,40 @@ nuxtjs-boilerplate/
    - 1-week cache for GitHub CDN resources
    - Cache-Control headers via server plugin
 
+4. **In-Memory Caching** (Client-side):
+   - Fuse.js search index caching using WeakMap
+   - Search highlighting memoization using Map
+   - Date parsing memoization for consistent timestamps
+   - Cached computed values to prevent recomputation
+
 ### Bundle Optimization
 
 - **Manual Chunks**: Vendor libraries split
 - **Code Splitting**: Route and component level
 - **Tree Shaking**: Unused code removed
 - **Lazy Loading**: On-demand component loading
+
+### Performance Patterns
+
+1. **Memoization**:
+   - Use WeakMap for object-based caching (automatic garbage collection)
+   - Use Map for string-based caching (controlled lifecycle)
+   - Implemented in `utils/memoize.ts`
+
+2. **Single-Pass Operations**:
+   - Consolidate multiple array iterations into single pass
+   - Use Sets for efficient deduplication
+   - Implemented in `composables/useFilterUtils.ts`
+
+3. **Lazy Initialization**:
+   - Create expensive objects (Fuse.js instances) on-demand
+   - Cache instances for reuse across operations
+   - Prevent redundant re-initializations
+
+4. **Computed Property Optimization**:
+   - Consolidate related computed properties into single property
+   - Reduce reactive dependencies and re-computation
+   - Extract multiple values in single iteration
 
 ## 🧪 Testing Architecture
 
@@ -384,13 +609,13 @@ tests/
 
 ## 🔄 Decision Log
 
-| Date       | Category     | Decision                                                            | Impact                                                                 |
-| ---------- | ------------ | ------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| 2025-01-07 | Code Quality | Removed duplicate Google Fonts caching in nuxt.config.ts            | Eliminated code duplication, reduced config size                       |
-| 2025-01-07 | Build System | Created separate nuxt.config.analyze.ts for bundle analysis         | Removed dynamic import anti-pattern, improved build predictability     |
-| 2025-01-07 | Security     | Removed static CSP meta tag from nuxt.config.ts                     | Centralized CSP in server plugin with nonce support, improved security |
-| 2025-01-07 | Architecture | Verified no circular dependencies exist in composables              | Confirmed clean dependency hierarchy                                   |
-| 2025-01-07 | Architecture | Created useErrorHandler composable for centralized error management | Standardized error handling, improved debugging and user feedback      |
+| Date       | Category     | Decision                                                        | Impact                                                                    |
+| ---------- | ------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| 2025-01-07 | Code Quality | Removed duplicate Google Fonts caching in nuxt.config.ts        | Eliminated code duplication, reduced config size                          |
+| 2025-01-07 | Build System | Created separate nuxt.config.analyze.ts for bundle analysis     | Removed dynamic import anti-pattern, improved build predictability        |
+| 2025-01-07 | Security     | Removed static CSP meta tag from nuxt.config.ts                 | Centralized CSP in server plugin with nonce support, improved security    |
+| 2025-01-07 | Architecture | Verified no circular dependencies exist in composables          | Confirmed clean dependency hierarchy                                      |
+| 2025-01-07 | Code Quality | Extracted shared DOMPurify configuration from utils/sanitize.ts | Eliminated 158 lines of duplicate configuration, improved maintainability |
 
 ## 🎓 Design Principles Applied
 

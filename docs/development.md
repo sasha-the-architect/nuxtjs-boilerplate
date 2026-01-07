@@ -523,7 +523,7 @@ Each major directory should include a README.md explaining:
 ### **System Requirements**
 
 - Node.js 18.x or higher
-- **npm 9.x or higher**
+- **npm 9.x or higher** (recommended)
 - Git 2.x or higher
 - Modern web browser for development
 
@@ -532,7 +532,7 @@ Each major directory should include a README.md explaining:
 #### **1. Repository Setup**
 
 ```bash
-# Clone the repository
+# Clone repository
 git clone https://github.com/cpa02cmz/nuxtjs-boilerplate.git
 cd nuxtjs-boilerplate
 
@@ -557,4 +557,4 @@ cp .env.example .env
 
 ---
 
-_Last Updated: 2025-11-29_
+_Last Updated: 2025-01-07_

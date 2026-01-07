@@ -1,5 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref } from 'vue'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { useAdvancedResourceSearch } from '~/composables/useAdvancedResourceSearch'
 
 // Mock resources for testing

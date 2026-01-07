@@ -31,35 +31,37 @@ describe('useLoading', () => {
 
   it('should set loading state during async operations', async () => {
     const { loadingState, withLoading } = useLoading()
-    
+
     const mockFn = vi.fn().mockResolvedValue('success')
-    
+
     // Use a promise that resolves on next tick to simulate async behavior
     const promise = withLoading(async () => {
       // Simulate async operation using Promise.resolve().then()
       await new Promise(resolve => setTimeout(resolve, 1))
       return mockFn()
     })
-    
+
     // Check that loading is true during execution
     expect(loadingState.loading).toBe(true)
-    
+
     await promise
-    
+
     // Check that loading is false after completion
     expect(loadingState.loading).toBe(false)
     expect(loadingState.error).toBeNull()
   })
-    })
+
+  it('should handle async operations with delayed mock', async () => {
+    const { loadingState, withLoading } = useLoading()
+
+    const mockFn = vi.fn().mockResolvedValue('success')
 
     const promise = withLoading(mockFn)
 
-    // Check that loading is true during execution
     expect(loadingState.loading).toBe(true)
 
     await promise
 
-    // Check that loading is false after completion
     expect(loadingState.loading).toBe(false)
     expect(loadingState.error).toBeNull()
   })

@@ -1,29 +1,38 @@
 // server/plugins/analytics-cleanup.ts
 import { defineNitroPlugin } from 'nitropack/runtime'
-import { runAnalyticsCleanup } from '../utils/analyticsCleanup'
 
-export default defineNitroPlugin(() => {
+export default defineNitroPlugin(async () => {
   console.log('Analytics cleanup plugin initialized')
 
-  // Run cleanup once when the server starts
-  runAnalyticsCleanup().catch(error => {
-    console.error('Error during initial analytics cleanup:', error)
-  })
+  // Dynamically import analytics cleanup only at runtime, not during build/prerendering
+  try {
+    const { runAnalyticsCleanup } = await import('../utils/analyticsCleanup')
 
-  // Set up periodic cleanup (every 24 hours)
-  const cleanupInterval = setInterval(
-    () => {
-      console.log('Running scheduled analytics cleanup...')
-      runAnalyticsCleanup().catch(error => {
-        console.error('Error during scheduled analytics cleanup:', error)
-      })
-    },
-    24 * 60 * 60 * 1000
-  ) // 24 hours
+    // Run cleanup once when the server starts
+    await runAnalyticsCleanup().catch(error => {
+      console.error('Error during initial analytics cleanup:', error)
+    })
 
-  // Clean up interval when Nitro shuts down
-  process.on('SIGINT', () => {
-    clearInterval(cleanupInterval)
-    console.log('Analytics cleanup interval cleared')
-  })
+    // Set up periodic cleanup (every 24 hours)
+    const cleanupInterval = setInterval(
+      () => {
+        console.log('Running scheduled analytics cleanup...')
+        runAnalyticsCleanup().catch(error => {
+          console.error('Error during scheduled analytics cleanup:', error)
+        })
+      },
+      24 * 60 * 60 * 1000
+    ) // 24 hours
+
+    // Clean up interval when Nitro shuts down
+    process.on('SIGINT', () => {
+      clearInterval(cleanupInterval)
+      console.log('Analytics cleanup interval cleared')
+    })
+  } catch (error) {
+    console.warn(
+      'Analytics cleanup not available (likely during build/prerendering):',
+      error
+    )
+  }
 })

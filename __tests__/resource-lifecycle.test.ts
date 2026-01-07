@@ -1,8 +1,7 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ResourceStatus from '~/components/ResourceStatus.vue'
 import LifecycleTimeline from '~/components/LifecycleTimeline.vue'
-import HealthMonitor from '~/components/HealthMonitor.vue'
 import StatusManager from '~/components/StatusManager.vue'
 import DeprecationNotice from '~/components/DeprecationNotice.vue'
 
