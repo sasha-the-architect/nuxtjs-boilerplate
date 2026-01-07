@@ -20,7 +20,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --run --coverage",
     "test:watch": "vitest --watch",
-    "analyze": "ANALYZE_BUNDLE=true nuxt build",
+    "analyze": "nuxi build --config-file nuxt.config.analyze.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
