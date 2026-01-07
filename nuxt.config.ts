@@ -138,34 +138,6 @@ export default defineNuxtConfig({
           },
         },
         {
-          urlPattern: 'https://fonts.googleapis.com/.*',
-          handler: 'CacheFirst',
-          options: {
-            cacheName: 'google-fonts-cache',
-            expiration: {
-              maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-            },
-            cacheableResponse: {
-              statuses: [0, 200],
-            },
-          },
-        },
-        {
-          urlPattern: 'https://fonts.gstatic.com/.*',
-          handler: 'CacheFirst',
-          options: {
-            cacheName: 'font-files-cache',
-            expiration: {
-              maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-            },
-            cacheableResponse: {
-              statuses: [0, 200],
-            },
-          },
-        },
-        {
           urlPattern: '^https://.*\\.(png|jpe?g|gif|svg|webp)$',
           handler: 'CacheFirst',
           options: {
@@ -190,7 +162,7 @@ export default defineNuxtConfig({
     },
   },
 
-  // Security and CSP configuration
+  // Security and performance configuration
   experimental: {
     // Enable nonce-based CSP support
     inlineSSRStyles: false,
@@ -201,14 +173,7 @@ export default defineNuxtConfig({
     componentIslands: true,
   },
 
-  // Security Configuration
-  // Content Security Policy (CSP) and other security headers are implemented via
-  // server plugin at server/plugins/security-headers.ts which provides:
-  // - Dynamic nonce generation per request for inline scripts/styles
-  // - Comprehensive security header protection
-  // - Route-specific cache control headers
-
-  // Security and performance configuration
+  // Nitro configuration for security and performance
   nitro: {
     // Optimize server-side rendering
     minify: true,
@@ -275,13 +240,8 @@ export default defineNuxtConfig({
       ],
       // Add performance-related and security meta tags
       meta: [
-        // Security headers as meta tags (in addition to server-side headers)
-        {
-          'http-equiv': 'Content-Security-Policy',
-          content:
-            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;",
-        },
-        // This approach is more secure and allows for nonces
+        // Note: CSP is implemented via server plugin (server/plugins/security-headers.ts)
+        // with dynamic nonce generation for proper security
         { name: 'referrer', content: 'no-referrer' },
         { name: 'theme-color', content: '#ffffff' },
         { name: 'msapplication-TileColor', content: '#ffffff' },
@@ -405,30 +365,6 @@ export default defineNuxtConfig({
         external: ['@nuxt/kit'],
       },
     },
-    plugins: [
-      // Add bundle analyzer for performance monitoring (only when ANALYZE_BUNDLE is true)
-      ...(process.env.ANALYZE_BUNDLE === 'true'
-        ? (() => {
-            try {
-              // Safely require the visualizer plugin to avoid build failures
-              const { visualizer } = require('rollup-plugin-visualizer')
-              return [
-                visualizer({
-                  filename: './dist/stats.html',
-                  open: false,
-                  gzipSize: true,
-                  brotliSize: true,
-                }),
-              ]
-            } catch (error) {
-              console.warn(
-                'rollup-plugin-visualizer not available, skipping bundle analysis'
-              )
-              return [] // Return empty array if plugin is not available
-            }
-          })()
-        : []),
-    ],
     // Optimize build speed
     esbuild: {
       logLevel: 'silent', // Reduce build noise
