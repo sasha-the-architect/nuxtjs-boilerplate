@@ -1,5 +1,6 @@
 import type { ApiKey } from '~/types/webhook'
 import { webhookStorage } from '~/server/utils/webhookStorage'
+import { sendSuccessResponse } from '~/server/utils/api-response'
 
 export default defineEventHandler(async event => {
   // This would typically filter by user in a real implementation
@@ -7,9 +8,8 @@ export default defineEventHandler(async event => {
   const apiKeys = webhookStorage.getAllApiKeys()
   const keysWithoutSecrets = apiKeys.map(({ key: _, ...key }) => key)
 
-  return {
-    success: true,
+  return sendSuccessResponse(event, {
     data: keysWithoutSecrets,
     count: keysWithoutSecrets.length,
-  }
+  })
 })

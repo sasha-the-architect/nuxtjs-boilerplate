@@ -1,4 +1,4 @@
-import { defineEventHandler, getQuery, setResponseStatus } from 'h3'
+import { defineEventHandler, getQuery } from 'h3'
 import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
 import {
@@ -14,6 +14,11 @@ import {
   filterResourcesByHierarchicalTags,
   convertResourcesToHierarchicalTags,
 } from '~/utils/tags'
+import {
+  sendSuccessResponse,
+  sendBadRequestError,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 /**
  * GET /api/v1/search
@@ -59,13 +64,10 @@ export default defineEventHandler(async event => {
       if (!isNaN(parsedLimit) && parsedLimit > 0) {
         limit = Math.min(parsedLimit, 100) // max 100
       } else {
-        // Invalid limit provided, return error
-        setResponseStatus(event, 400)
-        return {
-          success: false,
-          message: 'Invalid limit parameter. Must be a positive integer.',
-          error: 'Bad Request',
-        }
+        return sendBadRequestError(
+          event,
+          'Invalid limit parameter. Must be a positive integer.'
+        )
       }
     }
 
@@ -76,13 +78,10 @@ export default defineEventHandler(async event => {
       if (!isNaN(parsedOffset) && parsedOffset >= 0) {
         offset = parsedOffset
       } else {
-        // Invalid offset provided, return error
-        setResponseStatus(event, 400)
-        return {
-          success: false,
-          message: 'Invalid offset parameter. Must be a non-negative integer.',
-          error: 'Bad Request',
-        }
+        return sendBadRequestError(
+          event,
+          'Invalid offset parameter. Must be a non-negative integer.'
+        )
       }
     }
 
@@ -123,13 +122,10 @@ export default defineEventHandler(async event => {
           resource.tags.some(tag => tags.includes(tag.toLowerCase()))
         )
       } else {
-        // Invalid tags parameter format
-        setResponseStatus(event, 400)
-        return {
-          success: false,
-          message: 'Invalid tags parameter. Must be a comma-separated string.',
-          error: 'Bad Request',
-        }
+        return sendBadRequestError(
+          event,
+          'Invalid tags parameter. Must be a comma-separated string.'
+        )
       }
     }
 
@@ -144,27 +140,20 @@ export default defineEventHandler(async event => {
           hierarchicalTagIds
         )
       } else {
-        // Invalid hierarchical tags parameter format
-        setResponseStatus(event, 400)
-        return {
-          success: false,
-          message:
-            'Invalid hierarchicalTags parameter. Must be a comma-separated string.',
-          error: 'Bad Request',
-        }
+        return sendBadRequestError(
+          event,
+          'Invalid hierarchicalTags parameter. Must be a comma-separated string.'
+        )
       }
     }
 
     // Apply search if query exists
     if (searchQuery) {
       if (typeof searchQuery !== 'string') {
-        // Invalid search query format
-        setResponseStatus(event, 400)
-        return {
-          success: false,
-          message: 'Invalid search query parameter. Must be a string.',
-          error: 'Bad Request',
-        }
+        return sendBadRequestError(
+          event,
+          'Invalid search query parameter. Must be a string.'
+        )
       }
       const searchTerm = searchQuery.toLowerCase()
       resources = resources.filter(
@@ -211,10 +200,9 @@ export default defineEventHandler(async event => {
     event.node.res?.setHeader('X-Cache', 'MISS')
     event.node.res?.setHeader('X-Cache-Key', cacheKey)
 
-    // Set success response status
-    setResponseStatus(event, 200)
-    return response
-  } catch (error: any) {
+    // Set success response
+    return sendSuccessResponse(event, response)
+  } catch (error) {
     // Log error using our error logging service
     logError(
       `Error searching resources: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -226,12 +214,6 @@ export default defineEventHandler(async event => {
       }
     )
 
-    // Set error response status
-    setResponseStatus(event, 500)
-    return {
-      success: false,
-      message: 'An error occurred while searching resources',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-    }
+    return handleApiRouteError(event, error)
   }
 })

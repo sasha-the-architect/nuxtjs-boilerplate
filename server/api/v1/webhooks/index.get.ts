@@ -1,6 +1,7 @@
 import { defineEventHandler, getQuery } from 'h3'
 import type { Webhook } from '~/types/webhook'
 import { webhookStorage } from '~/server/utils/webhookStorage'
+import { sendSuccessResponse } from '~/server/utils/api-response'
 
 export default defineEventHandler(async event => {
   // Get query parameters for filtering
@@ -28,9 +29,8 @@ export default defineEventHandler(async event => {
     ({ secret: _, ...webhook }) => webhook
   )
 
-  return {
-    success: true,
+  return sendSuccessResponse(event, {
     data: webhooksWithoutSecrets,
     count: filteredWebhooks.length,
-  }
+  })
 })

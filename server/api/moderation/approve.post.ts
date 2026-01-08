@@ -6,6 +6,12 @@ import {
 } from '~/server/utils/quality-checks'
 import { logError, logInfo } from '~/utils/errorLogger'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
+import {
+  sendSuccessResponse,
+  sendBadRequestError,
+  sendNotFoundError,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 // Mock data for demonstration - in a real application, this would come from a database
 let mockSubmissions: Submission[] = []
@@ -19,17 +25,11 @@ export default defineEventHandler(async event => {
 
     // Validate required fields
     if (!body.submissionId) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Submission ID is required',
-      })
+      return sendBadRequestError(event, 'Submission ID is required')
     }
 
     if (!body.reviewedBy) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Reviewer ID is required',
-      })
+      return sendBadRequestError(event, 'Reviewer ID is required')
     }
 
     // Find the submission
@@ -38,10 +38,7 @@ export default defineEventHandler(async event => {
     )
 
     if (submissionIndex === -1) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Submission not found',
-      })
+      return sendNotFoundError(event, 'Submission', body.submissionId)
     }
 
     // Update the submission status
@@ -81,26 +78,14 @@ export default defineEventHandler(async event => {
       'moderation/approve.post'
     )
 
-    return {
-      success: true,
+    return sendSuccessResponse(event, {
       message: 'Submission approved successfully',
       resource: newResource,
       qualityChecks,
       qualityScore,
-    }
-  } catch (error: any) {
+    })
+  } catch (error) {
     logError('Error approving submission:', error, 'moderation/approve.post')
-
-    if (error.statusCode) {
-      return {
-        success: false,
-        message: error.statusMessage,
-      }
-    }
-
-    return {
-      success: false,
-      message: 'An error occurred while approving the submission',
-    }
+    return handleApiRouteError(event, error)
   }
 })

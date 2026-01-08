@@ -1,14 +1,14 @@
-import {
-  defineEventHandler,
-  getQuery,
-  setResponseHeader,
-  setResponseStatus,
-} from 'h3'
+import { defineEventHandler, getQuery, setResponseHeader } from 'h3'
 import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
 import { cacheManager, cacheSetWithTags } from '~/server/utils/enhanced-cache'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
 import { convertResourcesToHierarchicalTags } from '~/utils/tags'
+import {
+  sendSuccessResponse,
+  sendBadRequestError,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 /**
  * GET /api/v1/resources
@@ -53,13 +53,10 @@ export default defineEventHandler(async event => {
       if (!isNaN(parsedLimit) && parsedLimit > 0) {
         limit = Math.min(parsedLimit, 100) // max 100
       } else {
-        // Invalid limit provided, return error
-        setResponseStatus(event, 400)
-        return {
-          success: false,
-          message: 'Invalid limit parameter. Must be a positive integer.',
-          error: 'Bad Request',
-        }
+        return sendBadRequestError(
+          event,
+          'Invalid limit parameter. Must be a positive integer.'
+        )
       }
     }
 
@@ -70,13 +67,10 @@ export default defineEventHandler(async event => {
       if (!isNaN(parsedOffset) && parsedOffset >= 0) {
         offset = parsedOffset
       } else {
-        // Invalid offset provided, return error
-        setResponseStatus(event, 400)
-        return {
-          success: false,
-          message: 'Invalid offset parameter. Must be a non-negative integer.',
-          error: 'Bad Request',
-        }
+        return sendBadRequestError(
+          event,
+          'Invalid offset parameter. Must be a non-negative integer.'
+        )
       }
     }
 
@@ -95,12 +89,10 @@ export default defineEventHandler(async event => {
       'popularity-desc',
     ]
     if (sort && !validSortOptions.includes(sort)) {
-      setResponseStatus(event, 400)
-      return {
-        success: false,
-        message: `Invalid sort parameter. Valid options: ${validSortOptions.join(', ')}`,
-        error: 'Bad Request',
-      }
+      return sendBadRequestError(
+        event,
+        `Invalid sort parameter. Valid options: ${validSortOptions.join(', ')}`
+      )
     }
 
     // Apply filters
@@ -187,9 +179,8 @@ export default defineEventHandler(async event => {
     event.node.res?.setHeader('X-Cache-Key', cacheKey)
 
     // Set success response
-    setResponseStatus(event, 200)
-    return response
-  } catch (error: any) {
+    return sendSuccessResponse(event, response)
+  } catch (error) {
     // Log error using our error logging service
     logError(
       `Error fetching resources: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -201,12 +192,6 @@ export default defineEventHandler(async event => {
       }
     )
 
-    // Set error response status
-    setResponseStatus(event, 500)
-    return {
-      success: false,
-      message: 'An error occurred while fetching resources',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-    }
+    return handleApiRouteError(event, error)
   }
 })
