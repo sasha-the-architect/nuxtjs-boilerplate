@@ -220,7 +220,7 @@ interface Props {
 }
 
 // Get the comparison composable
-const { addResource, selectedResources } = useResourceComparison()
+const { addResource } = useResourceComparison()
 
 const props = withDefaults(defineProps<Props>(), {
   id: undefined,

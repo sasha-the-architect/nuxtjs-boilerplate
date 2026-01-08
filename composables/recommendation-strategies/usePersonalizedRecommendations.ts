@@ -15,8 +15,10 @@ export function usePersonalizedRecommendations(
   config: RecommendationConfig,
   userPreferences?: UserPreferences,
   getDiverseRecommendations?: (
-    currentResource?: Resource,
-    currentCategory?: string
+    // eslint-disable-next-line no-unused-vars
+    _currentResource?: Resource,
+    // eslint-disable-next-line no-unused-vars
+    _currentCategory?: string
   ) => RecommendationResult[]
 ) {
   const getPersonalizedRecommendations = (

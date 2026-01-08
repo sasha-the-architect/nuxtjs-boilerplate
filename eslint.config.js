@@ -86,6 +86,7 @@ export default [
     },
     rules: {
       'no-console': process?.env?.NODE_ENV === 'production' ? 'error' : 'warn', // Prevent console statements in production
+      'vue/multi-word-component-names': 'off', // Allow single-word component names for pages and layouts
     },
   },
   // Configuration for test files
@@ -176,6 +177,38 @@ export default [
     },
     rules: {
       'no-console': process?.env?.NODE_ENV === 'production' ? 'error' : 'warn', // Allow console in development for error logger
+    },
+  },
+  // Configuration for Nuxt server API files
+  {
+    files: ['server/api/**/*.ts'],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: 'module',
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2024,
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.node,
+        defineEventHandler: 'readonly',
+        createError: 'readonly',
+        setResponseStatus: 'readonly',
+        setResponseHeaders: 'readonly',
+        setResponseHeader: 'readonly',
+        readBody: 'readonly',
+        readMultipartFormData: 'readonly',
+        getRequestHeader: 'readonly',
+        getRouterParam: 'readonly',
+        getQuery: 'readonly',
+        getCookie: 'readonly',
+        setCookie: 'readonly',
+        deleteCookie: 'readonly',
+      },
+    },
+    rules: {
+      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
     },
   },
   // Configuration for Nuxt config file

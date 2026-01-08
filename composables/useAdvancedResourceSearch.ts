@@ -1,4 +1,4 @@
-import { ref, readonly } from 'vue'
+import { readonly } from 'vue'
 import type { Resource } from '~/types/resource'
 import { searchAnalyticsTracker } from '~/utils/searchAnalytics'
 import { useSearchHistory } from '~/composables/useSearchHistory'

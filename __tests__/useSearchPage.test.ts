@@ -1,6 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { useSearchPage } from '~/composables/useSearchPage'
-import type { Resource } from '~/types/resource'
 
 vi.mock('~/utils/analytics', () => ({
   trackSearch: vi.fn(),

@@ -1,5 +1,5 @@
 import { computed, ref, readonly } from 'vue'
-import type { Resource, SortOption } from '~/types/resource'
+import type { SortOption } from '~/types/resource'
 import { useResourceData } from './useResourceData'
 import { useAdvancedResourceSearch } from './useAdvancedResourceSearch'
 import { useFilterUtils } from './useFilterUtils'

@@ -293,11 +293,9 @@ export const useCommunityFeatures = (
     }
 
     let flag = null
-    let flagIndex = -1
     for (let i = 0; i < flags.length; i++) {
       if (flags[i].id === flagId) {
         flag = flags[i]
-        flagIndex = i
         break
       }
     }

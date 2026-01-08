@@ -1,4 +1,4 @@
-import { ref, watch, onMounted, type Ref } from 'vue'
+import { watch, onMounted, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { FilterOptions, SortOption } from '~/types/resource'
 
