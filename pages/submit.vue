@@ -290,150 +290,28 @@
 </template>
 
 <script setup lang="ts">
-const formData = reactive({
-  title: '',
-  description: '',
-  url: '',
-  category: '',
-  tags: [],
-})
+import { useSubmitPage } from '~/composables/useSubmitPage'
 
-const tagsInput = ref('')
-const errors = ref<Record<string, string>>({})
-const isSubmitting = ref(false)
-const submitSuccess = ref(false)
-const submitError = ref('')
+const {
+  formData,
+  tagsInput,
+  errors,
+  isSubmitting,
+  submitSuccess,
+  submitError,
+  submitResource,
+} = useSubmitPage()
 
-// Focus management for form
 const titleInput = ref<HTMLInputElement | null>(null)
 
-// Focus first input on mount
 onMounted(() => {
   titleInput.value?.focus()
 })
 
-const validateForm = (): boolean => {
-  errors.value = {}
-
-  if (!formData.title.trim()) {
-    errors.value.title = 'Title is required'
-  } else if (formData.title.length > 200) {
-    errors.value.title = 'Title is too long (max 200 characters)'
-  }
-
-  if (!formData.description.trim()) {
-    errors.value.description = 'Description is required'
-  } else if (formData.description.length < 10) {
-    errors.value.description = 'Description must be at least 10 characters'
-  } else if (formData.description.length > 1000) {
-    errors.value.description = 'Description is too long (max 1000 characters)'
-  }
-
-  if (!formData.url.trim()) {
-    errors.value.url = 'URL is required'
-  } else {
-    try {
-      new URL(formData.url) // Validate URL format
-    } catch {
-      errors.value.url = 'Please enter a valid URL'
-    }
-  }
-
-  if (!formData.category) {
-    errors.value.category = 'Category is required'
-  }
-
-  // Announce errors to screen readers
-  if (Object.keys(errors.value).length > 0) {
-    announceErrors()
-  }
-
-  return Object.keys(errors.value).length === 0
-}
-
-// Announce form errors to screen readers
-const announceErrors = () => {
-  const errorList = Object.values(errors.value).join('. ')
-  const announcement = document.createElement('div')
-  announcement.setAttribute('role', 'alert')
-  announcement.setAttribute('aria-live', 'assertive')
-  announcement.className = 'sr-only'
-  announcement.textContent = `Form validation failed: ${errorList}`
-
-  document.body.appendChild(announcement)
-
-  setTimeout(() => {
-    document.body.removeChild(announcement)
-  }, 5000)
-}
-
-const submitResource = async () => {
-  if (!validateForm()) {
-    return
-  }
-
-  // Process tags from comma-separated string
-  if (tagsInput.value.trim()) {
-    formData.tags = tagsInput.value
-      .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0)
-  } else {
-    formData.tags = []
-  }
-
-  isSubmitting.value = true
-  submitError.value = ''
-  submitSuccess.value = false
-
-  try {
-    const response = await $fetch('/api/submissions', {
-      method: 'POST',
-      body: {
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        url: formData.url.trim(),
-        category: formData.category,
-        tags: formData.tags,
-      },
-    })
-
-    if (response.success) {
-      // Reset form
-      formData.title = ''
-      formData.description = ''
-      formData.url = ''
-      formData.category = ''
-      tagsInput.value = ''
-      submitSuccess.value = true
-
-      // Reset success message after 5 seconds
-      setTimeout(() => {
-        submitSuccess.value = false
-      }, 5000)
-    } else {
-      if (response.errors && Array.isArray(response.errors)) {
-        // Handle validation errors from API
-        response.errors.forEach((err: any) => {
-          errors.value[err.field] = err.message
-        })
-      }
-      submitError.value =
-        response.message || 'An error occurred while submitting the resource'
-    }
-  } catch (error: any) {
-    submitError.value = error.data?.message || 'An unexpected error occurred'
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-// Set page metadata
 definePageMeta({
   layout: 'default',
 })
 
-// Set page-specific meta tags
 const runtimeConfig = useRuntimeConfig()
 useSeoMeta({
   title: 'Submit a Resource - Free Stuff on the Internet',
