@@ -72,7 +72,9 @@ if (typeof global !== 'undefined') {
         delete store[key]
       }),
       clear: vi.fn(() => {
-        store = {}
+        for (const key in store) {
+          delete store[key]
+        }
       }),
       length: 0,
       key: vi.fn(),
@@ -90,7 +92,9 @@ if (typeof global !== 'undefined') {
         delete store[key]
       }),
       clear: vi.fn(() => {
-        store = {}
+        for (const key in store) {
+          delete store[key]
+        }
       }),
       length: 0,
       key: vi.fn(),
