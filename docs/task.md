@@ -410,6 +410,151 @@ composables/useSubmitPage.ts (158 lines)
 
 ---
 
+## [ARCHITECTURE] Principal Software Architect Work ✅ COMPLETED (2025-01-09)
+
+### Overview
+
+Implemented Layer Separation pattern for API keys page following Clean Architecture principles. All changes focus on Separation of Concerns, modularity, and type safety.
+
+### Layer Separation in API Keys Page ✅
+
+**Impact**: HIGH - Eliminated inline business logic from page component
+
+**Files Modified**:
+
+- Created: `composables/useApiKeysPage.ts` (135 lines)
+- Modified: `pages/api-keys.vue` (188 → 128 lines, -60 lines, 32% reduction)
+
+**Issue**:
+
+API keys page violated Separation of Concerns principle by implementing business logic inline:
+
+- State management embedded in page component
+- API key creation, revocation logic in component
+- Data fetching logic in component
+- Mock data initialization in component
+- Mixed responsibilities: presentation, data fetching, error handling, business logic
+
+**Solution**:
+
+Created dedicated orchestrator composable following Layer Separation pattern:
+
+```typescript
+// useApiKeysPage.ts - Dedicated composable for API keys page
+export const useApiKeysPage = () => {
+  // State management
+  const newKeyName = ref('')
+  const apiKeys = ref<ApiKeyDisplay[]>([])
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+
+  // Business logic
+  const fetchApiKeys = async () => { ... }
+  const createApiKey = async () => { ... }
+  const revokeApiKey = async (keyId: string) => { ... }
+  const toggleKeyVisibility = (key: ApiKeyDisplay) => { ... }
+  const formatDate = (dateString: string): string => { ... }
+
+  // Return readonly state and methods
+  return {
+    apiKeys: readonly(apiKeys),
+    newKeyName,
+    loading: readonly(loading),
+    error: readonly(error),
+    fetchApiKeys,
+    createApiKey,
+    revokeApiKey,
+    toggleKeyVisibility,
+    formatDate,
+  }
+}
+```
+
+**Benefits**:
+
+- **Single Responsibility**: Page component handles presentation only
+- **Reusability**: Composable can be used by other pages/components
+- **Testability**: Business logic isolated for unit testing
+- **Maintainability**: Clear separation between layers
+- **Type Safety**: Proper TypeScript interfaces for ApiKey, ApiKeyDisplay
+- **Error Handling**: Centralized error logging via errorLogger
+- **State Management**: Read-only refs returned from composable
+
+### Architecture Improvements
+
+#### Layer Separation Pattern
+
+**Before**: Business logic embedded in page component
+
+```
+pages/api-keys.vue (188 lines)
+├── State management (embedded)
+├── Data fetching (embedded)
+├── Error handling (embedded)
+├── Business logic (embedded)
+└── Template (presentation)
+```
+
+**After**: Clean separation of concerns
+
+```
+pages/api-keys.vue (128 lines)
+└── Template (presentation only)
+
+composables/useApiKeysPage.ts (135 lines)
+├── State management (readonly refs)
+├── API key fetching
+├── API key creation
+├── API key revocation
+├── Key visibility toggle
+└── Business logic (pure functions)
+```
+
+#### Code Reduction Statistics
+
+| Module             | Before | After | Reduction | % Change |
+| ------------------ | ------ | ----- | --------- | -------- |
+| pages/api-keys.vue | 188    | 128   | -60       | -32%     |
+
+### Success Criteria
+
+- [x] Layer separation achieved - Business logic extracted to composable
+- [x] Type safety improved - Proper TypeScript interfaces and types
+- [x] Single Responsibility - Each module has focused purpose
+- [x] Code reuse improved - Composable reusable across components
+- [x] Maintainability enhanced - Clear separation between layers
+- [x] Zero regressions - Pre-existing functionality preserved
+
+### Files Created
+
+1. `composables/useApiKeysPage.ts` (135 lines) - API keys page orchestrator
+
+### Files Modified
+
+1. `pages/api-keys.vue` (128 lines, reduced from 188 lines, -60 lines)
+
+### Total Impact
+
+- **New Files**: 1 composable created
+- **Modified Files**: 1 file refactored
+- **Lines Removed**: 60 lines of business logic from page
+- **Code Reduction**: 32% reduction in page component complexity
+- **Type Safety**: All types properly defined with interfaces
+- 0 breaking changes
+- No regressions introduced
+
+### Architectural Principles Applied
+
+✅ **Layer Separation**: Presentation layer (pages) separated from business logic (composables)
+✅ **Single Responsibility**: Each module has one clear purpose
+✅ **Type Safety**: Proper TypeScript types throughout, interfaces defined
+✅ **Reusability**: Composable reusable across components
+✅ **Maintainability**: Clear separation makes code easier to understand and modify
+✅ **Open/Closed**: Modules open for extension, closed for modification
+✅ **Dependency Inversion**: Pages depend on abstractions (composables), not concretions
+
+---
+
 # Performance Optimization Task
 
 ## Date: 2025-01-07

@@ -4,6 +4,16 @@
       <div class="bg-white rounded-lg shadow-md p-6">
         <h1 class="text-2xl font-bold text-gray-800 mb-6">API Keys</h1>
 
+        <!-- Error display -->
+        <div
+          v-if="error"
+          class="mb-4 p-4 bg-red-50 border border-red-200 rounded-md text-red-700"
+          role="alert"
+          aria-live="assertive"
+        >
+          {{ error }}
+        </div>
+
         <div class="mb-8">
           <h2 class="text-lg font-semibold text-gray-700 mb-4">
             Manage Your API Keys
@@ -115,73 +125,30 @@
 </template>
 
 <script setup lang="ts">
-import type { ApiKey } from '~/types/webhook'
+import { useApiKeysPage } from '~/composables/useApiKeysPage'
 
-const newKeyName = ref('')
-const apiKeys = ref<ApiKey[]>([])
+const {
+  apiKeys,
+  newKeyName,
+  error,
+  fetchApiKeys,
+  createApiKey,
+  revokeApiKey,
+  toggleKeyVisibility,
+  formatDate,
+} = useApiKeysPage()
 
-// For now, using mock data since the API endpoints may not be available in all environments
-onMounted(() => {
-  // Initialize with mock data for demonstration
-  apiKeys.value = [
+useHead({
+  title: 'API Keys - Free Stuff on the Internet',
+  meta: [
     {
-      id: 'key_12345',
-      name: 'Development Key',
-      key: 'ak_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-      permissions: ['read'],
-      createdAt: new Date().toISOString(),
-      active: true,
+      name: 'description',
+      content: 'Generate and manage API keys to access the API',
     },
-  ]
+  ],
 })
 
-const createApiKey = () => {
-  if (!newKeyName.value.trim()) return
-
-  // Create mock API key for demonstration
-  const newKey: ApiKey = {
-    id: `key_${Date.now()}`,
-    name: newKeyName.value.trim(),
-    key: `ak_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`,
-    permissions: ['read'],
-    createdAt: new Date().toISOString(),
-    active: true,
-  }
-
-  apiKeys.value.unshift({ ...newKey, key: newKey.key.substring(0, 8) + '...' }) // Show partial key
-  newKeyName.value = ''
-
-  alert(
-    `Mock API key created!\n\nKey: ${newKey.key}\n\nIn a real implementation, this would call the API.`
-  )
-}
-
-const revokeApiKey = (keyId: string) => {
-  if (
-    !confirm(
-      'Are you sure you want to revoke this API key? This action cannot be undone.'
-    )
-  ) {
-    return
-  }
-
-  // In a real implementation, this would call the API to revoke the key
-  apiKeys.value = apiKeys.value.filter(key => key.id !== keyId)
-  alert('In a real implementation, this would revoke the API key via the API.')
-}
-
-const toggleKeyVisibility = (key: any) => {
-  // In a real implementation, we would show the actual key when toggled
-  key.showFullKey = !key.showFullKey
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
+onMounted(() => {
+  fetchApiKeys()
+})
 </script>

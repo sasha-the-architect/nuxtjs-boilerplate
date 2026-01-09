@@ -745,6 +745,8 @@ tests/
 | 2025-01-07 | Architecture | Layer Separation in analytics and home pages                    | Extracted business logic from page components to dedicated composables, 31% code reduction, improved maintainability                       |
 | 2025-01-07 | Type Safety  | Fixed `any` types in useUrlSync and useCommunityFeatures        | Replaced all `any` types with proper TypeScript interfaces and types, enhanced type checking and IDE support                               |
 | 2025-01-09 | Architecture | Layer Separation in submit page                                 | Extracted business logic from page to dedicated composable (useSubmitPage), 137 lines removed from page component (449→312, 31% reduction) |
+| 2025-01-09 | Architecture | Layer Separation in API keys page                               | Extracted business logic from page to dedicated composable (useApiKeysPage), 60 lines removed from page component (188→128, 32% reduction) |
+| 2025-01-09 | Build System | Added Nuxt 3 globals to TypeScript ESLint config                | Fixed 'no-undef' errors for Nuxt globals ($fetch, ref, computed, etc.) in TypeScript files                                                 |
 
 ## 🎓 Design Principles Applied
 
