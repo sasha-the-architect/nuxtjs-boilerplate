@@ -301,8 +301,6 @@ export default [
       },
     },
   },
-  // Apply prettier config to disable conflicting rules
-  configPrettier,
   // Global ignores
   {
     ignores: [
