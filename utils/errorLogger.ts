@@ -95,7 +95,6 @@ class ErrorLogger {
   }
 
   // Send logs to external service (placeholder)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async sendToExternalService(_log: ErrorLog): Promise<void> {
     // This is a placeholder for sending logs to an external service like Sentry, LogRocket, etc.
     // In a real implementation, you would send log to your preferred error tracking service

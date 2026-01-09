@@ -32,9 +32,10 @@ interface Props {
 }
 
 interface Emits {
-  (_event: 'search-select', query: string): void
+  (event: 'search-select', query: string): void
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const props = withDefaults(defineProps<Props>(), {
   limit: 10,
 })

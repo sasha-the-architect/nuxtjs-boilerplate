@@ -98,7 +98,7 @@
 </template>
 
 <script setup lang="ts">
-import { useResources, type SortOption } from '~/composables/useResources'
+import { useResources } from '~/composables/useResources'
 import { useUrlSync } from '~/composables/useUrlSync'
 import ResourceCard from '~/components/ResourceCard.vue'
 import SearchBar from '~/components/SearchBar.vue'

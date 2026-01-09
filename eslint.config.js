@@ -4,6 +4,7 @@ import vuePlugin from 'eslint-plugin-vue'
 import globals from 'globals'
 import vueParser from 'vue-eslint-parser'
 import tsParser from '@typescript-eslint/parser'
+import tseslint from '@typescript-eslint/eslint-plugin'
 import configPrettier from 'eslint-config-prettier'
 import * as tsParserCore from '@typescript-eslint/parser'
 
@@ -13,6 +14,7 @@ const vueRecommendedConfig = vuePlugin.configs['flat/recommended']
 export default [
   js.configs.recommended,
   ...vueRecommendedConfig,
+  tseslint.configs.recommended,
   // Base configuration for TypeScript files
   {
     files: ['**/*.ts', '**/*.tsx'],
@@ -101,6 +103,10 @@ export default [
     rules: {
       'no-console': process?.env?.NODE_ENV === 'production' ? 'error' : 'warn', // Prevent console statements in production
       'vue/multi-word-component-names': 'off', // Allow single-word component names for pages and layouts
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' },
+      ], // Allow unused vars with underscore prefix
     },
   },
   // Configuration for test files
@@ -136,6 +142,10 @@ export default [
     rules: {
       'vue/one-component-per-file': 'off', // Allow multiple components in test files
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }], // Allow only specific console methods, prefer using logger
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' },
+      ], // Allow unused vars with underscore prefix
     },
   },
   // Configuration for script files
@@ -170,6 +180,10 @@ export default [
     },
     rules: {
       'no-console': ['warn', { allow: ['warn', 'error'] }], // Allow only specific console methods, prefer using logger
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' },
+      ], // Allow unused vars with underscore prefix
     },
   },
   // Special configuration for error logger
@@ -191,6 +205,10 @@ export default [
     },
     rules: {
       'no-console': process?.env?.NODE_ENV === 'production' ? 'error' : 'warn', // Allow console in development for error logger
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' },
+      ], // Allow unused vars with underscore prefix
     },
   },
   // Configuration for Nuxt server API files

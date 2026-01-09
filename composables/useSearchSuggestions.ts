@@ -1,4 +1,4 @@
-import { ref, readonly, computed } from 'vue'
+import { ref, readonly } from 'vue'
 import type { Resource } from '~/types/resource'
 import type { SuggestionResult } from '~/types/search'
 import { useSearchHistory } from '~/composables/useSearchHistory'
@@ -7,19 +7,12 @@ import { createFuseForSuggestions } from '~/utils/fuseHelper'
 // Composable for managing search suggestions engine
 export const useSearchSuggestions = (resources: readonly Resource[]) => {
   const { addSearchToHistory, getSearchHistory } = useSearchHistory()
-  const fuse = createFuseForSuggestions(resources)
+  const fuse = ref(createFuseForSuggestions(resources))
   const popularSearches = ref<{ query: string; count: number }[]>([])
 
   // Initialize Fuse.js with optimized configuration for suggestions
   const initSearch = () => {
     // Fuse instance already created by createFuseForSuggestions
-  }
-
-  // Create optimized search indices for suggestions
-  const createSuggestionsIndex = () => {
-    // This would normally be pre-computed for better performance
-    // For now, we'll use the existing resources to create suggestions
-    return resources
   }
 
   // Generate suggestions based on search query
@@ -36,7 +29,7 @@ export const useSearchSuggestions = (resources: readonly Resource[]) => {
     const suggestions: SuggestionResult[] = []
 
     // Add resource suggestions
-    searchResults.forEach((result, index) => {
+    searchResults.forEach(result => {
       suggestions.push({
         text: result.item.title,
         type: 'resource',

@@ -134,22 +134,23 @@ interface SuggestionItem {
 }
 
 interface Props {
-  suggestions: SuggestionItem[]
-  searchHistory: string[]
+  suggestions?: SuggestionItem[]
+  searchHistory?: string[]
   visible: boolean
 }
 
 interface Emits {
-  (_event: 'select-suggestion', suggestion: SuggestionItem): void
-  (_event: 'select-history', history: string): void
-  (_event: 'clear-history'): void
-  (_event: 'navigate', direction: 'up' | 'down'): void
+  (event: 'select-suggestion', suggestion: SuggestionItem): void
+  (event: 'select-history', history: string): void
+  (event: 'clear-history'): void
+  (event: 'navigate', direction: 'up' | 'down'): void
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  suggestions: () => [],
-  searchHistory: () => [],
-})
+const props = // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  withDefaults(defineProps<Props>(), {
+    suggestions: () => [],
+    searchHistory: () => [],
+  })
 const emit = defineEmits<Emits>()
 
 const focusedIndex = ref(-1)

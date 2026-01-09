@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import type { Resource } from '~/types/resource'
 
 /* eslint-disable no-console */
 

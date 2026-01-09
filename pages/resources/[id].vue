@@ -161,7 +161,6 @@
 
 <script setup lang="ts">
 import { useResources, type Resource } from '~/composables/useResources'
-import ResourceCard from '~/components/ResourceCard.vue'
 import ResourceBreadcrumbs from '~/components/ResourceBreadcrumbs.vue'
 import ResourceHeader from '~/components/ResourceHeader.vue'
 import ResourceDetails from '~/components/ResourceDetails.vue'
@@ -178,17 +177,12 @@ import { useRoute } from 'vue-router'
 import { useRuntimeConfig, useSeoMeta } from '#imports'
 import { useNuxtApp } from '#app'
 import { useRecommendationEngine } from '~/composables/useRecommendationEngine'
-import { useResourceAnalytics } from '~/composables/useResourceAnalytics'
 import { useHead } from '#imports'
 import { generateResourceShareUrls } from '~/utils/shareUtils'
 import { trackResourceView } from '~/utils/analytics'
 
 const route = useRoute()
-const {
-  resources,
-  loading: resourcesLoading,
-  error: resourcesError,
-} = useResources()
+const { resources, loading: resourcesLoading } = useResources()
 const loading = ref(true)
 const error = ref<string | null>(null)
 const resource = ref<Resource | null>(null)
@@ -218,7 +212,7 @@ const sampleComments = ref([
 ])
 
 const handleCommentSubmit = (comment: string) => {
-  console.log('New comment:', comment)
+  logger.info('New comment:', comment)
 }
 
 // Get current URL for sharing
@@ -226,21 +220,6 @@ const currentUrl = computed(() => {
   const runtimeConfig = useRuntimeConfig()
   return `${runtimeConfig.public.canonicalUrl}/resources/${route.params.id}`
 })
-
-// Format date function
-const formatDate = (dateString: string) => {
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }
-  return new Date(dateString).toLocaleDateString(undefined, options)
-}
-
-// Format number with commas
-const formatNumber = (num: number) => {
-  return num.toLocaleString()
-}
 
 // Handle image error
 const handleImageError = (event: Event) => {

@@ -7,7 +7,7 @@
       <label for="sort" class="text-sm text-gray-800">Sort by:</label>
       <select
         id="sort"
-        :value="selectedSortOption"
+        :value="selectedSortOption ?? 'popularity-desc'"
         class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-800 focus:border-transparent sm:text-sm rounded-md"
         @change="handleChange"
         @keydown.enter="handleChange"
@@ -28,14 +28,14 @@ interface Props {
   totalResources?: number
 }
 
-interface Emits {
-  (_event: 'update-sort-option', _option: string): void
+type EmitsType = {
+  'update-sort-option': (option: string) => void
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  selectedSortOption: 'popularity-desc',
-  totalResources: 0,
-})
+interface Emits extends EmitsType {}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const handleChange = (event: Event) => {

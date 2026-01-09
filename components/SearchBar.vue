@@ -102,10 +102,11 @@ interface Props {
 }
 
 interface Emits {
-  (_event: 'update:modelValue', value: string): void
-  (_event: 'search', value: string): void
+  (event: 'update:modelValue', value: string): void
+  (event: 'search', value: string): void
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const props = withDefaults(defineProps<Props>(), {
   debounceTime: 300,
   enableAdvancedFeatures: true,

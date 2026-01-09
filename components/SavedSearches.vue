@@ -56,10 +56,11 @@ interface Props {
 }
 
 interface Emits {
-  (_event: 'use-saved-search', search: SavedSearch): void
-  (_event: 'remove-saved-search', query: string): void
+  (event: 'use-saved-search', search: SavedSearch): void
+  (event: 'remove-saved-search', query: string): void
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 withDefaults(defineProps<Props>(), {
   savedSearches: () => [],
 })
