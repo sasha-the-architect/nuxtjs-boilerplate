@@ -2,6 +2,8 @@
 
 This document provides comprehensive documentation for all API endpoints available in the Nuxt.js boilerplate, including request/response formats, authentication requirements, and usage examples.
 
+**Note**: All API endpoints use standardized error responses. See [API Documentation](./README.md) for complete error response format.
+
 ## 📋 Table of Contents
 
 - [Authentication Endpoints](#authentication-endpoints)
@@ -12,6 +14,7 @@ This document provides comprehensive documentation for all API endpoints availab
 - [Comparison Tools](#comparison-tools)
 - [Webhook Management](#webhook-management)
 - [Health and Status](#health-and-status)
+- [Standardized Error Responses](#standardized-error-responses)
 
 ## 🔐 Authentication Endpoints
 
@@ -59,6 +62,8 @@ Authenticate user and generate JWT token.
 
 #### Response
 
+**Success (200):**
+
 ```json
 {
   "success": true,
@@ -69,6 +74,22 @@ Authenticate user and generate JWT token.
     "role": "user"
   },
   "token": "jwt_token_here"
+}
+```
+
+**Error (401):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Invalid credentials",
+    "category": "authentication",
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/auth/login"
+  }
 }
 ```
 
@@ -120,15 +141,38 @@ Authorization: Bearer {jwt_token}
 
 #### Response
 
+**Success (200):**
+
 ```json
 {
   "success": true,
   "user": {
     "id": "user_123",
     "email": "user@example.com",
-    "name": "John Doe Updated",
-    "bio": "Senior Software Developer",
-    "avatar": "/avatars/user_123.jpg"
+    "name": "John Doe",
+    "role": "user"
+  },
+  "token": "jwt_token_here"
+}
+```
+
+**Error (400):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Validation failed for field: email",
+    "category": "validation",
+    "details": {
+      "field": "email",
+      "message": "Invalid email format",
+      "value": "invalid-email"
+    },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/auth/register"
   }
 }
 ```
@@ -863,6 +907,8 @@ Authorization: Bearer {jwt_token}
 
 #### Response
 
+**Success (200):**
+
 ```json
 {
   "data": [
@@ -885,11 +931,49 @@ Authorization: Bearer {jwt_token}
 }
 ```
 
+**Error (400):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "BAD_REQUEST",
+    "message": "Resource IDs are required for comparison",
+    "category": "validation",
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/comparisons"
+  }
+}
+```
+
+**Error (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Resources not found: res_123, res_456",
+    "category": "not_found",
+    "details": {
+      "resource": "Resources",
+      "identifier": "res_123, res_456"
+    },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/comparisons"
+  }
+}
+```
+
 ### GET /api/v1/comparisons/[id]
 
 Get a specific comparison by ID.
 
 #### Response
+
+**Success (200):**
 
 ```json
 {
@@ -927,6 +1011,26 @@ Get a specific comparison by ID.
   },
   "createdAt": "2025-11-29T12:00:00Z",
   "createdBy": "user_123"
+}
+```
+
+**Error (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Comparison not found: comp_123",
+    "category": "not_found",
+    "details": {
+      "resource": "Comparison",
+      "identifier": "comp_123"
+    },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/comparisons/comp_123"
+  }
 }
 ```
 
@@ -994,6 +1098,8 @@ Authorization: Bearer {jwt_token}
 
 #### Response
 
+**Success (200):**
+
 ```json
 {
   "success": true,
@@ -1004,6 +1110,23 @@ Authorization: Bearer {jwt_token}
     "events": ["resource.created", "resource.updated"],
     "active": true,
     "createdAt": "2025-11-29T12:00:00Z"
+  }
+}
+```
+
+**Error (400):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "BAD_REQUEST",
+    "message": "Invalid webhook URL",
+    "category": "validation",
+    "details": "URL must be a valid HTTPS endpoint",
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/webhooks"
   }
 }
 ```
@@ -1031,6 +1154,8 @@ Authorization: Bearer {jwt_token}
 
 #### Response
 
+**Success (200):**
+
 ```json
 {
   "success": true,
@@ -1041,6 +1166,26 @@ Authorization: Bearer {jwt_token}
     "events": ["resource.created", "resource.updated", "resource.deleted"],
     "active": true,
     "updatedAt": "2025-11-29T12:00:00Z"
+  }
+}
+```
+
+**Error (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "API Key not found: webhook_123",
+    "category": "not_found",
+    "details": {
+      "resource": "API Key",
+      "identifier": "webhook_123"
+    },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/webhooks/webhook_123"
   }
 }
 ```
@@ -1057,9 +1202,31 @@ Authorization: Bearer {jwt_token}
 
 #### Response
 
+**Success (200):**
+
 ```json
 {
   "success": true
+}
+```
+
+**Error (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Webhook not found: webhook_123",
+    "category": "not_found",
+    "details": {
+      "resource": "Webhook",
+      "identifier": "webhook_123"
+    },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/webhooks/webhook_123"
+  }
 }
 ```
 
@@ -1090,6 +1257,8 @@ Authorization: Bearer {jwt_token}
 
 #### Response
 
+**Success (200):**
+
 ```json
 {
   "success": true,
@@ -1097,6 +1266,22 @@ Authorization: Bearer {jwt_token}
   "response": {
     "status": 200,
     "timestamp": "2025-11-29T12:00:00Z"
+  }
+}
+```
+
+**Error (400):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "BAD_REQUEST",
+    "message": "Event type is required",
+    "category": "validation",
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/webhooks/trigger"
   }
 }
 ```
@@ -1194,4 +1379,116 @@ Manually trigger health check for a specific resource.
 
 ---
 
-_Last Updated: 2025-11-29_
+## Standardized Error Responses
+
+All API endpoints use a standardized error response format for consistent client error handling.
+
+### Error Response Structure
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "category": "error_category",
+    "details": { "additional": "context" },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/example"
+  }
+}
+```
+
+### Common Error Codes
+
+| Code                     | HTTP Status | Category           | Description                 |
+| ------------------------ | ----------- | ------------------ | --------------------------- |
+| `BAD_REQUEST`            | 400         | `validation`       | Invalid request data        |
+| `UNAUTHORIZED`           | 401         | `authentication`   | Authentication required     |
+| `FORBIDDEN`              | 403         | `authorization`    | Access forbidden            |
+| `NOT_FOUND`              | 404         | `not_found`        | Resource not found          |
+| `CONFLICT`               | 409         | `validation`       | Conflict with existing data |
+| `VALIDATION_ERROR`       | 400         | `validation`       | Field validation failed     |
+| `RATE_LIMIT_EXCEEDED`    | 429         | `rate_limit`       | Too many requests           |
+| `INTERNAL_SERVER_ERROR`  | 500         | `internal`         | Server error                |
+| `SERVICE_UNAVAILABLE`    | 503         | `external_service` | Service unavailable         |
+| `EXTERNAL_SERVICE_ERROR` | 502         | `external_service` | Third-party service error   |
+
+### Error Response Examples
+
+#### Bad Request (400)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "BAD_REQUEST",
+    "message": "Invalid request data",
+    "category": "validation",
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/resources"
+  }
+}
+```
+
+#### Not Found (404)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Resource not found: res_123",
+    "category": "not_found",
+    "details": {
+      "resource": "Resource",
+      "identifier": "res_123"
+    },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/resources/res_123"
+  }
+}
+```
+
+#### Rate Limit Exceeded (429)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Rate limit exceeded. Please try again later.",
+    "category": "rate_limit",
+    "details": {
+      "retryAfter": 45
+    },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/analytics/events"
+  }
+}
+```
+
+#### Internal Server Error (500)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INTERNAL_SERVER_ERROR",
+    "message": "An internal server error occurred",
+    "category": "internal",
+    "details": "Detailed error message (development only)",
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/example"
+  }
+}
+```
+
+---
+
+_Last Updated: 2026-01-09_
