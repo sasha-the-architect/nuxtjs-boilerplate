@@ -14,7 +14,7 @@ const vueRecommendedConfig = vuePlugin.configs['flat/recommended']
 export default [
   js.configs.recommended,
   ...vueRecommendedConfig,
-  tseslint.configs.recommended,
+  ...tseslint.configs['flat/recommended'],
   // Base configuration for TypeScript files
   {
     files: ['**/*.ts', '**/*.tsx'],
