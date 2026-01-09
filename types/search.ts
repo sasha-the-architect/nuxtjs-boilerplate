@@ -6,7 +6,7 @@ export interface SuggestionResult {
   type: 'resource' | 'category' | 'tag' | 'popular'
   score: number
   resourceId?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 // Search query structure

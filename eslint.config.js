@@ -141,11 +141,13 @@ export default [
     },
     rules: {
       'vue/one-component-per-file': 'off', // Allow multiple components in test files
-      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }], // Allow only specific console methods, prefer using logger
+      'no-console': ['warn', { allow: ['warn', 'error', 'info', 'log'] }], // Allow console.log in tests
+      '@typescript-eslint/no-explicit-any': 'off', // Allow any types in test files for mock data
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_' },
       ], // Allow unused vars with underscore prefix
+      '@typescript-eslint/ban-ts-comment': 'warn', // Allow @ts-ignore in tests
     },
   },
   // Configuration for script files

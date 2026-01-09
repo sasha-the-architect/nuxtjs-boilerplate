@@ -34,9 +34,12 @@ interface CoordinationReport {
 }
 
 class TaskCoordinationSystem {
-  private tasks: any = {}
+  private tasks: Record<string, Task> = {}
   private reports: CoordinationReport[] = []
-  private agents: any = {}
+  private agents: Record<
+    string,
+    { name: string; status: string; currentTask?: string }
+  > = {}
 
   constructor() {
     this.initializeDefaultTasks()

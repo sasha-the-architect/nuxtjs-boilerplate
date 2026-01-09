@@ -5,8 +5,14 @@
       'loading-spinner--small': size === 'small',
       'loading-spinner--large': size === 'large',
     }"
+    role="status"
+    :aria-label="label || 'Loading'"
   >
-    <svg class="loading-spinner__circular" viewBox="25 25 50 50">
+    <svg
+      class="loading-spinner__circular"
+      viewBox="25 25 50 50"
+      aria-hidden="true"
+    >
       <circle
         class="loading-spinner__path"
         cx="50"
@@ -18,6 +24,7 @@
       />
     </svg>
     <span v-if="label" class="loading-spinner__label">{{ label }}</span>
+    <span v-else class="sr-only">Loading</span>
   </div>
 </template>
 

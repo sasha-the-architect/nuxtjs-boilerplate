@@ -10,7 +10,7 @@ export interface ErrorLog {
   userAgent?: string
   component?: string
   severity: 'info' | 'warning' | 'error' | 'critical'
-  additionalInfo?: Record<string, any>
+  additionalInfo?: Record<string, unknown>
 }
 
 class ErrorLogger {
@@ -23,7 +23,7 @@ class ErrorLogger {
     severity: ErrorLog['severity'] = 'error',
     error?: Error,
     component?: string,
-    additionalInfo?: Record<string, any>
+    additionalInfo?: Record<string, unknown>
   ): void {
     const log: ErrorLog = {
       id: Math.random().toString(36).substring(2, 15),
@@ -114,7 +114,7 @@ export const logError = (
   message: string,
   error?: Error,
   component?: string,
-  additionalInfo?: Record<string, any>
+  additionalInfo?: Record<string, unknown>
 ) => {
   errorLogger.log(message, 'error', error, component, additionalInfo)
 }
@@ -123,7 +123,7 @@ export const logWarning = (
   message: string,
   error?: Error,
   component?: string,
-  additionalInfo?: Record<string, any>
+  additionalInfo?: Record<string, unknown>
 ) => {
   errorLogger.log(message, 'warning', error, component, additionalInfo)
 }
@@ -132,7 +132,7 @@ export const logInfo = (
   message: string,
   error?: Error,
   component?: string,
-  additionalInfo?: Record<string, any>
+  additionalInfo?: Record<string, unknown>
 ) => {
   errorLogger.log(message, 'info', error, component, additionalInfo)
 }
@@ -141,7 +141,7 @@ export const logCritical = (
   message: string,
   error?: Error,
   component?: string,
-  additionalInfo?: Record<string, any>
+  additionalInfo?: Record<string, unknown>
 ) => {
   errorLogger.log(message, 'critical', error, component, additionalInfo)
 }

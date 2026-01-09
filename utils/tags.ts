@@ -278,7 +278,7 @@ export function filterResourcesByHierarchicalTags(
     }
 
     // Get all selected tags and their children/parents based on options
-    let relevantTagIds = [...selectedTagIds]
+    const relevantTagIds = [...selectedTagIds]
 
     if (includeChildren) {
       for (const tagId of selectedTagIds) {

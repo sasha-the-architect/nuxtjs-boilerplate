@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useAdvancedResourceSearch } from '~/composables/useAdvancedResourceSearch'
-import { createSearchSnippet } from '~/utils/searchHighlighting'
 
 // Mock resources for testing
 const mockResources = [

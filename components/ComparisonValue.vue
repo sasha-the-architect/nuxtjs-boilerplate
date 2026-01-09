@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 interface Props {
-  value?: any
+  value?: string | number | boolean | string[]
   type?: 'text' | 'number' | 'boolean' | 'list'
 }
 

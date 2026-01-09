@@ -3,10 +3,10 @@ const generateCacheKey = (text: string, searchQuery: string): string => {
 }
 
 // Store all caches for clearing
-const allCaches: Set<Map<string, any>> = new Set()
+const allCaches: Set<Map<string, unknown>> = new Set()
 
 // Helper to generate cache key for arguments
-const generateArgsKey = (args: any[]): string => {
+const generateArgsKey = (args: unknown[]): string => {
   if (args.length === 1) {
     const arg = args[0]
     if (arg === null || arg === undefined) {
@@ -41,7 +41,7 @@ const generateArgsKey = (args: any[]): string => {
     .join('|')
 }
 
-export const memoize = <T extends (...args: any[]) => any>(
+export const memoize = <T extends (...args: unknown[]) => ReturnType<T>>(
   fn: T,
   keyGenerator?: (...args: Parameters<T>) => string
 ): T => {

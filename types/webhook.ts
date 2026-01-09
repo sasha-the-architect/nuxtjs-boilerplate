@@ -24,7 +24,7 @@ export type WebhookEvent =
 
 export interface WebhookPayload {
   event: WebhookEvent
-  data: any
+  data: unknown
   timestamp: string
   signature?: string
   idempotencyKey?: string

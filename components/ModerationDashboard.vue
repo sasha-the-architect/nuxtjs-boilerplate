@@ -1,82 +1,119 @@
 <template>
   <div class="moderation-dashboard">
-    <div class="dashboard-header">
+    <header class="dashboard-header">
       <h1>Content Moderation Dashboard</h1>
       <p>Manage resource submissions and content quality</p>
-    </div>
+    </header>
 
-    <div class="dashboard-stats">
-      <div class="stat-card">
-        <h3>Pending Reviews</h3>
-        <div class="stat-value">{{ pendingCount }}</div>
+    <section aria-label="Dashboard statistics" class="dashboard-stats">
+      <article class="stat-card">
+        <h2>Pending Reviews</h2>
+        <div class="stat-value" aria-label="Number of pending reviews">
+          {{ pendingCount }}
+        </div>
         <NuxtLink to="/moderation/queue" class="stat-link">View Queue</NuxtLink>
-      </div>
+      </article>
 
-      <div class="stat-card">
-        <h3>Approved This Week</h3>
-        <div class="stat-value">{{ approvedCount }}</div>
-        <div class="stat-trend up">+12%</div>
-      </div>
+      <article class="stat-card">
+        <h2>Approved This Week</h2>
+        <div
+          class="stat-value"
+          aria-label="Number of approved resources this week"
+        >
+          {{ approvedCount }}
+        </div>
+        <div class="stat-trend up" aria-label="12 percent increase">+12%</div>
+      </article>
 
-      <div class="stat-card">
-        <h3>Rejected This Week</h3>
-        <div class="stat-value">{{ rejectedCount }}</div>
-        <div class="stat-trend down">-5%</div>
-      </div>
+      <article class="stat-card">
+        <h2>Rejected This Week</h2>
+        <div
+          class="stat-value"
+          aria-label="Number of rejected resources this week"
+        >
+          {{ rejectedCount }}
+        </div>
+        <div class="stat-trend down" aria-label="5 percent decrease">-5%</div>
+      </article>
 
-      <div class="stat-card">
-        <h3>Flagged Resources</h3>
-        <div class="stat-value">{{ flaggedCount }}</div>
+      <article class="stat-card">
+        <h2>Flagged Resources</h2>
+        <div class="stat-value" aria-label="Number of flagged resources">
+          {{ flaggedCount }}
+        </div>
         <NuxtLink to="/moderation/flags" class="stat-link">View Flags</NuxtLink>
-      </div>
-    </div>
+      </article>
+    </section>
 
     <div class="dashboard-content">
-      <div class="recent-activity">
-        <h2>Recent Activity</h2>
-        <div class="activity-list">
-          <div
+      <section
+        class="recent-activity"
+        aria-labelledby="recent-activity-heading"
+      >
+        <h2 id="recent-activity-heading">Recent Activity</h2>
+        <ul class="activity-list" role="list">
+          <li
             v-for="activity in recentActivity"
             :key="activity.id"
             class="activity-item"
           >
-            <div class="activity-icon" :class="`activity-${activity.type}`">
+            <div
+              class="activity-icon"
+              :class="`activity-${activity.type}`"
+              aria-hidden="true"
+            >
               {{ getActivityIcon(activity.type) }}
             </div>
             <div class="activity-content">
               <p>{{ activity.message }}</p>
-              <span class="activity-time">{{
+              <time class="activity-time" :datetime="activity.timestamp">{{
                 formatDate(activity.timestamp)
-              }}</span>
+              }}</time>
             </div>
-          </div>
-        </div>
-      </div>
+          </li>
+        </ul>
+      </section>
 
-      <div class="quick-actions">
-        <h2>Quick Actions</h2>
-        <div class="action-buttons">
-          <NuxtLink to="/moderation/queue" class="action-btn">
-            <span class="action-icon">📋</span>
+      <section class="quick-actions" aria-labelledby="quick-actions-heading">
+        <h2 id="quick-actions-heading">Quick Actions</h2>
+        <nav class="action-buttons" aria-label="Quick actions navigation">
+          <NuxtLink
+            to="/moderation/queue"
+            class="action-btn"
+            aria-label="Go to review queue"
+          >
+            <span class="action-icon" aria-hidden="true">📋</span>
             <span>Review Queue</span>
           </NuxtLink>
 
-          <NuxtLink to="/moderation/flags" class="action-btn">
-            <span class="action-icon">🚩</span>
+          <NuxtLink
+            to="/moderation/flags"
+            class="action-btn"
+            aria-label="View flagged content"
+          >
+            <span class="action-icon" aria-hidden="true">🚩</span>
             <span>Flagged Content</span>
           </NuxtLink>
 
-          <NuxtLink to="/moderation/submissions" class="action-btn">
-            <span class="action-icon">📝</span>
+          <NuxtLink
+            to="/moderation/submissions"
+            class="action-btn"
+            aria-label="View submissions"
+          >
+            <span class="action-icon" aria-hidden="true">📝</span>
             <span>Submissions</span>
           </NuxtLink>
 
-          <NuxtLink to="/moderation/settings" class="action-btn">
-            <span class="action-icon">⚙️</span>
+          <NuxtLink
+            to="/moderation/settings"
+            class="action-btn"
+            aria-label="Go to settings"
+          >
+            <span class="action-icon" aria-hidden="true">⚙️</span>
             <span>Settings</span>
           </NuxtLink>
-        </div>
-      </div>
+        </nav>
+      </section>
     </div>
   </div>
 </template>
