@@ -185,7 +185,9 @@
 
         <!-- Recommendations Section -->
         <div v-if="filteredResources.length > 0 && !loading" class="mt-16">
-          <RecommendationsSection />
+          <ClientOnly>
+            <LazyRecommendationsSection />
+          </ClientOnly>
         </div>
       </div>
     </div>
@@ -201,7 +203,6 @@ import ResourceCard from '~/components/ResourceCard.vue'
 import SearchBar from '~/components/SearchBar.vue'
 import ResourceSort from '~/components/ResourceSort.vue'
 import ResourceFilters from '~/components/ResourceFilters.vue'
-import RecommendationsSection from '~/components/RecommendationsSection.vue'
 
 definePageMeta({
   layout: 'default',

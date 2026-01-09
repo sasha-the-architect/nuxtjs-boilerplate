@@ -5,11 +5,15 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div class="card">
-          <WebhookManager />
+          <ClientOnly>
+            <LazyWebhookManager />
+          </ClientOnly>
         </div>
 
         <div class="card">
-          <ApiKeys />
+          <ClientOnly>
+            <LazyApiKeys />
+          </ClientOnly>
         </div>
       </div>
     </div>

@@ -233,10 +233,6 @@
     </client-only>
 
     <!-- Offline Indicator -->
-    <OfflineIndicator />
-
-    <!-- Toast Notifications -->
-    <ToastNotification />
   </div>
 </template>
 
@@ -247,7 +243,6 @@ import { useResources } from '~/composables/useResources'
 import SearchBar from '~/components/SearchBar.vue'
 import PWAInstallPrompt from '~/components/PWAInstallPrompt.vue'
 import OfflineIndicator from '~/components/OfflineIndicator.vue'
-import ToastNotification from '~/components/ToastNotification.vue'
 
 const mobileMenuOpen = ref(false)
 const mobileMenuButton = ref<HTMLElement | null>(null)

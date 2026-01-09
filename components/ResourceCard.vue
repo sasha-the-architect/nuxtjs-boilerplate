@@ -116,20 +116,24 @@
           </a>
           <div class="flex items-center space-x-2">
             <!-- Bookmark button -->
-            <BookmarkButton
-              v-if="id"
-              :resource-id="id"
-              :title="title"
-              :description="description"
-              :url="url"
-            />
+            <ClientOnly>
+              <LazyBookmarkButton
+                v-if="id"
+                :resource-id="id"
+                :title="title"
+                :description="description"
+                :url="url"
+              />
+            </ClientOnly>
             <!-- Share button -->
-            <ShareButton
-              v-if="id"
-              :title="title"
-              :description="description"
-              :url="`${runtimeConfig.public.canonicalUrl}/resources/${id}`"
-            />
+            <ClientOnly>
+              <LazyShareButton
+                v-if="id"
+                :title="title"
+                :description="description"
+                :url="`${runtimeConfig.public.canonicalUrl}/resources/${id}`"
+              />
+            </ClientOnly>
             <!-- Compare button -->
             <button
               v-if="id"
@@ -194,8 +198,6 @@ import { computed, ref, onMounted } from 'vue'
 import { useHead, useRuntimeConfig } from '#imports'
 import { useResourceComparison } from '~/composables/useResourceComparison'
 import OptimizedImage from '~/components/OptimizedImage.vue'
-import BookmarkButton from '~/components/BookmarkButton.vue'
-import ShareButton from '~/components/ShareButton.vue'
 import ResourceStatus from '~/components/ResourceStatus.vue'
 import { trackResourceView, trackResourceClick } from '~/utils/analytics'
 import { sanitizeAndHighlight } from '~/utils/sanitize'

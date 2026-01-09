@@ -63,18 +63,21 @@
     </div>
 
     <!-- Search Suggestions Dropdown -->
-    <SearchSuggestions
-      v-if="
-        showSuggestions && (suggestions.length > 0 || searchHistory.length > 0)
-      "
-      :suggestions="suggestions"
-      :search-history="searchHistory"
-      :visible="showSuggestions"
-      @select-suggestion="handleSuggestionSelect"
-      @select-history="handleHistorySelect"
-      @clear-history="handleClearHistory"
-      @navigate="handleNavigate"
-    />
+    <ClientOnly>
+      <LazySearchSuggestions
+        v-if="
+          showSuggestions &&
+          (suggestions.length > 0 || searchHistory.length > 0)
+        "
+        :suggestions="suggestions"
+        :search-history="searchHistory"
+        :visible="showSuggestions"
+        @select-suggestion="handleSuggestionSelect"
+        @select-history="handleHistorySelect"
+        @clear-history="handleClearHistory"
+        @navigate="handleNavigate"
+      />
+    </ClientOnly>
 
     <!-- ARIA live region for search results information -->
     <div
@@ -90,7 +93,6 @@
 
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue'
-import SearchSuggestions from '~/components/SearchSuggestions.vue'
 import { useResources } from '~/composables/useResources'
 import { useAdvancedResourceSearch } from '~/composables/useAdvancedResourceSearch'
 import { useResourceData } from '~/composables/useResourceData'

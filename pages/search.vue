@@ -39,11 +39,13 @@
         <p class="text-gray-500 mb-6">
           Try adjusting your search or filter criteria
         </p>
-        <RelatedSearches
-          :query="searchQuery"
-          class="mb-6"
-          @search-select="handleRelatedSearch"
-        />
+        <ClientOnly>
+          <LazyRelatedSearches
+            :query="searchQuery"
+            class="mb-6"
+            @search-select="handleRelatedSearch"
+          />
+        </ClientOnly>
         <button
           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-800 hover:bg-gray-900"
           @click="resetAllFilters"
@@ -160,7 +162,6 @@ import ResourceFilters from '~/components/ResourceFilters.vue'
 import ResourceSort from '~/components/ResourceSort.vue'
 import ResourceCard from '~/components/ResourceCard.vue'
 import VirtualResourceList from '~/components/VirtualResourceList.vue'
-import RelatedSearches from '~/components/RelatedSearches.vue'
 import PopularSearches from '~/components/PopularSearches.vue'
 import ZeroResultSearches from '~/components/ZeroResultSearches.vue'
 

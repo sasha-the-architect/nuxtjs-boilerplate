@@ -74,7 +74,9 @@
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div class="md:col-span-2">
-              <ResourceAnalytics :analytics-data="analyticsData" />
+              <ClientOnly>
+                <LazyResourceAnalytics :analytics-data="analyticsData" />
+              </ClientOnly>
             </div>
 
             <!-- Sidebar -->
@@ -129,31 +131,44 @@
                 </div>
               </div>
 
-              <ResourceShare :share-urls="shareUrls" @copy="copyToClipboard" />
+              <ClientOnly>
+                <LazyResourceShare
+                  :share-urls="shareUrls"
+                  @copy="copyToClipboard"
+                />
+              </ClientOnly>
             </div>
           </div>
         </div>
       </div>
 
-      <ResourceSimilar :resources="relatedResources" />
+      <ClientOnly>
+        <LazyResourceSimilar :resources="relatedResources" />
+      </ClientOnly>
 
       <!-- Alternative Suggestions Section -->
       <div class="mt-12">
-        <AlternativeSuggestions v-if="resource" :resource="resource" />
+        <ClientOnly>
+          <LazyAlternativeSuggestions v-if="resource" :resource="resource" />
+        </ClientOnly>
       </div>
 
-      <ResourceComments
-        :comments="sampleComments"
-        :comment-count="3"
-        @submit="handleCommentSubmit"
-      />
+      <ClientOnly>
+        <LazyResourceComments
+          :comments="sampleComments"
+          :comment-count="3"
+          @submit="handleCommentSubmit"
+        />
+      </ClientOnly>
 
       <!-- Recommendations Section -->
       <div class="mt-12">
-        <RecommendationsSection
-          :current-resource="resource"
-          :current-category="resource?.category"
-        />
+        <ClientOnly>
+          <LazyRecommendationsSection
+            :current-resource="resource"
+            :current-category="resource?.category"
+          />
+        </ClientOnly>
       </div>
     </div>
   </div>
@@ -164,12 +179,6 @@ import { useResources, type Resource } from '~/composables/useResources'
 import ResourceBreadcrumbs from '~/components/ResourceBreadcrumbs.vue'
 import ResourceHeader from '~/components/ResourceHeader.vue'
 import ResourceDetails from '~/components/ResourceDetails.vue'
-import ResourceAnalytics from '~/components/ResourceAnalytics.vue'
-import ResourceShare from '~/components/ResourceShare.vue'
-import ResourceSimilar from '~/components/ResourceSimilar.vue'
-import ResourceComments from '~/components/ResourceComments.vue'
-import RecommendationsSection from '~/components/RecommendationsSection.vue'
-import AlternativeSuggestions from '~/components/AlternativeSuggestions.vue'
 import logger from '~/utils/logger'
 
 import { computed, ref, onMounted } from 'vue'
