@@ -10,6 +10,27 @@ export const useSearchSuggestions = (resources: readonly Resource[]) => {
   const fuse = ref(createFuseForSuggestions(resources))
   const popularSearches = ref<{ query: string; count: number }[]>([])
 
+  // Pre-compute tag and category counts for O(1) lookups
+  const tagCountsMap = computed(() => {
+    const map = new Map<string, number>()
+    resources.forEach(resource => {
+      resource.tags?.forEach(tag => {
+        map.set(tag, (map.get(tag) || 0) + 1)
+      })
+    })
+    return map
+  })
+
+  const categoryCountsMap = computed(() => {
+    const map = new Map<string, number>()
+    resources.forEach(resource => {
+      if (resource.category) {
+        map.set(resource.category, (map.get(resource.category) || 0) + 1)
+      }
+    })
+    return map
+  })
+
   // Initialize Fuse.js with optimized configuration for suggestions
   const initSearch = () => {
     // Fuse instance already created by createFuseForSuggestions
@@ -46,7 +67,7 @@ export const useSearchSuggestions = (resources: readonly Resource[]) => {
       })
     })
 
-    // Add tag suggestions based on query
+    // Add tag suggestions based on query (O(n) with O(1) lookups)
     const tagMatches = new Set<string>()
     resources.forEach(resource => {
       if (resource.tags) {
@@ -63,7 +84,7 @@ export const useSearchSuggestions = (resources: readonly Resource[]) => {
                 score: 0.7, // Lower priority than exact resource matches
                 metadata: {
                   tag: tag,
-                  count: resources.filter(r => r.tags?.includes(tag)).length,
+                  count: tagCountsMap.value.get(tag) || 0,
                 },
               })
             }
@@ -72,7 +93,7 @@ export const useSearchSuggestions = (resources: readonly Resource[]) => {
       }
     })
 
-    // Add category suggestions based on query
+    // Add category suggestions based on query (O(n) with O(1) lookups)
     const categoryMatches = new Set<string>()
     resources.forEach(resource => {
       if (
@@ -87,8 +108,7 @@ export const useSearchSuggestions = (resources: readonly Resource[]) => {
           score: 0.6, // Lower priority than tags
           metadata: {
             category: resource.category,
-            count: resources.filter(r => r.category === resource.category)
-              .length,
+            count: categoryCountsMap.value.get(resource.category) || 0,
           },
         })
       }
@@ -174,5 +194,7 @@ export const useSearchSuggestions = (resources: readonly Resource[]) => {
     getRecentSearches,
     addToSearchHistory,
     addToPopularSearches,
+    tagCountsMap,
+    categoryCountsMap,
   }
 }

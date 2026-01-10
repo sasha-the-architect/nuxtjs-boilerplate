@@ -41,7 +41,7 @@ const matchesBenefit = (
   (resource.benefits || []).some(benefit => benefits!.includes(benefit))
 
 const filterByAllCriteria = (
-  resources: Resource[],
+  resources: readonly Resource[],
   filterOptions: FilterOptions
 ): Resource[] => {
   const { categories, pricingModels, difficultyLevels, technologies, tags } =
@@ -90,7 +90,7 @@ const matchesDateRange = (
 }
 
 const filterByAllCriteriaWithDateRange = (
-  resources: Resource[],
+  resources: readonly Resource[],
   filterOptions: FilterOptions & { dateRange?: string; benefits?: string[] }
 ): Resource[] => {
   const {
