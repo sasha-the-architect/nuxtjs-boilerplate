@@ -1,6 +1,8 @@
 import prisma from './db'
+import { analyticsEventSchema } from './validation-schemas'
 
 export interface AnalyticsEvent {
+  id?: string
   type: string
   resourceId?: string
   category?: string
@@ -8,33 +10,50 @@ export interface AnalyticsEvent {
   userAgent?: string
   ip?: string | null
   timestamp: number
+  deletedAt?: number | null
   properties?: Record<string, unknown>
 }
 
 export async function insertAnalyticsEvent(
   event: AnalyticsEvent
-): Promise<boolean> {
+): Promise<{ success: boolean; error?: string }> {
   try {
+    const validation = analyticsEventSchema.safeParse(event)
+
+    if (!validation.success) {
+      const errorMessage = validation.error.issues
+        .map(e => `${e.path.join('.')}: ${e.message}`)
+        .join(', ')
+      console.error('Analytics event validation failed:', errorMessage)
+      return { success: false, error: errorMessage }
+    }
+
+    const validatedEvent = validation.data
+
     await prisma.analyticsEvent.create({
       data: {
-        type: event.type,
-        resourceId: event.resourceId || null,
-        category: event.category || null,
-        url: event.url || null,
-        userAgent: event.userAgent || null,
-        ip: event.ip || null,
-        timestamp: event.timestamp,
-        properties: event.properties ? JSON.stringify(event.properties) : null,
+        type: validatedEvent.type,
+        resourceId: validatedEvent.resourceId || null,
+        category: validatedEvent.category || null,
+        url: validatedEvent.url || null,
+        userAgent: validatedEvent.userAgent || null,
+        ip: validatedEvent.ip || null,
+        timestamp: validatedEvent.timestamp,
+        properties: validatedEvent.properties
+          ? JSON.stringify(validatedEvent.properties)
+          : null,
+        deletedAt: null,
       },
     })
-    return true
+    return { success: true }
   } catch (error) {
     console.error('Error inserting analytics event:', error)
-    return false
+    return { success: false, error: String(error) }
   }
 }
 
 function mapDbEventToAnalyticsEvent(event: {
+  id: string
   type: string
   resourceId: string | null
   category: string | null
@@ -42,9 +61,11 @@ function mapDbEventToAnalyticsEvent(event: {
   userAgent: string | null
   ip: string | null
   timestamp: number
+  deletedAt: number | null
   properties: string | null
 }): AnalyticsEvent {
   return {
+    id: event.id,
     type: event.type,
     resourceId: event.resourceId || undefined,
     category: event.category || undefined,
@@ -52,6 +73,7 @@ function mapDbEventToAnalyticsEvent(event: {
     userAgent: event.userAgent || undefined,
     ip: event.ip || undefined,
     timestamp: event.timestamp,
+    deletedAt: event.deletedAt || undefined,
     properties: event.properties ? JSON.parse(event.properties) : undefined,
   }
 }
@@ -59,16 +81,23 @@ function mapDbEventToAnalyticsEvent(event: {
 export async function getAnalyticsEventsByDateRange(
   startDate: Date,
   endDate: Date,
-  limit: number = 10000
+  limit: number = 10000,
+  includeDeleted: boolean = false
 ): Promise<AnalyticsEvent[]> {
   try {
-    const events = await prisma.analyticsEvent.findMany({
-      where: {
-        timestamp: {
-          gte: startDate.getTime(),
-          lte: endDate.getTime(),
-        },
+    const where: any = {
+      timestamp: {
+        gte: startDate.getTime(),
+        lte: endDate.getTime(),
       },
+    }
+
+    if (!includeDeleted) {
+      where.deletedAt = null
+    }
+
+    const events = await prisma.analyticsEvent.findMany({
+      where,
       orderBy: {
         timestamp: 'desc',
       },
@@ -86,7 +115,8 @@ export async function getAnalyticsEventsForResource(
   resourceId: string,
   startDate: Date,
   endDate: Date,
-  eventType?: string
+  eventType?: string,
+  includeDeleted: boolean = false
 ): Promise<AnalyticsEvent[]> {
   try {
     const where: any = {
@@ -99,6 +129,10 @@ export async function getAnalyticsEventsForResource(
 
     if (eventType) {
       where.type = eventType
+    }
+
+    if (!includeDeleted) {
+      where.deletedAt = null
     }
 
     const events = await prisma.analyticsEvent.findMany({
@@ -139,6 +173,7 @@ export async function getAggregatedAnalytics(
             gte: startDate.getTime(),
             lte: endDate.getTime(),
           },
+          deletedAt: null,
         },
       }),
       prisma.analyticsEvent.groupBy({
@@ -148,6 +183,7 @@ export async function getAggregatedAnalytics(
             gte: startDate.getTime(),
             lte: endDate.getTime(),
           },
+          deletedAt: null,
         },
         _count: true,
       }),
@@ -159,6 +195,7 @@ export async function getAggregatedAnalytics(
             lte: endDate.getTime(),
           },
           type: 'resource_view',
+          deletedAt: null,
         },
         _count: true,
       }),
@@ -167,7 +204,9 @@ export async function getAggregatedAnalytics(
           date(datetime(timestamp/1000, 'unixepoch')) as date,
           COUNT(*) as count
         FROM AnalyticsEvent
-        WHERE timestamp >= ${startDate.getTime()} AND timestamp <= ${endDate.getTime()}
+        WHERE timestamp >= ${startDate.getTime()} 
+          AND timestamp <= ${endDate.getTime()}
+          AND deletedAt IS NULL
         GROUP BY date(timestamp/1000, 'unixepoch')
         ORDER BY date
       `,
@@ -181,6 +220,7 @@ export async function getAggregatedAnalytics(
           category: {
             not: null,
           },
+          deletedAt: null,
         },
         _count: true,
       }),
@@ -246,6 +286,7 @@ export async function getResourceAnalytics(
               gte: startDate.getTime(),
               lte: endDate.getTime(),
             },
+            deletedAt: null,
           },
         }),
         prisma.analyticsEvent.groupBy({
@@ -257,6 +298,7 @@ export async function getResourceAnalytics(
               gte: startDate.getTime(),
               lte: endDate.getTime(),
             },
+            deletedAt: null,
           },
         }),
         prisma.analyticsEvent.findFirst({
@@ -267,6 +309,7 @@ export async function getResourceAnalytics(
               gte: startDate.getTime(),
               lte: endDate.getTime(),
             },
+            deletedAt: null,
           },
           orderBy: {
             timestamp: 'desc',
@@ -281,6 +324,7 @@ export async function getResourceAnalytics(
           AND type = 'resource_view'
           AND timestamp >= ${startDate.getTime()}
           AND timestamp <= ${endDate.getTime()}
+          AND deletedAt IS NULL
         GROUP BY date(timestamp/1000, 'unixepoch')
         ORDER BY date
       `,
@@ -352,12 +396,17 @@ export async function cleanupOldEvents(
 ): Promise<number> {
   try {
     const cutoffDate = Date.now() - retentionDays * 24 * 60 * 60 * 1000
+    const deletedAt = Date.now()
 
-    const result = await prisma.analyticsEvent.deleteMany({
+    const result = await prisma.analyticsEvent.updateMany({
       where: {
         timestamp: {
           lt: cutoffDate,
         },
+        deletedAt: null,
+      },
+      data: {
+        deletedAt,
       },
     })
 
@@ -365,6 +414,137 @@ export async function cleanupOldEvents(
   } catch (error) {
     console.error('Error cleaning up old analytics events:', error)
     return 0
+  }
+}
+
+export async function getSoftDeletedEventsCount(): Promise<number> {
+  try {
+    return await prisma.analyticsEvent.count({
+      where: {
+        deletedAt: {
+          not: null,
+        },
+      },
+    })
+  } catch (error) {
+    console.error('Error getting soft-deleted events count:', error)
+    return 0
+  }
+}
+
+export async function getSoftDeletedEvents(
+  limit: number = 1000
+): Promise<AnalyticsEvent[]> {
+  try {
+    const events = await prisma.analyticsEvent.findMany({
+      where: {
+        deletedAt: {
+          not: null,
+        },
+      },
+      orderBy: {
+        deletedAt: 'desc',
+      },
+      take: limit,
+    })
+
+    return events.map(mapDbEventToAnalyticsEvent)
+  } catch (error) {
+    console.error('Error getting soft-deleted events:', error)
+    return []
+  }
+}
+
+export async function restoreSoftDeletedEvents(
+  eventIds: string[]
+): Promise<number> {
+  try {
+    const result = await prisma.analyticsEvent.updateMany({
+      where: {
+        id: {
+          in: eventIds,
+        },
+        deletedAt: {
+          not: null,
+        },
+      },
+      data: {
+        deletedAt: null,
+      },
+    })
+
+    return result.count
+  } catch (error) {
+    console.error('Error restoring soft-deleted events:', error)
+    return 0
+  }
+}
+
+export async function exportSoftDeletedEventsToCsv(): Promise<string> {
+  try {
+    const events = await getSoftDeletedEvents(100000)
+
+    let csvContent =
+      'ID,Type,Resource ID,Category,URL,IP Address,Timestamp,Deleted At,Properties\n'
+
+    for (const event of events) {
+      const timestamp = new Date(event.timestamp).toISOString()
+      const properties = JSON.stringify(event.properties || {}).replace(
+        /"/g,
+        '""'
+      )
+
+      csvContent +=
+        [
+          `"${event.id || ''}"`,
+          `"${event.type || ''}"`,
+          `"${event.resourceId || ''}"`,
+          `"${event.category || ''}"`,
+          `"${event.url || ''}"`,
+          `"${event.ip || ''}"`,
+          `"${timestamp}"`,
+          `"${event.deletedAt ? new Date(event.deletedAt).toISOString() : ''}"`,
+          `"${properties}"`,
+        ].join(',') + '\n'
+    }
+
+    return csvContent
+  } catch (error) {
+    console.error('Error exporting soft-deleted events to CSV:', error)
+    return 'ID,Type,Resource ID,Category,URL,IP Address,Timestamp,Deleted At,Properties\n'
+  }
+}
+
+export async function cleanupSoftDeletedEvents(
+  backup: boolean = true
+): Promise<{ deletedCount: number; backupPath?: string }> {
+  try {
+    let backupPath: string | undefined
+
+    if (backup) {
+      const csvContent = await exportSoftDeletedEventsToCsv()
+      const fs = await import('fs/promises')
+      const path = await import('path')
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+      const backupDir = path.join(process.cwd(), 'backups')
+
+      await fs.mkdir(backupDir, { recursive: true })
+      backupPath = path.join(backupDir, `soft-deleted-events-${timestamp}.csv`)
+      await fs.writeFile(backupPath, csvContent, 'utf-8')
+    }
+
+    const result = await prisma.analyticsEvent.deleteMany({
+      where: {
+        deletedAt: {
+          not: null,
+        },
+      },
+    })
+
+    return { deletedCount: result.count, backupPath }
+  } catch (error) {
+    console.error('Error cleaning up soft-deleted events:', error)
+    return { deletedCount: 0 }
   }
 }
 
