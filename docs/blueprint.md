@@ -1125,6 +1125,7 @@ tests/
 | 2026-01-10 | Data Architecture | Applied soft-delete migration                                   | Migration 20260110100000_add_soft_delete applied with reversible down.sql, enables safe data deletion with backup and restore capability                                                                |
 | 2026-01-10 | Data Architecture | Added application-layer data validation                         | Updated insertAnalyticsEvent to use Zod schema validation, enforces valid event types, categories, and IP addresses at application boundary (SQLite constraint limitations)                             |
 | 2026-01-10 | Architecture      | Dead Code Removal - Removed obsolete useResourceRecommendations | Eliminated 287 lines of dead code (old recommendation implementation), single source of truth now useRecommendationEngine with Strategy Pattern, reduced confusion and technical debt                   |
+| 2026-01-10 | Architecture      | DRY - Extracted generic toggle utility for filter arrays        | Eliminated 70+ lines of duplicate toggle logic in useSearchPage, created reusable toggleArrayItem utility in useFilterUtils, reduced code by 23 lines (net 12 lines total reduction)                    |
 
 ## 🎓 Design Principles Applied
 

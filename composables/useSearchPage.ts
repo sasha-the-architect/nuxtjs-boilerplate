@@ -47,7 +47,7 @@ export const useSearchPage = () => {
     })
     return Array.from(benefitsSet).sort()
   })
-  const { parseDate, filterByAllCriteriaWithDateRange } = useFilterUtils()
+  const { filterByAllCriteriaWithDateRange, toggleArrayItem } = useFilterUtils()
 
   const filterOptions = ref<SearchPageFilterOptions>({
     searchQuery: '',
@@ -153,74 +153,50 @@ export const useSearchPage = () => {
   }
 
   const toggleCategory = (category: string) => {
-    const current = [...(filterOptions.value.categories || [])]
-    const index = current.indexOf(category)
-    if (index > -1) {
-      current.splice(index, 1)
-    } else {
-      current.push(category)
-    }
-    filterOptions.value.categories = current
+    filterOptions.value.categories = toggleArrayItem(
+      filterOptions.value.categories || [],
+      category
+    )
     trackFilter('category', category)
   }
 
   const togglePricingModel = (pricingModel: string) => {
-    const current = [...(filterOptions.value.pricingModels || [])]
-    const index = current.indexOf(pricingModel)
-    if (index > -1) {
-      current.splice(index, 1)
-    } else {
-      current.push(pricingModel)
-    }
-    filterOptions.value.pricingModels = current
+    filterOptions.value.pricingModels = toggleArrayItem(
+      filterOptions.value.pricingModels || [],
+      pricingModel
+    )
     trackFilter('pricing', pricingModel)
   }
 
   const toggleDifficultyLevel = (difficultyLevel: string) => {
-    const current = [...(filterOptions.value.difficultyLevels || [])]
-    const index = current.indexOf(difficultyLevel)
-    if (index > -1) {
-      current.splice(index, 1)
-    } else {
-      current.push(difficultyLevel)
-    }
-    filterOptions.value.difficultyLevels = current
+    filterOptions.value.difficultyLevels = toggleArrayItem(
+      filterOptions.value.difficultyLevels || [],
+      difficultyLevel
+    )
     trackFilter('difficulty', difficultyLevel)
   }
 
   const toggleTechnology = (technology: string) => {
-    const current = [...(filterOptions.value.technologies || [])]
-    const index = current.indexOf(technology)
-    if (index > -1) {
-      current.splice(index, 1)
-    } else {
-      current.push(technology)
-    }
-    filterOptions.value.technologies = current
+    filterOptions.value.technologies = toggleArrayItem(
+      filterOptions.value.technologies || [],
+      technology
+    )
     trackFilter('technology', technology)
   }
 
   const toggleTag = (tag: string) => {
-    const current = [...(filterOptions.value.tags || [])]
-    const index = current.indexOf(tag)
-    if (index > -1) {
-      current.splice(index, 1)
-    } else {
-      current.push(tag)
-    }
-    filterOptions.value.tags = current
+    filterOptions.value.tags = toggleArrayItem(
+      filterOptions.value.tags || [],
+      tag
+    )
     trackFilter('tag', tag)
   }
 
   const toggleBenefit = (benefit: string) => {
-    const current = [...(filterOptions.value.benefits || [])]
-    const index = current.indexOf(benefit)
-    if (index > -1) {
-      current.splice(index, 1)
-    } else {
-      current.push(benefit)
-    }
-    filterOptions.value.benefits = current
+    filterOptions.value.benefits = toggleArrayItem(
+      filterOptions.value.benefits || [],
+      benefit
+    )
     trackFilter('benefit', benefit)
   }
 

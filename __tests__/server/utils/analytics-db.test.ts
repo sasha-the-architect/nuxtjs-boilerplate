@@ -710,10 +710,8 @@ describe('analytics-db', () => {
           count: 0,
         })
 
-        const now = Date.now()
         await analyticsDb.cleanupOldEvents()
 
-        const cutoffDate = now - 30 * 24 * 60 * 60 * 1000
         expect(prisma.analyticsEvent.deleteMany).toHaveBeenCalledWith({
           where: {
             timestamp: {

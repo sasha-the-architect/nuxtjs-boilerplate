@@ -126,7 +126,9 @@ const emit = defineEmits<Emits>()
 const searchInputRef = ref<HTMLInputElement>()
 const inputTimeout = ref<ReturnType<typeof setTimeout> | number>()
 const debouncedQuery = ref('')
-const suggestions = ref<any[]>([])
+const suggestions = ref<
+  Array<{ id: string; title: string; description: string; url: string }>
+>([])
 const showSuggestions = ref(false)
 const searchHistory = ref<string[]>([])
 
@@ -169,7 +171,7 @@ const updateSuggestions = (query: string) => {
       ? getAdvancedSuggestions(query, 5)
       : getBasicSuggestions(query, 5)
 
-    suggestions.value = suggestionsData.map((resource: any) => ({
+    suggestions.value = suggestionsData.map(resource => ({
       id: resource.id,
       title: resource.title,
       description:
@@ -212,7 +214,12 @@ const handleKeyDown = (event: KeyboardEvent) => {
   }
 }
 
-const handleSuggestionSelect = (suggestion: any) => {
+const handleSuggestionSelect = (suggestion: {
+  id: string
+  title: string
+  description: string
+  url: string
+}) => {
   emit('update:modelValue', suggestion.title)
   emit('search', suggestion.title)
   addToSearchHistory(suggestion.title)

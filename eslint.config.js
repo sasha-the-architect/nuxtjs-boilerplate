@@ -5,7 +5,6 @@ import globals from 'globals'
 import vueParser from 'vue-eslint-parser'
 import tsParser from '@typescript-eslint/parser'
 import tseslint from '@typescript-eslint/eslint-plugin'
-import configPrettier from 'eslint-config-prettier'
 import * as tsParserCore from '@typescript-eslint/parser'
 
 // Get the vue recommended config

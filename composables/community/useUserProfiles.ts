@@ -5,8 +5,6 @@
 import { ref, computed } from 'vue'
 import type {
   UserProfile,
-  UserContributions,
-  UserPrivacy,
   CreateUserData,
   UpdateUserData,
 } from '~/types/community'

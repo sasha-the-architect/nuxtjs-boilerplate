@@ -1,9 +1,9 @@
 import { defineNuxtPlugin, useState } from '#app'
-import ToastNotification, {
-  type ToastType,
-} from '~/components/ToastNotification.vue'
 
 export default defineNuxtPlugin(nuxtApp => {
+  // Toast type definition
+  type ToastType = 'success' | 'error' | 'info' | 'warning'
+
   // Create a global toast state
   const toastState = useState('toast', () => ({
     toasts: [] as Array<{

@@ -5,16 +5,13 @@
 import { ref, computed } from 'vue'
 import type {
   Flag,
-  FlagData,
   UserProfile,
   RemoveCommentByModeratorCallback,
-  ModerationActionCallback,
 } from '~/types/community'
 
 export const useModeration = (
   initialFlags: Flag[] = [],
-  removeCommentByModerator?: RemoveCommentByModeratorCallback,
-  moderateContentCallback?: ModerationActionCallback
+  removeCommentByModerator?: RemoveCommentByModeratorCallback
 ) => {
   // Reactive state
   const flags = ref<Flag[]>([...initialFlags])

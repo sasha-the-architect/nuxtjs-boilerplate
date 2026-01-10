@@ -346,9 +346,13 @@ const fetchSearchAnalytics = async () => {
     }
 
     searchAnalytics.value = data
-  } catch (err: any) {
+  } catch (err: unknown) {
     logError('Error fetching search analytics:', err, 'SearchAnalytics')
-    error.value = err.message || 'Failed to load search analytics data'
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : 'Failed to load search analytics data'
+    error.value = errorMessage
   } finally {
     loading.value = false
   }

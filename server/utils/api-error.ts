@@ -1,5 +1,3 @@
-export {}
-
 // Error codes and categories are exported for external use
 /* eslint-disable no-unused-vars */
 export enum ErrorCode {

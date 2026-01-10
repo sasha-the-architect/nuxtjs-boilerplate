@@ -67,6 +67,21 @@ interface Props {
   currentStatus?: string
 }
 
+interface UpdateStatusResponse {
+  success: boolean
+  resource?: {
+    id: string
+    status: string
+    reason?: string
+    notes?: string
+  }
+}
+
+interface UpdateStatusError {
+  success: false
+  error: string
+}
+
 const props = withDefaults(defineProps<Props>(), {
   currentStatus: 'active',
 })
@@ -84,7 +99,7 @@ const updateStatus = async () => {
   lastUpdate.value = null
 
   try {
-    const response: any = await $fetch(
+    const response = await $fetch<UpdateStatusResponse | UpdateStatusError>(
       `/api/resources/${props.resourceId}/status`,
       {
         method: 'PUT',
@@ -98,13 +113,16 @@ const updateStatus = async () => {
 
     if (response.success) {
       lastUpdate.value = { success: true }
-      // Optionally emit an event to notify parent component
-      emit('statusUpdated', response.resource)
+      if (response.resource) {
+        emit('statusUpdated', response.resource)
+      }
     } else {
-      lastUpdate.value = { success: false, error: 'Failed to update status' }
+      lastUpdate.value = {
+        success: false,
+        error: response.error || 'Failed to update status',
+      }
     }
-  } catch (error: any) {
-    // Error updating resource status
+  } catch (error: { message?: string }) {
     lastUpdate.value = {
       success: false,
       error: error.message || 'Unknown error',
@@ -115,7 +133,14 @@ const updateStatus = async () => {
 }
 
 const emit = defineEmits<{
-  statusUpdated: [resource: any]
+  statusUpdated: [
+    resource: {
+      id: string
+      status: string
+      reason?: string
+      notes?: string
+    },
+  ]
 }>()
 </script>
 

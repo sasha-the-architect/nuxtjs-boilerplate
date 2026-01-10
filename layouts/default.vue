@@ -252,7 +252,6 @@ import { useRoute, navigateTo } from '#app'
 import { useResources } from '~/composables/useResources'
 import SearchBar from '~/components/SearchBar.vue'
 import PWAInstallPrompt from '~/components/PWAInstallPrompt.vue'
-import OfflineIndicator from '~/components/OfflineIndicator.vue'
 
 const mobileMenuOpen = ref(false)
 const mobileMenuButton = ref<HTMLElement | null>(null)

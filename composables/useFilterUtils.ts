@@ -118,6 +118,17 @@ const filterByAllCriteriaWithDateRange = (
   )
 }
 
+const toggleArrayItem = (currentArray: string[], item: string): string[] => {
+  const newArray = [...currentArray]
+  const index = newArray.indexOf(item)
+  if (index > -1) {
+    newArray.splice(index, 1)
+  } else {
+    newArray.push(item)
+  }
+  return newArray
+}
+
 export const useFilterUtils = () => ({
   filterByAllCriteria,
   filterByAllCriteriaWithDateRange,
@@ -130,4 +141,5 @@ export const useFilterUtils = () => ({
   matchesTag,
   matchesBenefit,
   matchesDateRange,
+  toggleArrayItem,
 })

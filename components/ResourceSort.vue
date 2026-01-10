@@ -32,11 +32,9 @@ type EmitsType = {
   'update-sort-option': (option: string) => void
 }
 
-interface Emits extends EmitsType {}
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 defineProps<Props>()
-const emit = defineEmits<Emits>()
+const emit = defineEmits<EmitsType>()
 
 const handleChange = (event: Event) => {
   const target = event.target as HTMLSelectElement

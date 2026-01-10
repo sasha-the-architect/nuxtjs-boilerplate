@@ -132,15 +132,16 @@ export const useSubmitPage = () => {
         }, 5000)
       } else {
         if (response.errors && Array.isArray(response.errors)) {
-          response.errors.forEach((err: any) => {
+          response.errors.forEach((err: { field: string; message: string }) => {
             errors.value[err.field] = err.message
           })
         }
         submitError.value =
           response.message || 'An error occurred while submitting resource'
       }
-    } catch (error: any) {
-      submitError.value = error.data?.message || 'An unexpected error occurred'
+    } catch (error: { data?: { message?: string }; message?: string }) {
+      submitError.value =
+        error.data?.message || error.message || 'An unexpected error occurred'
       logError(
         `Failed to submit resource: ${submitError.value}`,
         error,

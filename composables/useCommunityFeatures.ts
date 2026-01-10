@@ -64,15 +64,7 @@ export const useCommunityFeatures = (
     // Callback to remove comments by moderator
     (commentId: string) => {
       return commentsComposable.removeCommentByModerator(commentId)
-    },
-    // Callback for moderation actions
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    (flagId: string, action: string, moderatorNote: string) => {
-      // This callback is handled inline in the orchestrator methods
-      // (flagContent, moderateContent) which use the moderation composable
-      return true
     }
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   )
 
   // Set current user

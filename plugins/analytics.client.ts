@@ -15,21 +15,23 @@ export default defineNuxtPlugin(nuxtApp => {
       }
 
       // Track route changes
-      nuxtApp.$router?.afterEach((to, from) => {
-        // Only track if route actually changed
-        if (to.path !== from.path) {
-          setTimeout(() => {
-            trackPageView(to.path, document.title)
-          }, 100)
+      nuxtApp.$router?.afterEach(
+        (to: { path: string }, from: { path: string }) => {
+          // Only track if route actually changed
+          if (to.path !== from.path) {
+            setTimeout(() => {
+              trackPageView(to.path, document.title)
+            }, 100)
+          }
         }
-      })
+      )
     })
   }
 
   return {
     provide: {
       analytics: {
-        trackEvent: (type: string, properties?: Record<string, any>) => {
+        trackEvent: (type: string, properties?: Record<string, unknown>) => {
           if (process.client) {
             return import('~/utils/analytics').then(({ trackEvent }) =>
               trackEvent({ type, properties })

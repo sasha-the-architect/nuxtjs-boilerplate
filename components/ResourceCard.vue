@@ -323,7 +323,7 @@ const addResourceToComparison = () => {
   }
 
   // Add the resource to comparison
-  const added = addResource(resource as any)
+  const added = addResource(resource)
 
   if (added) {
     // Navigate to comparison page
@@ -336,7 +336,7 @@ const resourceSchema = computed(() => {
   // Only create schema if there's no error
   if (hasError.value) return null
 
-  const schema: Record<string, any> = {
+  const schema: Record<string, string | boolean | null> = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication', // Using SoftwareApplication as most resources are web-based tools
     name: props.title,
