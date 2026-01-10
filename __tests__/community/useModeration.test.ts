@@ -381,7 +381,7 @@ describe('useModeration', () => {
         'abuse',
         mockRegularUser
       )
-      const flag3 = manager.flagContent(
+      const _flag3 = manager.flagContent(
         'comment',
         'comment-3',
         'spam',
