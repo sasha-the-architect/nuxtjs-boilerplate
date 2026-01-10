@@ -28,7 +28,11 @@ export default defineEventHandler(async event => {
       : new Date()
 
     // Get resource analytics from database
-    const analyticsData = getResourceAnalytics(resourceId, startDate, endDate)
+    const analyticsData = await getResourceAnalytics(
+      resourceId,
+      startDate,
+      endDate
+    )
 
     setResponseStatus(event, 200)
     return {

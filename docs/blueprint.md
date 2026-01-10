@@ -963,24 +963,27 @@ tests/
 
 ## 🔄 Decision Log
 
-| Date       | Category     | Decision                                                        | Impact                                                                                                                                                                                                  |
-| ---------- | ------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2025-01-07 | Code Quality | Removed duplicate Google Fonts caching in nuxt.config.ts        | Eliminated code duplication, reduced config size                                                                                                                                                        |
-| 2025-01-07 | Build System | Created separate nuxt.config.analyze.ts for bundle analysis     | Removed dynamic import anti-pattern, improved build predictability                                                                                                                                      |
-| 2025-01-07 | Security     | Removed static CSP meta tag from nuxt.config.ts                 | Centralized CSP in server plugin with nonce support, improved security                                                                                                                                  |
-| 2025-01-07 | Architecture | Verified no circular dependencies exist in composables          | Confirmed clean dependency hierarchy                                                                                                                                                                    |
-| 2025-01-07 | Code Quality | Extracted shared DOMPurify configuration from utils/sanitize.ts | Eliminated 158 lines of duplicate configuration, improved maintainability                                                                                                                               |
-| 2025-01-07 | Architecture | Created useSearchPage orchestrator composable for search page   | Implemented Layer Separation pattern, moved business logic from page to composable                                                                                                                      |
-| 2025-01-07 | Architecture | Refactored pages/search.vue to use orchestrator pattern         | Eliminated 200+ lines of inline filtering logic, improved maintainability                                                                                                                               |
-| 2025-01-07 | Architecture | Search module refactoring to eliminate code duplication         | Eliminated 315 lines of duplicate code, created 4 single-responsibility utilities                                                                                                                       |
-| 2025-01-07 | Architecture | Refactored useRecommendationEngine to Strategy Pattern          | Eliminated God Class anti-pattern (437→~80 lines orchestrator), 5 single-responsibility strategies, improved testability                                                                                |
-| 2025-01-07 | Architecture | Layer Separation in analytics and home pages                    | Extracted business logic from page components to dedicated composables, 31% code reduction, improved maintainability                                                                                    |
-| 2025-01-07 | Type Safety  | Fixed `any` types in useUrlSync and useCommunityFeatures        | Replaced all `any` types with proper TypeScript interfaces and types, enhanced type checking and IDE support                                                                                            |
-| 2025-01-09 | Architecture | Layer Separation in submit page                                 | Extracted business logic from page to dedicated composable (useSubmitPage), 137 lines removed from page component (449→312, 31% reduction)                                                              |
-| 2025-01-09 | Architecture | Layer Separation in API keys page                               | Extracted business logic from page to dedicated composable (useApiKeysPage), 60 lines removed from page component (188→128, 32% reduction)                                                              |
-| 2025-01-09 | Build System | Added Nuxt 3 globals to TypeScript ESLint config                | Fixed 'no-undef' errors for Nuxt globals ($fetch, ref, computed, etc.) in TypeScript files                                                                                                              |
-| 2026-01-09 | Architecture | Refactored useCommunityFeatures to modular composables          | Eliminated God Class anti-pattern (432→~170 lines orchestrator), created 4 single-responsibility composables, replaced O(n) linear searches with O(1) Map-based indexing, full Vue 3 reactivity support |
-| 2026-01-09 | Architecture | Layer Separation in AI keys page                                | Extracted AI-specific filtering logic from page template to dedicated composable (useAIResources), eliminated business logic in presentation layer                                                      |
+| Date       | Category          | Decision                                                        | Impact                                                                                                                                                                                                  |
+| ---------- | ----------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2025-01-07 | Code Quality      | Removed duplicate Google Fonts caching in nuxt.config.ts        | Eliminated code duplication, reduced config size                                                                                                                                                        |
+| 2025-01-07 | Build System      | Created separate nuxt.config.analyze.ts for bundle analysis     | Removed dynamic import anti-pattern, improved build predictability                                                                                                                                      |
+| 2025-01-07 | Security          | Removed static CSP meta tag from nuxt.config.ts                 | Centralized CSP in server plugin with nonce support, improved security                                                                                                                                  |
+| 2025-01-07 | Architecture      | Verified no circular dependencies exist in composables          | Confirmed clean dependency hierarchy                                                                                                                                                                    |
+| 2025-01-07 | Code Quality      | Extracted shared DOMPurify configuration from utils/sanitize.ts | Eliminated 158 lines of duplicate configuration, improved maintainability                                                                                                                               |
+| 2025-01-07 | Architecture      | Created useSearchPage orchestrator composable for search page   | Implemented Layer Separation pattern, moved business logic from page to composable                                                                                                                      |
+| 2025-01-07 | Architecture      | Refactored pages/search.vue to use orchestrator pattern         | Eliminated 200+ lines of inline filtering logic, improved maintainability                                                                                                                               |
+| 2025-01-07 | Architecture      | Search module refactoring to eliminate code duplication         | Eliminated 315 lines of duplicate code, created 4 single-responsibility utilities                                                                                                                       |
+| 2025-01-07 | Architecture      | Refactored useRecommendationEngine to Strategy Pattern          | Eliminated God Class anti-pattern (437→~80 lines orchestrator), 5 single-responsibility strategies, improved testability                                                                                |
+| 2025-01-07 | Architecture      | Layer Separation in analytics and home pages                    | Extracted business logic from page components to dedicated composables, 31% code reduction, improved maintainability                                                                                    |
+| 2025-01-07 | Type Safety       | Fixed `any` types in useUrlSync and useCommunityFeatures        | Replaced all `any` types with proper TypeScript interfaces and types, enhanced type checking and IDE support                                                                                            |
+| 2025-01-09 | Architecture      | Layer Separation in submit page                                 | Extracted business logic from page to dedicated composable (useSubmitPage), 137 lines removed from page component (449→312, 31% reduction)                                                              |
+| 2025-01-09 | Architecture      | Layer Separation in API keys page                               | Extracted business logic from page to dedicated composable (useApiKeysPage), 60 lines removed from page component (188→128, 32% reduction)                                                              |
+| 2025-01-09 | Build System      | Added Nuxt 3 globals to TypeScript ESLint config                | Fixed 'no-undef' errors for Nuxt globals ($fetch, ref, computed, etc.) in TypeScript files                                                                                                              |
+| 2026-01-09 | Architecture      | Refactored useCommunityFeatures to modular composables          | Eliminated God Class anti-pattern (432→~170 lines orchestrator), created 4 single-responsibility composables, replaced O(n) linear searches with O(1) Map-based indexing, full Vue 3 reactivity support |
+| 2026-01-09 | Architecture      | Layer Separation in AI keys page                                | Extracted AI-specific filtering logic from page template to dedicated composable (useAIResources), eliminated business logic in presentation layer                                                      |
+| 2026-01-10 | Data Architecture | Added down.sql files to all migrations                          | Ensured all migrations are reversible (migration safety), enables safe rollback in case of migration failures                                                                                           |
+| 2026-01-10 | Data Architecture | Added composite index (category, timestamp)                     | Optimized analytics queries filtering by category and date, improves getAggregatedAnalytics performance                                                                                                 |
+| 2026-01-10 | Data Architecture | Extracted event mapping helper function                         | Eliminated code duplication in analytics-db.ts, single source of truth for database-to-application event transformation                                                                                 |
 
 ## 🎓 Design Principles Applied
 
@@ -1090,6 +1093,7 @@ model AnalyticsEvent {
 | (timestamp, resourceId) | Resource events by date       | Faster resource analytics         |
 | (resourceId, type)      | Resource-specific event types | Optimized resource view analytics |
 | (ip, timestamp)         | Rate limiting by IP and time  | Optimized rate limiting queries   |
+| (category, timestamp)   | Events by category and date   | Optimized category analytics      |
 
 ### Query Optimization
 
@@ -1144,7 +1148,7 @@ const [totalEvents, eventsByType, resourceViews, dailyTrends] = await Promise.al
 
 **Principles**:
 
-- All migrations are reversible (down.sql generated automatically)
+- All migrations are reversible (down.sql manually added for safety)
 - Migrations are version-controlled
 - Database schema evolves incrementally
 - Zero-downtime deployments (SQLite allows hot schema changes)
@@ -1196,6 +1200,42 @@ export async function insertAnalyticsEvent(event: AnalyticsEvent): Promise<boole
   }
 }
 ```
+
+#### Event Mapping Helper Function
+
+Database event objects are transformed to application-level AnalyticsEvent type using a helper function:
+
+```typescript
+function mapDbEventToAnalyticsEvent(event: {
+  type: string
+  resourceId: string | null
+  category: string | null
+  url: string | null
+  userAgent: string | null
+  ip: string | null
+  timestamp: number
+  properties: string | null
+}): AnalyticsEvent {
+  return {
+    type: event.type,
+    resourceId: event.resourceId || undefined,
+    category: event.category || undefined,
+    url: event.url || undefined,
+    userAgent: event.userAgent || undefined,
+    ip: event.ip || undefined,
+    timestamp: event.timestamp,
+    properties: event.properties ? JSON.parse(event.properties) : undefined,
+  }
+}
+```
+
+**Benefits**:
+
+- Single source of truth for event transformation logic
+- Eliminates code duplication across multiple functions
+- Consistent null-to-undefined conversion
+- Consistent JSON parsing for properties field
+- Easier maintenance and testing
 
 ### Data Integrity
 

@@ -34,6 +34,28 @@ export async function insertAnalyticsEvent(
   }
 }
 
+function mapDbEventToAnalyticsEvent(event: {
+  type: string
+  resourceId: string | null
+  category: string | null
+  url: string | null
+  userAgent: string | null
+  ip: string | null
+  timestamp: number
+  properties: string | null
+}): AnalyticsEvent {
+  return {
+    type: event.type,
+    resourceId: event.resourceId || undefined,
+    category: event.category || undefined,
+    url: event.url || undefined,
+    userAgent: event.userAgent || undefined,
+    ip: event.ip || undefined,
+    timestamp: event.timestamp,
+    properties: event.properties ? JSON.parse(event.properties) : undefined,
+  }
+}
+
 export async function getAnalyticsEventsByDateRange(
   startDate: Date,
   endDate: Date,
@@ -53,27 +75,7 @@ export async function getAnalyticsEventsByDateRange(
       take: limit,
     })
 
-    return events.map(
-      (event: {
-        type: string
-        resourceId: string | null
-        category: string | null
-        url: string | null
-        userAgent: string | null
-        ip: string | null
-        timestamp: number
-        properties: string | null
-      }) => ({
-        type: event.type,
-        resourceId: event.resourceId || undefined,
-        category: event.category || undefined,
-        url: event.url || undefined,
-        userAgent: event.userAgent || undefined,
-        ip: event.ip || undefined,
-        timestamp: event.timestamp,
-        properties: event.properties ? JSON.parse(event.properties) : undefined,
-      })
-    )
+    return events.map(mapDbEventToAnalyticsEvent)
   } catch (error) {
     console.error('Error getting analytics events by date range:', error)
     return []
@@ -106,27 +108,7 @@ export async function getAnalyticsEventsForResource(
       },
     })
 
-    return events.map(
-      (event: {
-        type: string
-        resourceId: string | null
-        category: string | null
-        url: string | null
-        userAgent: string | null
-        ip: string | null
-        timestamp: number
-        properties: string | null
-      }) => ({
-        type: event.type,
-        resourceId: event.resourceId || undefined,
-        category: event.category || undefined,
-        url: event.url || undefined,
-        userAgent: event.userAgent || undefined,
-        ip: event.ip || undefined,
-        timestamp: event.timestamp,
-        properties: event.properties ? JSON.parse(event.properties) : undefined,
-      })
-    )
+    return events.map(mapDbEventToAnalyticsEvent)
   } catch (error) {
     console.error('Error getting analytics events for resource:', error)
     return []
