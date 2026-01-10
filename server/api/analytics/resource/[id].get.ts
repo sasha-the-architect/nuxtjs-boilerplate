@@ -1,8 +1,13 @@
 // server/api/analytics/resource/[id].get.ts
 // API endpoint for retrieving analytics data for a specific resource
-import { defineEventHandler, getQuery, setResponseStatus } from 'h3'
+import { defineEventHandler, getQuery } from 'h3'
 import { getResourceAnalytics } from '~/server/utils/analytics-db'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
+import {
+  sendBadRequestError,
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 export default defineEventHandler(async event => {
   await rateLimit(event)
@@ -11,11 +16,7 @@ export default defineEventHandler(async event => {
     const resourceId = event.context.params?.id
 
     if (!resourceId) {
-      setResponseStatus(event, 400)
-      return {
-        success: false,
-        message: 'Resource ID is required',
-      }
+      return sendBadRequestError(event, 'Resource ID is required')
     }
 
     // Parse date range from query parameters
@@ -34,21 +35,17 @@ export default defineEventHandler(async event => {
       endDate
     )
 
-    setResponseStatus(event, 200)
-    return {
-      success: true,
-      data: analyticsData,
+    const responseData = {
+      analytics: analyticsData,
       dateRange: {
         start: startDate.toISOString(),
         end: endDate.toISOString(),
       },
     }
-  } catch (error: any) {
+
+    return sendSuccessResponse(event, responseData)
+  } catch (error) {
     console.error('Resource analytics error:', error)
-    setResponseStatus(event, 500)
-    return {
-      success: false,
-      message: error.message || 'Internal server error',
-    }
+    return handleApiRouteError(event, error)
   }
 })

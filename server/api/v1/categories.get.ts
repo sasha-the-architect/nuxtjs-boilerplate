@@ -2,6 +2,10 @@ import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
 import { cacheManager } from '~/server/utils/enhanced-cache'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
+import {
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 /**
  * GET /api/v1/categories
@@ -39,20 +43,15 @@ export default defineEventHandler(async event => {
       })
     )
 
-    // Prepare response
-    const response = {
-      success: true,
-      data: categories,
-    }
-
-    // Cache the result for 1 hour (3600 seconds) since categories don't change often
+    // Cache result for 1 hour (3600 seconds) since categories don't change often
+    const response = { success: true, data: categories }
     await cacheManager.set(cacheKey, response, 3600)
 
     // Set cache miss header
     event.node.res?.setHeader('X-Cache', 'MISS')
 
-    return response
-  } catch (error: any) {
+    return sendSuccessResponse(event, categories)
+  } catch (error) {
     // Log error using our error logging service
     logError(
       `Error fetching categories: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -60,10 +59,6 @@ export default defineEventHandler(async event => {
       'api-v1-categories'
     )
 
-    return {
-      success: false,
-      message: 'An error occurred while fetching categories',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-    }
+    return handleApiRouteError(event, error)
   }
 })

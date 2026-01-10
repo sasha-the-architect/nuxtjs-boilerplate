@@ -82,18 +82,23 @@ export default defineEventHandler(async event => {
       resources: requestedResources,
     }
 
+    const responseData = {
+      comparison: comparisonData,
+      resources: requestedResources,
+    }
+
     // Cache result for 5 minutes
-    await cacheSetWithTags(cacheKey, response, 300, [
-      'comparisons',
-      'api-v1',
-      'resource-comparisons',
-      ...resourceIds,
-    ])
+    await cacheSetWithTags(
+      cacheKey,
+      { success: true, data: responseData },
+      300,
+      ['comparisons', 'api-v1', 'resource-comparisons', ...resourceIds]
+    )
 
     event.node.res?.setHeader('X-Cache', 'MISS')
     event.node.res?.setHeader('X-Cache-Key', cacheKey)
 
-    return response
+    return sendSuccessResponse(event, responseData)
   } catch (error) {
     // Log error using our error logging service
     logError(

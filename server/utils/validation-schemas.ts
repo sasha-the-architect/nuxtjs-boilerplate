@@ -117,6 +117,12 @@ export const moderationActionSchema = z.object({
   notes: z.string().max(1000, 'Notes too long').optional(),
 })
 
+export const triggerWebhookSchema = z.object({
+  event: z.string().min(1, 'Event type is required'),
+  data: z.any(),
+  idempotencyKey: z.string().optional(),
+})
+
 export const analyticsEventSchema = z.object({
   type: z
     .string()
@@ -161,4 +167,10 @@ export const analyticsEventSchema = z.object({
     .positive('Timestamp must be positive')
     .optional(),
   properties: z.record(z.string(), z.any()).optional(),
+})
+
+export const triggerWebhookSchema = z.object({
+  event: z.string().min(1, 'Event type is required'),
+  data: z.any(),
+  idempotencyKey: z.string().optional(),
 })

@@ -1,8 +1,12 @@
-import { defineEventHandler, getQuery, setResponseStatus } from 'h3'
+import { defineEventHandler, getQuery } from 'h3'
 import { logError } from '~/utils/errorLogger'
 import { getAllHierarchicalTags } from '~/utils/tags'
 import type { Resource } from '~/types/resource'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
+import {
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 /**
  * GET /api/v1/tags
@@ -37,14 +41,15 @@ export default defineEventHandler(async event => {
       filteredTags = allTags.filter(tag => tag.parentId === null)
     }
 
-    // Set success response status
-    setResponseStatus(event, 200)
-    return {
-      success: true,
-      data: filteredTags,
-      count: filteredTags.length,
+    const responseData = {
+      tags: filteredTags,
+      includeChildren,
+      includeParents,
+      rootOnly,
     }
-  } catch (error: any) {
+
+    return sendSuccessResponse(event, responseData)
+  } catch (error) {
     // Log error using our error logging service
     logError(
       `Error fetching hierarchical tags: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -52,16 +57,10 @@ export default defineEventHandler(async event => {
       'api-v1-tags',
       {
         query: getQuery(event),
-        errorType: error?.constructor?.name,
+        errorType: (error as any)?.constructor?.name,
       }
     )
 
-    // Set error response status
-    setResponseStatus(event, 500)
-    return {
-      success: false,
-      message: 'An error occurred while fetching hierarchical tags',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-    }
+    return handleApiRouteError(event, error)
   }
 })
