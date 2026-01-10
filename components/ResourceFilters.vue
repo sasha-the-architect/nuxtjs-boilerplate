@@ -3,7 +3,8 @@
     <div class="flex justify-between items-center mb-4">
       <h3 class="text-lg font-medium text-gray-900">Filters</h3>
       <button
-        class="text-sm text-gray-600 hover:text-gray-900"
+        class="text-sm text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
+        aria-label="Reset all filters"
         @click="onResetFilters"
       >
         Reset all
@@ -209,10 +210,15 @@
     <!-- Date Added Filter -->
     <div class="mb-6">
       <h4 class="text-sm font-medium text-gray-900 mb-3">Date Added</h4>
-      <div class="space-y-2">
+      <div
+        role="radiogroup"
+        aria-label="Filter by date added"
+        class="space-y-2"
+      >
         <label class="flex items-center">
           <input
             type="radio"
+            name="date-filter"
             value="anytime"
             :checked="selectedDateRange === 'anytime'"
             class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
@@ -223,6 +229,7 @@
         <label class="flex items-center">
           <input
             type="radio"
+            name="date-filter"
             value="lastWeek"
             :checked="selectedDateRange === 'lastWeek'"
             class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
@@ -233,6 +240,7 @@
         <label class="flex items-center">
           <input
             type="radio"
+            name="date-filter"
             value="lastMonth"
             :checked="selectedDateRange === 'lastMonth'"
             class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
@@ -243,6 +251,7 @@
         <label class="flex items-center">
           <input
             type="radio"
+            name="date-filter"
             value="lastYear"
             :checked="selectedDateRange === 'lastYear'"
             class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"

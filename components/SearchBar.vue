@@ -29,6 +29,12 @@
         placeholder="Search resources by name, description, tags..."
         aria-label="Search resources"
         aria-describedby="search-results-info"
+        :aria-expanded="
+          showSuggestions &&
+          (suggestions.length > 0 || searchHistory.length > 0)
+        "
+        aria-controls="search-suggestions-dropdown"
+        aria-autocomplete="list"
         @input="handleInput"
         @keydown="handleKeyDown"
         @focus="handleFocus"
@@ -69,6 +75,7 @@
           showSuggestions &&
           (suggestions.length > 0 || searchHistory.length > 0)
         "
+        id="search-suggestions-dropdown"
         :suggestions="suggestions"
         :search-history="searchHistory"
         :visible="showSuggestions"

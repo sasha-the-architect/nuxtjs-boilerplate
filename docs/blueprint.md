@@ -1718,14 +1718,19 @@ const announceErrors = () => {
 
 ### Form Accessibility Decision Log
 
-| Date       | Decision                                     | Rationale                                                   |
-| ---------- | -------------------------------------------- | ----------------------------------------------------------- |
-| 2025-01-08 | Implemented comprehensive ARIA support       | Ensure all forms are WCAG 2.1 AA compliant                  |
-| 2025-01-08 | Added live regions for status messages       | Screen readers announce changes without explicit navigation |
-| 2025-01-08 | Implemented focus trap for modals            | Keyboard users stay contained within modal boundaries       |
-| 2025-01-08 | Added validation error announcements         | Screen readers announce all validation errors immediately   |
-| 2025-01-08 | Used semantic form elements                  | Proper HTML5 structure improves accessibility               |
-| 2025-01-08 | Standardized form patterns across components | Consistent UX for all forms in the application              |
+| Date       | Decision                                     | Rationale                                                                      |
+| ---------- | -------------------------------------------- | ------------------------------------------------------------------------------ |
+| 2025-01-08 | Implemented comprehensive ARIA support       | Ensure all forms are WCAG 2.1 AA compliant                                     |
+| 2025-01-08 | Added live regions for status messages       | Screen readers announce changes without explicit navigation                    |
+| 2025-01-08 | Implemented focus trap for modals            | Keyboard users stay contained within modal boundaries                          |
+| 2025-01-08 | Added validation error announcements         | Screen readers announce all validation errors immediately                      |
+| 2025-01-08 | Used semantic form elements                  | Proper HTML5 structure improves accessibility                                  |
+| 2025-01-08 | Standardized form patterns across components | Consistent UX for all forms in the application                                 |
+| 2026-01-10 | Enhanced search input ARIA attributes        | Added aria-expanded, aria-controls, aria-autocomplete for screen readers       |
+| 2026-01-10 | Added role=group to resource actions         | Better semantic structure for action button groups in ResourceCard             |
+| 2026-01-10 | Implemented radiogroup for date filters      | Improved keyboard navigation and screen reader announcements for radio buttons |
+| 2026-01-10 | Enhanced ARIA labels on buttons              | Descriptive labels for "Reset all filters" and "Clear all search history"      |
+| 2026-01-10 | Implemented focus trap for mobile menu       | Keyboard navigation contained within mobile menu with ESC key support          |
 
 ---
 

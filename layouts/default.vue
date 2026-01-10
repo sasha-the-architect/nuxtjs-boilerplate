@@ -99,9 +99,14 @@
               class="inline-flex items-center justify-center p-2 rounded-md text-gray-800 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-800"
               aria-controls="mobile-menu"
               :aria-expanded="mobileMenuOpen"
+              :aria-label="
+                mobileMenuOpen ? 'Close main menu' : 'Open main menu'
+              "
               @click="toggleMobileMenu"
             >
-              <span class="sr-only">Open main menu</span>
+              <span class="sr-only">{{
+                mobileMenuOpen ? 'Close main menu' : 'Open main menu'
+              }}</span>
               <svg
                 :class="['h-6 w-6', { hidden: mobileMenuOpen }]"
                 xmlns="http://www.w3.org/2000/svg"
@@ -138,7 +143,12 @@
       </div>
 
       <!-- Mobile menu -->
-      <div v-show="mobileMenuOpen" id="mobile-menu" class="lg:hidden">
+      <div
+        ref="mobileMenuRef"
+        v-show="mobileMenuOpen"
+        id="mobile-menu"
+        class="lg:hidden"
+      >
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <NuxtLink
             to="/"
@@ -237,7 +247,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, navigateTo } from '#app'
 import { useResources } from '~/composables/useResources'
 import SearchBar from '~/components/SearchBar.vue'
@@ -246,6 +256,9 @@ import OfflineIndicator from '~/components/OfflineIndicator.vue'
 
 const mobileMenuOpen = ref(false)
 const mobileMenuButton = ref<HTMLElement | null>(null)
+const mobileMenuRef = ref<HTMLElement | null>(null)
+const firstFocusableElement = ref<HTMLElement | null>(null)
+const lastFocusableElement = ref<HTMLElement | null>(null)
 
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value
@@ -277,5 +290,58 @@ const handleSearch = (query: string) => {
   }
 }
 
-closeMobileMenu()
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (!mobileMenuOpen.value) return
+
+  if (event.key === 'Escape') {
+    closeMobileMenu()
+    mobileMenuButton.value?.focus()
+  } else if (event.key === 'Tab') {
+    if (event.shiftKey) {
+      if (document.activeElement === firstFocusableElement.value) {
+        event.preventDefault()
+        lastFocusableElement.value?.focus()
+      }
+    } else {
+      if (document.activeElement === lastFocusableElement.value) {
+        event.preventDefault()
+        firstFocusableElement.value?.focus()
+      }
+    }
+  }
+}
+
+const setupFocusTrap = () => {
+  nextTick(() => {
+    if (!mobileMenuRef.value) return
+
+    const focusableElements = mobileMenuRef.value.querySelectorAll(
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled])'
+    ) as NodeListOf<HTMLElement>
+
+    if (focusableElements.length > 0) {
+      firstFocusableElement.value = focusableElements[0]
+      lastFocusableElement.value =
+        focusableElements[focusableElements.length - 1]
+      firstFocusableElement.value?.focus()
+    }
+  })
+}
+
+watch(mobileMenuOpen, isOpen => {
+  if (isOpen) {
+    setupFocusTrap()
+    document.addEventListener('keydown', handleKeyDown)
+  } else {
+    document.removeEventListener('keydown', handleKeyDown)
+  }
+})
+
+onMounted(() => {
+  closeMobileMenu()
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown)
+})
 </script>

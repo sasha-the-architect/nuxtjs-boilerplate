@@ -114,7 +114,11 @@
             {{ buttonLabel }}
             <span v-if="newTab" class="ml-1 text-xs">(new tab)</span>
           </a>
-          <div class="flex items-center space-x-2">
+          <div
+            class="flex items-center space-x-2"
+            role="group"
+            aria-label="Resource actions"
+          >
             <!-- Bookmark button -->
             <ClientOnly>
               <LazyBookmarkButton

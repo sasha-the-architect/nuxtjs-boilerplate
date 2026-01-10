@@ -1,6 +1,7 @@
 <template>
   <div
     v-if="suggestions.length > 0 || searchHistory.length > 0"
+    :id="id"
     class="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md py-1 max-h-96 overflow-auto border border-gray-200"
     role="listbox"
     aria-label="Search suggestions"
@@ -100,7 +101,8 @@
     <!-- Clear History Button -->
     <div v-if="searchHistory.length > 0" class="border-t border-gray-200 mt-1">
       <button
-        class="w-full px-4 py-2 text-left text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center"
+        class="w-full px-4 py-2 text-left text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center focus:outline-none focus:ring-2 focus:ring-gray-800"
+        aria-label="Clear all search history"
         @click="clearHistory"
       >
         <svg
@@ -137,6 +139,7 @@ interface Props {
   suggestions?: SuggestionItem[]
   searchHistory?: string[]
   visible: boolean
+  id?: string
 }
 
 interface Emits {
@@ -150,6 +153,7 @@ const props = // eslint-disable-next-line @typescript-eslint/no-unused-vars
   withDefaults(defineProps<Props>(), {
     suggestions: () => [],
     searchHistory: () => [],
+    id: undefined,
   })
 const emit = defineEmits<Emits>()
 
