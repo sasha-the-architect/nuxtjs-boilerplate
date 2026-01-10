@@ -252,7 +252,7 @@ describe('ResourceFilters', () => {
     await secondLabel.trigger('keydown', { key: ' ' })
 
     expect(wrapper.emitted('toggle-pricing-model')).toBeTruthy()
-    expect(wrapper.emitted('toggle-pricing-model')![1]).toEqual(['Free'])
+    expect(wrapper.emitted('toggle-pricing-model')![0]).toEqual(['Free'])
   })
 
   it('has proper ARIA labels for accessibility', () => {

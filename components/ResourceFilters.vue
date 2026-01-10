@@ -23,6 +23,8 @@
           v-for="category in categories"
           :key="category"
           class="flex items-center justify-between cursor-pointer"
+          @keydown.enter="toggleCategory(category)"
+          @keydown.space.prevent="toggleCategory(category)"
         >
           <div class="flex items-center">
             <input
@@ -57,6 +59,8 @@
           v-for="pricingModel in pricingModels"
           :key="pricingModel"
           class="flex items-center justify-between cursor-pointer"
+          @keydown.enter="togglePricingModel(pricingModel)"
+          @keydown.space.prevent="togglePricingModel(pricingModel)"
         >
           <div class="flex items-center">
             <input
@@ -91,6 +95,8 @@
           v-for="difficulty in difficultyLevels"
           :key="difficulty"
           class="flex items-center justify-between cursor-pointer"
+          @keydown.enter="toggleDifficultyLevel(difficulty)"
+          @keydown.space.prevent="toggleDifficultyLevel(difficulty)"
         >
           <div class="flex items-center">
             <input
@@ -125,6 +131,8 @@
           v-for="technology in technologies"
           :key="technology"
           class="flex items-center justify-between cursor-pointer"
+          @keydown.enter="toggleTechnology(technology)"
+          @keydown.space.prevent="toggleTechnology(technology)"
         >
           <div class="flex items-center">
             <input
@@ -159,6 +167,8 @@
           v-for="tag in tags"
           :key="tag"
           class="flex items-center cursor-pointer"
+          @keydown.enter="toggleTag(tag)"
+          @keydown.space.prevent="toggleTag(tag)"
         >
           <input
             type="checkbox"
@@ -185,6 +195,8 @@
           v-for="benefit in allBenefits"
           :key="benefit"
           class="flex items-center justify-between cursor-pointer"
+          @keydown.enter="toggleBenefit(benefit)"
+          @keydown.space.prevent="toggleBenefit(benefit)"
         >
           <div class="flex items-center">
             <input
