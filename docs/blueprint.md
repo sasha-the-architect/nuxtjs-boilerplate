@@ -54,6 +54,99 @@ Each module is atomic, replaceable, and has a single responsibility:
 - Types are centralized in `types/` directory
 - Interfaces define clear contracts between modules
 
+## 🔌 API Client Architecture
+
+### Interface Definition Pattern
+
+**Location**: `types/api-client.ts`
+
+**Implementation**: `utils/api-client.ts`
+
+The application defines a clear contract for API client operations using the **Interface Definition Pattern**. This allows for:
+
+- **Testability**: Easy to mock API calls in tests
+- **Flexibility**: Can switch implementations without changing callers
+- **Type Safety**: Strongly typed request/response contracts
+- **Dependency Inversion**: Higher-level modules depend on abstraction, not implementation
+
+### API Client Interface
+
+```typescript
+export interface ApiClient {
+  // HTTP methods
+  get<T>(url: string, config?: ApiRequestConfig): Promise<ApiResponse<T>>
+  post<T>(
+    url: string,
+    body?: unknown,
+    config?: ApiRequestConfig
+  ): Promise<ApiResponse<T>>
+  put<T>(
+    url: string,
+    body?: unknown,
+    config?: ApiRequestConfig
+  ): Promise<ApiResponse<T>>
+  delete<T>(url: string, config?: ApiRequestConfig): Promise<ApiResponse<T>>
+  patch<T>(
+    url: string,
+    body?: unknown,
+    config?: ApiRequestConfig
+  ): Promise<ApiResponse<T>>
+
+  // Configuration
+  setDefaultHeaders(headers: Record<string, string>): void
+  setAuthToken(token: string | null): void
+  getAuthToken(): string | null
+}
+```
+
+### Fetch API Client Implementation
+
+**Location**: `utils/api-client.ts`
+
+The default implementation uses Nuxt's built-in `$fetch`:
+
+- Wraps all HTTP operations
+- Handles authentication headers automatically
+- Provides consistent error handling
+- Supports query parameters and request configuration
+
+### Usage Example
+
+```typescript
+import { createFetchApiClient } from '~/utils/api-client'
+import type { ApiClient } from '~/types/api-client'
+
+// Create API client
+const apiClient = createFetchApiClient(globalThis.fetch)
+
+// Use in application
+const response = await apiClient.get<Resource[]>('/api/v1/resources')
+if (response.success) {
+  console.log(response.data)
+}
+
+// Set auth token
+apiClient.setAuthToken('your-auth-token')
+
+// Make authenticated request
+const userResponse = await apiClient.get<User>('/api/v1/user')
+```
+
+### API Client Principles
+
+✅ **Interface Segregation**: Clean, focused interface for HTTP operations
+✅ **Dependency Inversion**: Modules depend on `ApiClient` abstraction, not concrete implementation
+✅ **Single Responsibility**: Only handles HTTP communication
+✅ **Open/Closed**: New implementations can be added without modifying existing code
+✅ **Testability**: Interface allows for easy mocking in unit tests
+
+### API Client Decision Log
+
+| Date       | Decision                   | Rationale                                                                                  |
+| ---------- | -------------------------- | ------------------------------------------------------------------------------------------ |
+| 2026-01-10 | Create ApiClient interface | Define contract for HTTP operations, improve testability, support multiple implementations |
+| 2026-01-10 | Implement FetchApiClient   | Default implementation using Nuxt's built-in $fetch for production use                     |
+
 ## 🔐 Security Architecture
 
 ### Layered Security Approach
