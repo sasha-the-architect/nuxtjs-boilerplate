@@ -192,6 +192,132 @@ export default defineEventHandler(async () => {
           security: [],
         },
       },
+      '/api/recommendations/index': {
+        get: {
+          summary: 'Get recommendations',
+          description: 'Get personalized or trending resource recommendations.',
+          operationId: 'getRecommendations',
+          tags: ['Resources'],
+          parameters: [
+            {
+              name: 'limit',
+              in: 'query',
+              description: 'Number of recommendations',
+              schema: { type: 'integer', default: 10, maximum: 50 },
+            },
+            {
+              name: 'strategy',
+              in: 'query',
+              description: 'Recommendation strategy',
+              schema: {
+                type: 'string',
+                enum: ['trending', 'popular', 'personalized', 'content-based'],
+                default: 'trending',
+              },
+            },
+            {
+              name: 'category',
+              in: 'query',
+              description: 'Filter by category',
+              schema: { type: 'string' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Recommendations',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          recommendations: {
+                            type: 'array',
+                            items: {
+                              $ref: '#/components/schemas/Resource',
+                            },
+                          },
+                          strategy: { type: 'string' },
+                          count: { type: 'integer' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/search/suggestions': {
+        get: {
+          summary: 'Get search suggestions',
+          description: 'Get search suggestions and popular searches.',
+          operationId: 'getSearchSuggestions',
+          tags: ['Search'],
+          parameters: [
+            {
+              name: 'q',
+              in: 'query',
+              description: 'Partial search query',
+              schema: { type: 'string' },
+            },
+            {
+              name: 'limit',
+              in: 'query',
+              description: 'Number of suggestions',
+              schema: { type: 'integer', default: 10, maximum: 20 },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Search suggestions',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          suggestions: {
+                            type: 'array',
+                            items: { type: 'string' },
+                          },
+                          related: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                term: { type: 'string' },
+                                count: { type: 'integer' },
+                              },
+                            },
+                          },
+                          popular: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                query: { type: 'string' },
+                                count: { type: 'integer' },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       '/api/v1/resources/{id}': {
         get: {
           summary: 'Get resource by ID',
@@ -255,6 +381,171 @@ export default defineEventHandler(async () => {
             },
             '500': {
               description: 'Internal server error',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/v1/categories': {
+        get: {
+          summary: 'Get all categories',
+          description: 'Retrieve list of all categories with resource counts.',
+          operationId: 'getCategories',
+          tags: ['Resources'],
+          responses: {
+            '200': {
+              description: 'Categories with counts',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            name: { type: 'string', example: 'Development' },
+                            count: { type: 'integer', example: 42 },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              headers: {
+                'X-Cache': {
+                  description: 'Cache status (HIT or MISS)',
+                  schema: { type: 'string', enum: ['HIT', 'MISS'] },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/v1/tags': {
+        get: {
+          summary: 'Get all tags',
+          description: 'Retrieve list of all tags with optional hierarchy.',
+          operationId: 'getTags',
+          tags: ['Resources'],
+          parameters: [
+            {
+              name: 'includeChildren',
+              in: 'query',
+              description: 'Include child tags',
+              schema: { type: 'boolean' },
+            },
+            {
+              name: 'includeParents',
+              in: 'query',
+              description: 'Include parent tags',
+              schema: { type: 'boolean' },
+            },
+            {
+              name: 'rootOnly',
+              in: 'query',
+              description: 'Return only root-level tags',
+              schema: { type: 'boolean' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Tags',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          tags: {
+                            type: 'array',
+                            items: { type: 'string' },
+                          },
+                          includeChildren: { type: 'boolean' },
+                          includeParents: { type: 'boolean' },
+                          rootOnly: { type: 'boolean' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/v1/resources/{id}/alternatives': {
+        get: {
+          summary: 'Get resource alternatives',
+          description:
+            'Get alternative resources similar to specified resource.',
+          operationId: 'getResourceAlternatives',
+          tags: ['Resources'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Resource ID',
+              schema: { type: 'string' },
+            },
+            {
+              name: 'limit',
+              in: 'query',
+              description: 'Number of alternatives',
+              schema: { type: 'integer', default: 5, maximum: 20 },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Alternative resources',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          resourceId: { type: 'string' },
+                          alternatives: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                id: { type: 'string' },
+                                title: { type: 'string' },
+                                description: { type: 'string' },
+                                url: { type: 'string', format: 'uri' },
+                                score: {
+                                  type: 'number',
+                                  description: 'Similarity score',
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '404': {
+              description: 'Resource not found',
               content: {
                 'application/json': {
                   schema: {
@@ -812,6 +1103,134 @@ export default defineEventHandler(async () => {
           },
         },
       },
+      '/api/v1/webhooks/queue': {
+        get: {
+          summary: 'Get webhook queue',
+          description:
+            'Retrieve webhook queue statistics and contents including dead letter queue.',
+          operationId: 'getWebhookQueue',
+          tags: ['Webhooks'],
+          responses: {
+            '200': {
+              description: 'Webhook queue data',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          stats: {
+                            type: 'object',
+                            properties: {
+                              totalQueued: { type: 'integer' },
+                              totalDelivered: { type: 'integer' },
+                              totalFailed: { type: 'integer' },
+                              totalDeadLetter: { type: 'integer' },
+                            },
+                          },
+                          queue: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                id: { type: 'string' },
+                                webhookId: { type: 'string' },
+                                event: { type: 'string' },
+                                scheduledFor: {
+                                  type: 'string',
+                                  format: 'date-time',
+                                },
+                                retryCount: { type: 'integer' },
+                                maxRetries: { type: 'integer' },
+                                createdAt: {
+                                  type: 'string',
+                                  format: 'date-time',
+                                },
+                              },
+                            },
+                          },
+                          deadLetterQueue: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                id: { type: 'string' },
+                                webhookId: { type: 'string' },
+                                event: { type: 'string' },
+                                failureReason: { type: 'string' },
+                                lastAttemptAt: {
+                                  type: 'string',
+                                  format: 'date-time',
+                                },
+                                deliveryAttempts: { type: 'integer' },
+                                createdAt: {
+                                  type: 'string',
+                                  format: 'date-time',
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/v1/webhooks/dead-letter/{id}/retry': {
+        post: {
+          summary: 'Retry dead letter webhook',
+          description:
+            'Retry a webhook that failed and was moved to dead letter queue.',
+          operationId: 'retryDeadLetterWebhook',
+          tags: ['Webhooks'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Dead letter webhook ID',
+              schema: { type: 'string' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Webhook queued for retry',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      message: {
+                        type: 'string',
+                        example: 'Webhook queued for retry',
+                      },
+                      deliveryId: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+            '404': {
+              description: 'Dead letter webhook not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       '/api/v1/webhooks/deliveries': {
         get: {
           summary: 'List webhook deliveries',
@@ -857,6 +1276,303 @@ export default defineEventHandler(async () => {
                         type: 'array',
                         items: {
                           $ref: '#/components/schemas/WebhookDelivery',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/resources/{id}/history': {
+        get: {
+          summary: 'Get resource history',
+          description: 'Get status change history for a resource.',
+          operationId: 'getResourceHistory',
+          tags: ['Resources'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Resource ID',
+              schema: { type: 'string' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Resource history',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          resourceId: { type: 'string' },
+                          history: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                id: { type: 'string' },
+                                fromStatus: { type: 'string' },
+                                toStatus: { type: 'string' },
+                                reason: { type: 'string' },
+                                changedBy: { type: 'string' },
+                                changedAt: {
+                                  type: 'string',
+                                  format: 'date-time',
+                                },
+                                notes: { type: 'string' },
+                              },
+                            },
+                          },
+                          count: { type: 'integer' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '404': {
+              description: 'Resource not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/resources/{id}/health': {
+        post: {
+          summary: 'Trigger health check',
+          description: 'Manually trigger health check for a specific resource.',
+          operationId: 'triggerResourceHealth',
+          tags: ['Resources', 'Health'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Resource ID',
+              schema: { type: 'string' },
+            },
+          ],
+          requestBody: {
+            required: false,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    force: {
+                      type: 'boolean',
+                      description: 'Force check even if recently checked',
+                      default: false,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'Health check result',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          resourceId: { type: 'string' },
+                          url: { type: 'string' },
+                          status: {
+                            type: 'string',
+                            enum: ['healthy', 'unhealthy', 'unknown'],
+                          },
+                          responseTime: { type: 'integer' },
+                          checkedAt: { type: 'string', format: 'date-time' },
+                          details: {
+                            type: 'object',
+                            properties: {
+                              statusCode: { type: 'integer' },
+                              sslValid: { type: 'boolean' },
+                              certificateExpiry: {
+                                type: 'string',
+                                format: 'date-time',
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '404': {
+              description: 'Resource not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/resources/{id}/status': {
+        put: {
+          summary: 'Update resource status',
+          description: 'Update status of a specific resource.',
+          operationId: 'updateResourceStatus',
+          tags: ['Resources'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Resource ID',
+              schema: { type: 'string' },
+            },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['status'],
+                  properties: {
+                    status: {
+                      type: 'string',
+                      enum: [
+                        'active',
+                        'deprecated',
+                        'discontinued',
+                        'updated',
+                        'pending',
+                      ],
+                    },
+                    reason: { type: 'string' },
+                    notes: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'Status updated',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string' },
+                          status: { type: 'string' },
+                          title: { type: 'string' },
+                          updatedAt: { type: 'string', format: 'date-time' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '404': {
+              description: 'Resource not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/resources/lifecycle': {
+        get: {
+          summary: 'Get resource lifecycle stats',
+          description: 'Get lifecycle statistics and status distribution.',
+          operationId: 'getResourceLifecycle',
+          tags: ['Resources'],
+          responses: {
+            '200': {
+              description: 'Lifecycle statistics',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          totalResources: { type: 'integer' },
+                          byStatus: {
+                            type: 'object',
+                            properties: {
+                              active: { type: 'integer' },
+                              deprecated: { type: 'integer' },
+                              discontinued: { type: 'integer' },
+                              updated: { type: 'integer' },
+                              pending: { type: 'integer' },
+                            },
+                          },
+                          byCategory: {
+                            type: 'object',
+                            additionalProperties: { type: 'integer' },
+                          },
+                          recentlyAdded: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                id: { type: 'string' },
+                                title: { type: 'string' },
+                                dateAdded: {
+                                  type: 'string',
+                                  format: 'date-time',
+                                },
+                              },
+                            },
+                          },
+                          recentlyUpdated: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                id: { type: 'string' },
+                                title: { type: 'string' },
+                                lastUpdated: {
+                                  type: 'string',
+                                  format: 'date-time',
+                                },
+                              },
+                            },
+                          },
                         },
                       },
                     },
@@ -968,6 +1684,74 @@ export default defineEventHandler(async () => {
           },
         },
       },
+      '/api/health-checks': {
+        get: {
+          summary: 'Health checks',
+          description: 'Get application health status and component checks.',
+          operationId: 'getHealthChecks',
+          tags: ['Health'],
+          responses: {
+            '200': {
+              description: 'Health status',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          totalChecks: { type: 'integer' },
+                          healthStatuses: {
+                            type: 'object',
+                            properties: {
+                              database: {
+                                type: 'object',
+                                properties: {
+                                  status: { type: 'string' },
+                                  responseTime: { type: 'integer' },
+                                },
+                              },
+                              cache: {
+                                type: 'object',
+                                properties: {
+                                  status: { type: 'string' },
+                                  responseTime: { type: 'integer' },
+                                },
+                              },
+                              storage: {
+                                type: 'object',
+                                properties: {
+                                  status: { type: 'string' },
+                                  availableSpace: { type: 'string' },
+                                },
+                              },
+                            },
+                          },
+                          summary: {
+                            type: 'object',
+                            properties: {
+                              overall: {
+                                type: 'string',
+                                enum: ['healthy', 'degraded', 'unhealthy'],
+                              },
+                              healthy: { type: 'integer' },
+                              degraded: { type: 'integer' },
+                              unhealthy: { type: 'integer' },
+                            },
+                          },
+                          lastUpdated: { type: 'string', format: 'date-time' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       '/api/analytics/search': {
         get: {
           summary: 'Query analytics data',
@@ -1055,6 +1839,150 @@ export default defineEventHandler(async () => {
           },
         },
       },
+      '/api/v1/auth/api-keys': {
+        get: {
+          summary: 'List API keys',
+          description: 'Retrieve all API keys (secrets omitted).',
+          operationId: 'listApiKeys',
+          tags: ['Authentication'],
+          responses: {
+            '200': {
+              description: 'API keys',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          data: {
+                            type: 'array',
+                            items: {
+                              $ref: '#/components/schemas/ApiKey',
+                            },
+                          },
+                          count: { type: 'integer' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        post: {
+          summary: 'Create API key',
+          description: 'Create a new API key for authentication.',
+          operationId: 'createApiKey',
+          tags: ['Authentication'],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['name', 'scopes'],
+                  properties: {
+                    name: {
+                      type: 'string',
+                      description: 'API key name',
+                      example: 'My App Key',
+                    },
+                    scopes: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      description: 'API key permissions',
+                      example: ['read', 'write'],
+                    },
+                    expiresIn: {
+                      type: 'integer',
+                      description: 'Expiration time in seconds (optional)',
+                      example: 86400,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'API key created',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        $ref: '#/components/schemas/ApiKey',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '400': {
+              description: 'Validation error',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/v1/auth/api-keys/{id}': {
+        delete: {
+          summary: 'Delete API key',
+          description: 'Delete an API key by ID.',
+          operationId: 'deleteApiKey',
+          tags: ['Authentication'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'API Key ID',
+              schema: { type: 'string' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'API key deleted',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      message: {
+                        type: 'string',
+                        example: 'API key deleted successfully',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '404': {
+              description: 'API key not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       '/api/analytics/resource/{id}': {
         get: {
           summary: 'Get resource analytics',
@@ -1093,6 +2021,461 @@ export default defineEventHandler(async () => {
                         },
                       },
                     },
+                  },
+                },
+              },
+            },
+            '404': {
+              description: 'Resource not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/v1/alternatives/{id}': {
+        get: {
+          summary: 'Get alternatives for resource',
+          description:
+            'Retrieve alternative resources for a specific resource.',
+          operationId: 'getAlternativesForResource',
+          tags: ['Resources'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Resource ID',
+              schema: { type: 'string' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Alternative resources',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          resourceId: { type: 'string' },
+                          alternatives: {
+                            type: 'array',
+                            items: {
+                              $ref: '#/components/schemas/Resource',
+                            },
+                          },
+                          count: { type: 'integer' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              headers: {
+                'X-Cache': {
+                  description: 'Cache status (HIT or MISS)',
+                  schema: { type: 'string', enum: ['HIT', 'MISS'] },
+                },
+                'X-Cache-Key': {
+                  description: 'Cache key used',
+                  schema: { type: 'string' },
+                },
+              },
+            },
+            '404': {
+              description: 'Resource not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+          },
+        },
+        post: {
+          summary: 'Manage alternative relationship',
+          description: 'Add or remove alternative resource relationship.',
+          operationId: 'manageAlternativeRelationship',
+          tags: ['Resources'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Resource ID',
+              schema: { type: 'string' },
+            },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['alternativeId'],
+                  properties: {
+                    alternativeId: {
+                      type: 'string',
+                      description: 'Alternative resource ID',
+                    },
+                    action: {
+                      type: 'string',
+                      enum: ['add', 'remove'],
+                      default: 'add',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'Relationship updated',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          resourceId: { type: 'string' },
+                          alternativeId: { type: 'string' },
+                          action: { type: 'string' },
+                          alternatives: {
+                            type: 'array',
+                            items: { type: 'string' },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '404': {
+              description: 'Resource or alternative not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/resource-health': {
+        get: {
+          summary: 'Get all resources health',
+          description: 'Retrieve health status of all resources.',
+          operationId: 'getAllResourcesHealth',
+          tags: ['Health'],
+          responses: {
+            '200': {
+              description: 'All resources health status',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          resources: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                resourceId: { type: 'string' },
+                                url: { type: 'string' },
+                                status: {
+                                  type: 'string',
+                                  enum: ['healthy', 'unhealthy', 'unknown'],
+                                },
+                                responseTime: { type: 'integer' },
+                                lastChecked: {
+                                  type: 'string',
+                                  format: 'date-time',
+                                },
+                              },
+                            },
+                          },
+                          stats: {
+                            type: 'object',
+                            properties: {
+                              total: { type: 'integer' },
+                              healthy: { type: 'integer' },
+                              unhealthy: { type: 'integer' },
+                              unknown: { type: 'integer' },
+                              healthPercentage: { type: 'number' },
+                            },
+                          },
+                          timestamp: { type: 'string', format: 'date-time' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/resource-health/{id}': {
+        get: {
+          summary: 'Get resource health',
+          description: 'Get health status for a specific resource.',
+          operationId: 'getResourceHealth',
+          tags: ['Health'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Resource ID',
+              schema: { type: 'string' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Resource health status',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          resourceId: { type: 'string' },
+                          url: { type: 'string' },
+                          status: {
+                            type: 'string',
+                            enum: ['healthy', 'unhealthy', 'unknown'],
+                          },
+                          responseTime: { type: 'integer' },
+                          lastChecked: { type: 'string', format: 'date-time' },
+                          statusCode: { type: 'integer' },
+                          sslValid: { type: 'boolean' },
+                          certificateExpiry: {
+                            type: 'string',
+                            format: 'date-time',
+                          },
+                          uptimePercentage: { type: 'number' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '404': {
+              description: 'Resource not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/submissions/index': {
+        get: {
+          summary: 'Get submissions',
+          description: 'Retrieve list of submissions with optional filtering.',
+          operationId: 'getSubmissions',
+          tags: ['Submissions'],
+          parameters: [
+            {
+              name: 'status',
+              in: 'query',
+              description: 'Filter by status',
+              schema: {
+                type: 'string',
+                enum: ['pending', 'approved', 'rejected'],
+              },
+            },
+            {
+              name: 'submittedBy',
+              in: 'query',
+              description: 'Filter by submitter',
+              schema: { type: 'string' },
+            },
+            {
+              name: 'limit',
+              in: 'query',
+              description: 'Items per page',
+              schema: { type: 'integer', default: 50, maximum: 100 },
+            },
+            {
+              name: 'offset',
+              in: 'query',
+              description: 'Items to skip',
+              schema: { type: 'integer', default: 0 },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Submissions list',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          submissions: {
+                            type: 'array',
+                            items: {
+                              $ref: '#/components/schemas/Submission',
+                            },
+                          },
+                          total: { type: 'integer' },
+                          limit: { type: 'integer' },
+                          offset: { type: 'integer' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/submissions/{id}': {
+        get: {
+          summary: 'Get submission by ID',
+          description: 'Retrieve a specific submission by ID.',
+          operationId: 'getSubmissionById',
+          tags: ['Submissions'],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Submission ID',
+              schema: { type: 'string' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Submission details',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        $ref: '#/components/schemas/Submission',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '404': {
+              description: 'Submission not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/moderation/flag': {
+        put: {
+          summary: 'Flag content',
+          description: 'Report inappropriate content for moderation review.',
+          operationId: 'flagContent',
+          tags: ['Moderation'],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['resourceId', 'reason', 'reportedBy'],
+                  properties: {
+                    resourceId: {
+                      type: 'string',
+                      description: 'Resource ID being flagged',
+                    },
+                    reason: {
+                      type: 'string',
+                      description: 'Reason for flagging',
+                      example: 'Inappropriate content',
+                    },
+                    reportedBy: {
+                      type: 'string',
+                      description: 'User ID reporting the content',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'Content flagged successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      message: {
+                        type: 'string',
+                        example: 'Resource flagged successfully',
+                      },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string' },
+                          resourceId: { type: 'string' },
+                          reason: { type: 'string' },
+                          reportedBy: { type: 'string' },
+                          createdAt: { type: 'string', format: 'date-time' },
+                          resolved: { type: 'boolean' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '400': {
+              description: 'Bad request',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
                   },
                 },
               },
@@ -1452,6 +2835,42 @@ export default defineEventHandler(async () => {
                   schema: {
                     $ref: '#/components/schemas/ErrorResponse',
                   },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/v1/sitemap': {
+        get: {
+          summary: 'Get sitemap',
+          description: 'Retrieve XML sitemap for SEO.',
+          operationId: 'getSitemap',
+          tags: ['Resources'],
+          responses: {
+            '200': {
+              description: 'XML sitemap',
+              content: {
+                'application/xml': {
+                  schema: { type: 'string', format: 'xml' },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/v1/rss': {
+        get: {
+          summary: 'Get RSS feed',
+          description: 'Retrieve RSS feed of latest resources.',
+          operationId: 'getRssFeed',
+          tags: ['Resources'],
+          responses: {
+            '200': {
+              description: 'RSS feed',
+              content: {
+                'application/rss+xml': {
+                  schema: { type: 'string', format: 'xml' },
                 },
               },
             },
