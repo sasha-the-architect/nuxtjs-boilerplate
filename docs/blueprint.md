@@ -1124,6 +1124,7 @@ tests/
 | 2026-01-10 | Data Architecture | Applied pending migration for category timestamp index          | Migration 20260110022513_add_category_timestamp_index now applied to optimize category-based analytics queries (3-5x performance improvement)                                                           |
 | 2026-01-10 | Data Architecture | Applied soft-delete migration                                   | Migration 20260110100000_add_soft_delete applied with reversible down.sql, enables safe data deletion with backup and restore capability                                                                |
 | 2026-01-10 | Data Architecture | Added application-layer data validation                         | Updated insertAnalyticsEvent to use Zod schema validation, enforces valid event types, categories, and IP addresses at application boundary (SQLite constraint limitations)                             |
+| 2026-01-10 | Architecture      | Dead Code Removal - Removed obsolete useResourceRecommendations | Eliminated 287 lines of dead code (old recommendation implementation), single source of truth now useRecommendationEngine with Strategy Pattern, reduced confusion and technical debt                   |
 
 ## 🎓 Design Principles Applied
 

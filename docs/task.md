@@ -8,6 +8,161 @@
 
 ---
 
+## [DEAD CODE REMOVAL - OBSOLETE RECOMMENDATION COMPOSABLE] Code Architect Work ✅ COMPLETED (2026-01-10)
+
+### Overview
+
+Removed dead code - `composables/useResourceRecommendations.ts` (287 lines), an old recommendation implementation that has been completely replaced by `useRecommendationEngine.ts` (113 lines) using the Strategy Pattern. This follows **Dead Code Removal** architectural principle to eliminate technical debt and maintain codebase cleanliness.
+
+### Success Criteria
+
+- [x] More modular than before - Removed duplicate recommendation implementation
+- [x] Dependencies flow correctly - No broken imports or references
+- [x] Simplest solution that works - Deleted single unused file
+- [x] Zero regressions - TypeScript verification completed, no errors related to removed file
+
+### 1. Architectural Issue Identified ✅
+
+**Impact**: MEDIUM - 287 lines of dead code causing confusion
+
+**Files Analyzed**:
+
+1. `composables/useResourceRecommendations.ts` - 287 lines, old implementation
+2. `composables/useRecommendationEngine.ts` - 113 lines, new Strategy Pattern implementation
+
+**Issue Found**:
+
+The codebase contains **two** recommendation implementations:
+
+**Old Implementation** (`useResourceRecommendations.ts`):
+
+- 287 lines of monolithic code
+- No Strategy Pattern
+- Single file handling all recommendation types
+- Similar names to new implementation (causes confusion)
+- **NOT USED ANYWHERE** in codebase (0 references)
+
+**New Implementation** (`useRecommendationEngine.ts`):
+
+- 113 lines of orchestrator code
+- Strategy Pattern with 5 single-responsibility strategy composables
+- Documented in blueprint as completed refactoring (2025-01-07)
+- Used in `pages/resources/[id].vue` and `composables/useAlternativeSuggestions.ts`
+
+This violates architectural principles:
+
+- **Dead Code**: Maintains 287 lines of unused code
+- **Confusion**: Two similarly-named composables for same purpose
+- **Technical Debt**: Must decide which implementation to use
+- **Violation of DRY**: Two implementations of same recommendation logic
+
+### 2. Dead Code Confirmed ✅
+
+**Impact**: MEDIUM - Verified zero usages across codebase
+
+**Verification Process**:
+
+```bash
+# Searched all .vue and .ts files for imports and usage
+grep -r "useResourceRecommendations" --include="*.vue" --include="*.ts" .
+```
+
+**Results**:
+
+- Total references found: **1** (the file itself, at the export statement)
+- Import statements: **0**
+- Usage in components: **0**
+- Usage in pages: **0**
+- Usage in composables: **0**
+
+**Conclusion**: `useResourceRecommendations.ts` is dead code with zero consumers.
+
+### 3. Dead Code Removed ✅
+
+**Impact**: MEDIUM - Eliminated 287 lines of dead code
+
+**Files Modified**:
+
+1. `composables/useResourceRecommendations.ts` - **DELETED** (287 lines removed)
+
+**Before Removal**:
+
+```
+composables/useResourceRecommendations.ts
+- 287 lines of monolithic recommendation logic
+- Functions: getSimilarResources, getCollaborativeRecommendations,
+  getPopularRecommendations, getTrendingRecommendations,
+  generateRecommendations, recordInteraction, updateConfig
+- Interface definitions: UserInteraction, Recommendation,
+  RecommendationConfig, RecommendationContext
+```
+
+**After Removal**:
+
+```
+File removed - no more confusion between two recommendation implementations
+```
+
+**Benefits**:
+
+- **Code Reduction**: 287 lines of dead code eliminated
+- **Clarity**: Single source of truth for recommendations (`useRecommendationEngine`)
+- **Reduced Confusion**: No more similarly-named composables
+- **Maintainability**: No need to maintain dead code
+- **Onboarding**: New developers won't be confused by duplicate implementations
+
+### 4. Zero Regressions Verified ✅
+
+**Impact**: LOW - Confirmed removal didn't break anything
+
+**Verification Steps**:
+
+1. **TypeScript Check**: Ran `npx tsc --noEmit`
+   - No errors related to removed file
+   - All errors are pre-existing test file issues
+   - Production code compiles correctly
+
+2. **Git Status**: Confirmed only expected file deleted
+
+   ```
+   Changes not staged for commit:
+     deleted:    composables/useResourceRecommendations.ts
+   ```
+
+3. **Import Search**: Verified no broken imports
+   - Zero import statements reference removed file
+   - Zero usages in codebase
+
+### Architectural Principles Applied
+
+✅ **Dead Code Removal**: Eliminated 287 lines of unused code
+✅ **Single Source of Truth**: One recommendation implementation (`useRecommendationEngine`)
+✅ **Strategy Pattern**: New implementation follows architectural best practices
+✅ **Clarity**: No confusing duplicate implementations
+✅ **Maintainability**: Reduced codebase size and complexity
+
+### Anti-Patterns Avoided
+
+✅ **No Dead Code**: Removed 287 lines of unused code
+✅ **No Confusion**: Single recommendation implementation
+✅ **No Technical Debt**: No need to maintain obsolete code
+✅ **No Violation of DRY**: One implementation instead of two
+
+### Files Modified
+
+1. `composables/useResourceRecommendations.ts` - **DELETED** (287 lines removed)
+2. `docs/task.md` - Added this documentation section (this file)
+
+### Total Impact
+
+- **Code Reduction**: ✅ 287 lines of dead code removed
+- **Clarity**: ✅ Single recommendation implementation (no duplicates)
+- **Maintainability**: ✅ No need to maintain obsolete code
+- **Type Safety**: ✅ TypeScript verification passed (no errors from removal)
+- **Zero Regressions**: ✅ No broken imports or references
+
+---
+
 ## [MODULE EXTRACTION - FILTERING LOGIC DUPLICATION] Code Architect Work ✅ COMPLETED (2026-01-10)
 
 ### Overview
