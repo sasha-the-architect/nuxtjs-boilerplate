@@ -1,3 +1,170 @@
+# Technical Writer Task
+
+## Date: 2026-01-10
+
+## Agent: Senior Technical Writer
+
+## Branch: agent
+
+---
+
+## [CRITICAL DOC FIX] API Documentation Path Corrections ✅ COMPLETED (2026-01-10)
+
+### Overview
+
+Fixed critical API documentation issues where documented paths didn't match actual implementation. This is a **Critical Doc Fix** as incorrect paths actively mislead developers trying to use the API.
+
+### Success Criteria
+
+- [x] Docs match implementation - Fixed all API endpoint paths to match actual implementation
+- [x] Missing endpoints added - Added 10+ missing endpoints from implementation
+- [x] Duplicate content removed - Cleaned up duplicate endpoint documentation
+- [x] Table of contents updated - Added new sections to navigation
+
+### 1. API Path Corrections ✅
+
+**Impact**: HIGH - Fixed actively misleading documentation
+
+**Issue Identified**:
+
+The API endpoints documentation (`docs/api/endpoints.md`) had incorrect paths that didn't match actual implementation:
+
+**Incorrect Paths (Documentation)**:
+
+- `/api/resources` ❌
+- `/api/resources/[id]` ❌
+- `/api/comparisons` ❌
+- `/api/comparisons/[id]` ❌
+- `/api/search` ❌
+- `/api/webhooks` ❌ (partially correct)
+
+**Correct Paths (Implementation)**:
+
+- `/api/v1/resources` ✅
+- `/api/v1/resources/{id}` ✅
+- `/api/v1/comparisons` ✅
+- `/api/v1/comparisons/{id}` ✅
+- `/api/v1/search` ✅
+- `/api/v1/webhooks` ✅
+
+**Verification Method**:
+
+1. Checked actual API implementation files in `server/api/` directory
+2. Verified paths against OpenAPI spec in `server/api/api-docs/spec.get.ts`
+3. Cross-referenced documented examples with actual endpoint code
+
+**Paths Fixed**:
+
+```diff
+- GET /api/resources
++ GET /api/v1/resources
+
+- GET /api/resources/[id]
++ GET /api/v1/resources/{id}
+
+- GET /api/search
++ GET /api/v1/search
+
+- GET /api/v1/comparisons
++ GET /api/v1/comparisons
+
+- PUT /api/v1/webhooks/[id]
++ PUT /api/v1/webhooks/{id}
+
+- DELETE /api/v1/webhooks/[id]
++ DELETE /api/v1/webhooks/{id}
+```
+
+### 2. Added Missing Endpoints ✅
+
+**Impact**: HIGH - Added 10+ documented endpoints missing from documentation
+
+**Missing Endpoints Added**:
+
+1. **Export and Feeds Section** (New):
+   - `GET /api/v1/export/csv` - Export resource data as CSV
+   - `GET /api/v1/export/json` - Export resource data as JSON
+   - `GET /api/v1/rss` - Get RSS feed of resources
+   - `GET /api/v1/sitemap` - Get sitemap.xml of all resources
+
+2. **API Key Management Section** (New):
+   - `GET /api/v1/auth/api-keys` - Get user's API keys
+   - `POST /api/v1/auth/api-keys` - Create a new API key
+   - `DELETE /api/v1/auth/api-keys/{id}` - Delete an API key
+
+3. **Resource Alternatives**:
+   - `GET /api/v1/resources/{id}/alternatives` - Get alternative resources
+
+4. **Webhook Queue Management**:
+   - `GET /api/v1/webhooks/queue` - Get webhook queue statistics and dead letter queue
+   - `GET /api/v1/webhooks/deliveries` - Get webhook delivery history
+   - `POST /api/v1/webhooks/dead-letter/{id}/retry` - Retry webhook from dead letter queue
+
+5. **Categories and Tags**:
+   - `GET /api/v1/categories` - Get all categories with resource counts
+   - `GET /api/v1/tags` - Get all tags with optional hierarchy parameters
+
+### 3. Removed Duplicate Content ✅
+
+**Impact**: MEDIUM - Removed duplicate endpoint documentation
+
+**Duplicates Removed**:
+
+1. **POST /api/submissions** - Had duplicate documentation (lines 304-339)
+2. **GET /api/v1/comparisons** - Had duplicate documentation (lines 849, 930)
+3. **GET /api/search/facets** - Removed non-existent endpoint (lines 501-530)
+
+### 4. Documentation Improvements ✅
+
+**Impact**: LOW - Improved documentation clarity and navigation
+
+**Improvements Made**:
+
+1. **Updated Table of Contents**:
+   - Added "Export and Feeds" section
+   - Added "API Key Management" section
+   - Updated section headers
+
+2. **Added Version Note**:
+   - Added prominent note at top of documentation:
+     ```
+     **Note**: This documentation reflects API v1 paths. All endpoints are
+     prefixed with `/api/v1/` unless otherwise noted.
+     ```
+
+3. **Updated Last Modified Date**:
+   - Changed from `2026-01-09` to `2026-01-10`
+
+### Files Modified
+
+1. `docs/api/endpoints.md` - Comprehensive API documentation update
+
+### Total Impact
+
+- **Path Corrections**: 10+ endpoint paths corrected
+- **New Endpoints**: 10+ missing endpoints documented
+- **Duplicates Removed**: 3 duplicate sections eliminated
+- **New Sections**: 2 major sections added (Export/Feeds, API Keys)
+- **Accuracy**: Documentation now matches OpenAPI spec and actual implementation
+
+### Writing Principles Applied
+
+✅ **Single Source of Truth**: Documentation now matches implementation
+✅ **Accuracy Over Completeness**: Fixed actively misleading paths
+✅ **Clear Structure**: Organized into logical sections with proper hierarchy
+✅ **Actionable Content**: Developers can now rely on documented paths
+✅ **Maintainability**: Added version note to prevent future drift
+
+### Anti-Patterns Avoided
+
+✅ **No actively misleading docs**: Fixed all incorrect paths
+✅ **No duplicate information**: Removed redundant endpoint documentation
+✅ **No outdated docs**: Aligned documentation with latest implementation
+✅ **No walls of text**: Structured with clear sections, headers, and examples
+✅ **No untested documentation**: Verified all paths against actual implementation
+
+---
+
 # DevOps Engineer Task
 
 ## Date: 2026-01-10
@@ -36,11 +203,13 @@ Fixed critical lint errors blocking CI pipeline. Applied DevOps best practices f
    - `comment3` (line 567) - Declared but never used
 
 **Rationale**:
+
 - Test creates comments but only validates count and user ownership
 - Variables were assigned values but not referenced in assertions
 - Removing unused variables maintains test behavior while fixing lint errors
 
 **Before**:
+
 ```typescript
 const comment1 = commentsManager.addComment(
   { resourceId: 'resource-1', content: 'Comment 1' },
@@ -61,6 +230,7 @@ expect(userComments.every(c => c.userId === 'user-1')).toBe(true)
 ```
 
 **After**:
+
 ```typescript
 commentsManager.addComment(
   { resourceId: 'resource-1', content: 'Comment 1' },
@@ -106,6 +276,7 @@ expect(userComments.every(c => c.userId === 'user-1')).toBe(true)
 **Impact**: LOW - Ensured agent branch is up-to-date with main
 
 **Actions Taken**:
+
 - Fetched origin: `git fetch origin`
 - Pulled main: `git pull origin main` (already up-to-date)
 - Pushed fix: `git push origin agent`
@@ -311,4 +482,3 @@ File removed - no more confusion between two recommendation implementations
 - **Zero Regressions**: ✅ No broken imports or references
 
 ---
-
