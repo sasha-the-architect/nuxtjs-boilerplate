@@ -168,9 +168,3 @@ export const analyticsEventSchema = z.object({
     .optional(),
   properties: z.record(z.string(), z.any()).optional(),
 })
-
-export const triggerWebhookSchema = z.object({
-  event: z.string().min(1, 'Event type is required'),
-  data: z.any(),
-  idempotencyKey: z.string().optional(),
-})
