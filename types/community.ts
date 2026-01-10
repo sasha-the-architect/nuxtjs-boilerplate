@@ -82,8 +82,12 @@ export interface Flag {
   reason: string
   userId: string
   reportedAt: string
-  status: 'pending' | 'resolved' | 'dismissed'
+  status: 'pending' | 'resolved' | 'dismissed' | 'reviewed'
   details?: string
+  flaggedBy?: string
+  moderator?: string
+  moderatorNote?: string
+  actionTaken?: string
 }
 
 export interface FlagData {

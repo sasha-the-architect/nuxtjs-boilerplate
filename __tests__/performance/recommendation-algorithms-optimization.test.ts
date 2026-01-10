@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest'
 
-/* eslint-disable no-console */
-
 // OLD O(n²) implementation using Array.includes
 const oldApplyDiversity = (
   recommendations: any[],

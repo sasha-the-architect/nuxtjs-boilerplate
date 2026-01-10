@@ -25,6 +25,8 @@ import type {
   UpdateUserContributionsCallback,
   RemoveCommentByModeratorCallback,
   ModerationActionCallback,
+  CreateUserData,
+  UpdateUserData,
 } from '~/types/community'
 import { useUserProfiles } from './community/useUserProfiles'
 import { useComments } from './community/useComments'
@@ -32,7 +34,7 @@ import { useVoting } from './community/useVoting'
 import { useModeration } from './community/useModeration'
 
 export const useCommunityFeatures = (
-  initialUsers: User[] = [],
+  initialUsers: UserProfile[] = [],
   initialComments: Comment[] = [],
   initialVotes: Vote[] = [],
   initialFlags: Flag[] = []

@@ -22,31 +22,41 @@ export const useUrlSync = (
     // Update categories
     if (categories) {
       const cats = Array.isArray(categories) ? categories : [categories]
-      filterOptions.value.categories = cats
+      filterOptions.value.categories = cats.filter(
+        (c): c is string => c !== null
+      )
     }
 
     // Update pricing models
     if (pricing) {
       const pricingModels = Array.isArray(pricing) ? pricing : [pricing]
-      filterOptions.value.pricingModels = pricingModels
+      filterOptions.value.pricingModels = pricingModels.filter(
+        (p): p is string => p !== null
+      )
     }
 
     // Update difficulty levels
     if (difficulty) {
       const difficulties = Array.isArray(difficulty) ? difficulty : [difficulty]
-      filterOptions.value.difficultyLevels = difficulties
+      filterOptions.value.difficultyLevels = difficulties.filter(
+        (d): d is string => d !== null
+      )
     }
 
     // Update technologies
     if (technologies) {
       const techs = Array.isArray(technologies) ? technologies : [technologies]
-      filterOptions.value.technologies = techs
+      filterOptions.value.technologies = techs.filter(
+        (t): t is string => t !== null
+      )
     }
 
     // Update sort option
     if (sort) {
       const sortValue = Array.isArray(sort) ? sort[0] : sort
-      sortOption.value = sortValue as SortOption
+      if (sortValue !== null) {
+        sortOption.value = sortValue as SortOption
+      }
     }
   }
 
@@ -62,28 +72,28 @@ export const useUrlSync = (
       filterOptions.value.categories &&
       filterOptions.value.categories.length > 0
     ) {
-      params.categories = filterOptions.value.categories
+      params.categories = [...filterOptions.value.categories]
     }
 
     if (
       filterOptions.value.pricingModels &&
       filterOptions.value.pricingModels.length > 0
     ) {
-      params.pricing = filterOptions.value.pricingModels
+      params.pricing = [...filterOptions.value.pricingModels]
     }
 
     if (
       filterOptions.value.difficultyLevels &&
       filterOptions.value.difficultyLevels.length > 0
     ) {
-      params.difficulty = filterOptions.value.difficultyLevels
+      params.difficulty = [...filterOptions.value.difficultyLevels]
     }
 
     if (
       filterOptions.value.technologies &&
       filterOptions.value.technologies.length > 0
     ) {
-      params.technologies = filterOptions.value.technologies
+      params.technologies = [...filterOptions.value.technologies]
     }
 
     if (sortOption.value && sortOption.value !== 'popularity-desc') {

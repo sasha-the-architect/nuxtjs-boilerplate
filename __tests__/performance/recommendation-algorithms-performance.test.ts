@@ -6,8 +6,6 @@ import {
 } from '~/utils/recommendation-algorithms'
 import type { Resource } from '~/types/resource'
 
-/* eslint-disable no-console */
-
 // Create mock resource for testing
 const createMockResource = (
   id: string,

@@ -8,6 +8,7 @@ import type {
   FlagData,
   UserProfile,
   RemoveCommentByModeratorCallback,
+  ModerationActionCallback,
 } from '~/types/community'
 
 export const useModeration = (
@@ -90,37 +91,6 @@ export const useModeration = (
     }
 
     // Take action on flagged content
-    if (flag.targetType === 'comment' && action === 'removed') {
-      if (removeCommentByModerator) {
-        removeCommentByModerator(flag.targetId)
-      }
-    }
-
-    return true
-  }
-
-    // O(1) map lookup
-    const flag = flagMap.value.get(flagId)
-    if (!flag) return false
-
-    const updatedFlag = {
-      ...flag,
-      status: 'reviewed' as const,
-      moderator: currentUser.id,
-      moderatorNote,
-      actionTaken: action,
-    }
-
-    // O(1) map update
-    flagMap.value.set(flagId, updatedFlag)
-
-    // Update in array (maintains reactive state)
-    const index = flags.value.findIndex(f => f.id === flagId)
-    if (index !== -1) {
-      flags.value[index] = updatedFlag
-    }
-
-    // Take action on the flagged content
     if (flag.targetType === 'comment' && action === 'removed') {
       if (removeCommentByModerator) {
         removeCommentByModerator(flag.targetId)
