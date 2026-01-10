@@ -1,14 +1,8 @@
-/* eslint-disable no-undef */
 // Test script to validate XSS sanitization functionality
 const { JSDOM } = require('jsdom')
 const window = new JSDOM('').window
 global.window = window
 global.document = window.document
-
-// Import DOMPurify after setting up the DOM environment
-const createDOMPurify = require('dompurify')
-// eslint-disable-next-line no-unused-vars
-const DOMPurify = createDOMPurify(window)
 
 // Import the sanitize functions using require
 const { sanitizeForXSS, sanitizeAndHighlight } = require('./utils/sanitize.js')

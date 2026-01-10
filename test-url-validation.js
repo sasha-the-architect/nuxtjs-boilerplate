@@ -3,67 +3,25 @@
  */
 
 import { validateUrl, validateUrls, isUrlHealthy } from './utils/urlValidation'
-import { Resource } from './types/resource'
 import {
   updateResourceHealth,
-  updateAllResourceHealth,
   getResourceHealthStatus,
-  getAllResourceHealthStatuses,
   getResourceHealthStats,
 } from './server/utils/resourceHealth'
 
 async function testUrlValidation() {
   // Test single URL validation
-  try {
-    const result = await validateUrl('https://httpbin.org/status/200')
-  } catch (error) {
-    // Handle error silently for testing
-  }
+  await validateUrl('https://httpbin.org/status/200').catch(() => {})
 
   // Test invalid URL
-  try {
-    const result = await validateUrl('invalid-url')
-  } catch (error) {
-    // Handle error silently for testing
-  }
+  await validateUrl('invalid-url').catch(() => {})
 
   // Test multiple URLs
-  try {
-    const results = await validateUrls([
-      'https://httpbin.org/status/200',
-      'https://httpbin.org/status/404',
-      'https://httpbin.org/status/500',
-    ])
-  } catch (error) {
-    // Handle error silently for testing
-  }
-
-  // Test resource health tracking
-  try {
-    const healthStatus = await updateResourceHealth(mockResource)
-    const retrievedStatus = getResourceHealthStatus('test-1')
-    const stats = getResourceHealthStats()
-  } catch (error) {
-    // Handle error silently for testing
-  }
-
-  // Test invalid URL
-  try {
-    const result = await validateUrl('invalid-url')
-  } catch (error) {
-    // Handle error silently for testing
-  }
-
-  // Test multiple URLs
-  try {
-    const results = await validateUrls([
-      'https://httpbin.org/status/200',
-      'https://httpbin.org/status/404',
-      'https://httpbin.org/status/500',
-    ])
-  } catch (error) {
-    // Handle error silently for testing
-  }
+  await validateUrls([
+    'https://httpbin.org/status/200',
+    'https://httpbin.org/status/404',
+    'https://httpbin.org/status/500',
+  ]).catch(() => {})
 
   // Test isUrlHealthy function
   isUrlHealthy(200)
@@ -87,13 +45,9 @@ async function testUrlValidation() {
     popularity: 5,
   }
 
-  try {
-    const healthStatus = await updateResourceHealth(mockResource)
-    const retrievedStatus = getResourceHealthStatus('test-1')
-    const stats = getResourceHealthStats()
-  } catch (error) {
-    // Handle error silently for testing
-  }
+  await updateResourceHealth(mockResource).catch(() => {})
+  getResourceHealthStatus('test-1')
+  getResourceHealthStats()
 }
 
 // Run the test

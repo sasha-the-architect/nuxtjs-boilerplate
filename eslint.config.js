@@ -115,8 +115,9 @@ export default [
       '**/*.test.ts',
       'test-setup.ts',
       'test-*.js',
-      '**/*.test.js',
+      'test-*.cjs',
       'validate-*.js',
+      '**/*.test.js',
     ],
     languageOptions: {
       ecmaVersion: 2024,
@@ -142,6 +143,7 @@ export default [
       'vue/one-component-per-file': 'off', // Allow multiple components in test files
       'no-console': ['warn', { allow: ['warn', 'error', 'info', 'log'] }], // Allow console.log in tests
       '@typescript-eslint/no-explicit-any': 'off', // Allow any types in test files for mock data
+      '@typescript-eslint/no-require-imports': 'off', // Allow require() in test/validation scripts
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_' },

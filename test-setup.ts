@@ -62,7 +62,7 @@ beforeEach(() => {
 // Set up mocks for browser APIs that tests expect
 if (typeof global !== 'undefined') {
   const localStorageMock = (() => {
-    let store: Record<string, string> = {}
+    const store: Record<string, string> = {}
     return {
       getItem: vi.fn((key: string) => store[key] || null),
       setItem: vi.fn((key: string, value: string) => {
@@ -82,7 +82,7 @@ if (typeof global !== 'undefined') {
   })()
 
   const sessionStorageMock = (() => {
-    let store: Record<string, string> = {}
+    const store: Record<string, string> = {}
     return {
       getItem: vi.fn((key: string) => store[key] || null),
       setItem: vi.fn((key: string, value: string) => {
@@ -101,6 +101,7 @@ if (typeof global !== 'undefined') {
     }
   })()
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore - Type assertion needed for testing environment
   const g = global as any
 
