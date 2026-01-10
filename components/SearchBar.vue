@@ -26,9 +26,17 @@
         type="search"
         :value="modelValue"
         class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
+        :class="{ 'rounded-b-none': showSuggestions }"
         placeholder="Search resources by name, description, tags..."
         aria-label="Search resources"
         aria-describedby="search-results-info"
+        aria-expanded="true"
+        aria-haspopup="listbox"
+        :aria-activedescendant="
+          activeSuggestionIndex >= 0
+            ? `suggestion-${activeSuggestionIndex}`
+            : undefined
+        "
         @input="handleInput"
         @keydown="handleKeyDown"
         @focus="handleFocus"
@@ -101,9 +109,13 @@ interface Props {
 interface Emits {
   (event: 'update:modelValue', value: string): void
   (event: 'search', value: string): void
+  (event: 'select-suggestion', value: string): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  debounceTime: 300,
+})
+
 const emit = defineEmits<Emits>()
 
 // Use the resources composable
@@ -144,7 +156,7 @@ const handleInput = (event: Event) => {
     debouncedQuery.value = value
     updateSuggestions(value)
     emit('search', value)
-  }, props.debounceTime || 300)
+  }, props.debounceTime)
 }
 
 // Update suggestions based on input
@@ -170,7 +182,6 @@ const clearSearch = () => {
   suggestions.value = []
   showSuggestions.value = false
 }
-
 const handleFocus = () => {
   // Update search history when input is focused
   searchHistory.value = getSearchHistory()

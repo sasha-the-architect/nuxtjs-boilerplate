@@ -15,7 +15,12 @@
 
       <!-- Search Bar -->
       <div class="mt-8 max-w-2xl mx-auto">
-        <SearchBar v-model="searchQuery" @search="handleSearch" />
+        <SearchBar
+          :suggestions="searchSuggestions"
+          v-model="searchQuery"
+          @search="handleSearch"
+          @select-suggestion="handleSuggestionSelect"
+        />
       </div>
 
       <!-- Loading State with Skeletons -->
@@ -220,6 +225,7 @@ const {
   resetFilters,
   resources,
   highlightSearchTerms,
+  getSearchSuggestions,
   retryResources,
 } = useResources()
 
@@ -243,9 +249,22 @@ const searchQuery = computed({
 
 const selectedCategories = computed(() => filterOptions.value.categories || [])
 
+// Reactive reference for search suggestions
+const searchSuggestions = computed(() => {
+  if (searchQuery.value && searchQuery.value.length >= 2) {
+    return getSearchSuggestions(searchQuery.value)
+  }
+  return []
+})
+
 // Handle search
 const handleSearch = (query: string) => {
   updateSearchQuery(query)
+}
+
+// Handle suggestion selection
+const handleSuggestionSelect = (suggestion: string) => {
+  updateSearchQuery(suggestion)
 }
 
 // Reset all filters

@@ -14,7 +14,7 @@ If you discover a security vulnerability in this project, please follow these gu
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Instead, send an email to: **security@github.com**
+Instead, send an email to: **security@example.com**
 
 Include the following information in your report:
 
@@ -79,7 +79,7 @@ This project implements several security measures:
 
 ## Security Contacts
 
-- **Security Team**: security@github.com
+- **Security Team**: security@example.com
 - **Maintainer**: [GitHub Maintainer Username]
 
 ## Security Acknowledgments

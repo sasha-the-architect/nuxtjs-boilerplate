@@ -6,9 +6,6 @@ export default defineNuxtPlugin(() => {
   if (process.client) {
     // Check if we're in the browser and Web Vitals is available
     if ('PerformanceObserver' in window && 'measure' in performance) {
-      // Enhanced performance monitoring with additional metrics
-      const perfEntries: PerformanceEntry[] = []
-
       // Send performance metrics to analytics or logging service
       const sendToAnalytics = (metric: {
         name: string

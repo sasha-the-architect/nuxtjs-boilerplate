@@ -136,7 +136,7 @@ jobs:
     steps:
       - name: Kumpulkan PR terbuka non-fork
         id: collect
-        uses: actions/github-script@v8
+        uses: actions/github-script@v7
         with:
           script: |
             const prs = await github.paginate(github.rest.pulls.list, {
