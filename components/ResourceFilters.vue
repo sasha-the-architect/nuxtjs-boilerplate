@@ -1,7 +1,9 @@
 <template>
   <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
     <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-medium text-gray-900">Filters</h3>
+      <h3 class="text-lg font-medium text-gray-900">
+        Filters
+      </h3>
       <button
         class="text-sm text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
         aria-label="Reset all filters"
@@ -11,217 +13,77 @@
       </button>
     </div>
 
-    <!-- Category Filter -->
-    <div class="mb-6">
-      <h4 class="text-sm font-medium text-gray-900 mb-3">Category</h4>
-      <div
-        role="group"
-        :aria-label="'Category filters'"
-        class="space-y-2 max-h-40 overflow-y-auto"
-      >
-        <label
-          v-for="category in categories"
-          :key="category"
-          class="flex items-center justify-between cursor-pointer"
-          @keydown.enter="toggleCategory(category)"
-          @keydown.space.prevent="toggleCategory(category)"
-        >
-          <div class="flex items-center">
-            <input
-              type="checkbox"
-              :value="category"
-              :checked="selectedCategories.includes(category)"
-              class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
-              :aria-label="`Filter by ${category} (${getCountForOption(category, 'category')} results)`"
-              @change="toggleCategory(category)"
-            />
-            <span class="ml-2 text-sm text-gray-800">{{ category }}</span>
-          </div>
-          <span
-            class="ml-2 text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-0.5"
-            aria-label="result count"
-          >
-            {{ getCountForOption(category, 'category') }}
-          </span>
-        </label>
-      </div>
-    </div>
+    <FilterSection
+      id="category"
+      label="Category"
+      aria-label="Category filters"
+      :options="categories"
+      :selected-options="selectedCategories"
+      :show-count="true"
+      :get-count-for-option="getCategoryCount"
+      @toggle="toggleCategory"
+    />
 
-    <!-- Pricing Model Filter -->
-    <div class="mb-6">
-      <h4 class="text-sm font-medium text-gray-900 mb-3">Pricing Model</h4>
-      <div
-        role="group"
-        :aria-label="'Pricing model filters'"
-        class="space-y-2 max-h-40 overflow-y-auto"
-      >
-        <label
-          v-for="pricingModel in pricingModels"
-          :key="pricingModel"
-          class="flex items-center justify-between cursor-pointer"
-          @keydown.enter="togglePricingModel(pricingModel)"
-          @keydown.space.prevent="togglePricingModel(pricingModel)"
-        >
-          <div class="flex items-center">
-            <input
-              type="checkbox"
-              :value="pricingModel"
-              :checked="selectedPricingModels.includes(pricingModel)"
-              class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
-              :aria-label="`Filter by ${pricingModel} (${getCountForOption(pricingModel, 'pricing')} results)`"
-              @change="togglePricingModel(pricingModel)"
-            />
-            <span class="ml-2 text-sm text-gray-800">{{ pricingModel }}</span>
-          </div>
-          <span
-            class="ml-2 text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-0.5"
-            aria-label="result count"
-          >
-            {{ getCountForOption(pricingModel, 'pricing') }}
-          </span>
-        </label>
-      </div>
-    </div>
+    <FilterSection
+      id="pricing"
+      label="Pricing Model"
+      aria-label="Pricing model filters"
+      :options="pricingModels"
+      :selected-options="selectedPricingModels"
+      :show-count="true"
+      :get-count-for-option="getPricingCount"
+      @toggle="togglePricingModel"
+    />
 
-    <!-- Difficulty Level Filter -->
-    <div class="mb-6">
-      <h4 class="text-sm font-medium text-gray-900 mb-3">Difficulty</h4>
-      <div
-        role="group"
-        :aria-label="'Difficulty level filters'"
-        class="space-y-2 max-h-40 overflow-y-auto"
-      >
-        <label
-          v-for="difficulty in difficultyLevels"
-          :key="difficulty"
-          class="flex items-center justify-between cursor-pointer"
-          @keydown.enter="toggleDifficultyLevel(difficulty)"
-          @keydown.space.prevent="toggleDifficultyLevel(difficulty)"
-        >
-          <div class="flex items-center">
-            <input
-              type="checkbox"
-              :value="difficulty"
-              :checked="selectedDifficultyLevels.includes(difficulty)"
-              class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
-              :aria-label="`Filter by ${difficulty} (${getCountForOption(difficulty, 'difficulty')} results)`"
-              @change="toggleDifficultyLevel(difficulty)"
-            />
-            <span class="ml-2 text-sm text-gray-800">{{ difficulty }}</span>
-          </div>
-          <span
-            class="ml-2 text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-0.5"
-            aria-label="result count"
-          >
-            {{ getCountForOption(difficulty, 'difficulty') }}
-          </span>
-        </label>
-      </div>
-    </div>
+    <FilterSection
+      id="difficulty"
+      label="Difficulty"
+      aria-label="Difficulty level filters"
+      :options="difficultyLevels"
+      :selected-options="selectedDifficultyLevels"
+      :show-count="true"
+      :get-count-for-option="getDifficultyCount"
+      @toggle="toggleDifficultyLevel"
+    />
 
-    <!-- Technology Filter -->
-    <div class="mb-6">
-      <h4 class="text-sm font-medium text-gray-900 mb-3">Technology</h4>
-      <div
-        role="group"
-        :aria-label="'Technology filters'"
-        class="space-y-2 max-h-40 overflow-y-auto"
-      >
-        <label
-          v-for="technology in technologies"
-          :key="technology"
-          class="flex items-center justify-between cursor-pointer"
-          @keydown.enter="toggleTechnology(technology)"
-          @keydown.space.prevent="toggleTechnology(technology)"
-        >
-          <div class="flex items-center">
-            <input
-              type="checkbox"
-              :value="technology"
-              :checked="selectedTechnologies.includes(technology)"
-              class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
-              :aria-label="`Filter by ${technology} (${getCountForOption(technology, 'technology')} results)`"
-              @change="toggleTechnology(technology)"
-            />
-            <span class="ml-2 text-sm text-gray-800">{{ technology }}</span>
-          </div>
-          <span
-            class="ml-2 text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-0.5"
-            aria-label="result count"
-          >
-            {{ getCountForOption(technology, 'technology') }}
-          </span>
-        </label>
-      </div>
-    </div>
+    <FilterSection
+      id="technology"
+      label="Technology"
+      aria-label="Technology filters"
+      :options="technologies"
+      :selected-options="selectedTechnologies"
+      :show-count="true"
+      :get-count-for-option="getTechnologyCount"
+      @toggle="toggleTechnology"
+    />
 
-    <!-- Tags Filter -->
-    <div class="mb-6">
-      <h4 class="text-sm font-medium text-gray-900 mb-3">Tags</h4>
-      <div
-        role="group"
-        :aria-label="'Tag filters'"
-        class="space-y-2 max-h-40 overflow-y-auto"
-      >
-        <label
-          v-for="tag in tags"
-          :key="tag"
-          class="flex items-center cursor-pointer"
-          @keydown.enter="toggleTag(tag)"
-          @keydown.space.prevent="toggleTag(tag)"
-        >
-          <input
-            type="checkbox"
-            :value="tag"
-            :checked="selectedTags.includes(tag)"
-            class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
-            :aria-label="`Filter by ${tag}`"
-            @change="toggleTag(tag)"
-          />
-          <span class="ml-2 text-sm text-gray-800">{{ tag }}</span>
-        </label>
-      </div>
-    </div>
+    <FilterSection
+      id="tags"
+      label="Tags"
+      aria-label="Tag filters"
+      :options="tags"
+      :selected-options="selectedTags"
+      :show-count="false"
+      :get-count-for-option="undefined"
+      @toggle="toggleTag"
+    />
 
-    <!-- Benefits Filter -->
-    <div v-if="allBenefits.length > 0" class="mb-6">
-      <h4 class="text-sm font-medium text-gray-900 mb-3">Benefits</h4>
-      <div
-        role="group"
-        :aria-label="'Benefit filters'"
-        class="space-y-2 max-h-40 overflow-y-auto"
-      >
-        <label
-          v-for="benefit in allBenefits"
-          :key="benefit"
-          class="flex items-center justify-between cursor-pointer"
-          @keydown.enter="toggleBenefit(benefit)"
-          @keydown.space.prevent="toggleBenefit(benefit)"
-        >
-          <div class="flex items-center">
-            <input
-              type="checkbox"
-              :value="benefit"
-              :checked="selectedBenefits.includes(benefit)"
-              class="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
-              :aria-label="`Filter by ${benefit} (${getCountForOption(benefit, 'benefits')} results)`"
-              @change="toggleBenefit(benefit)"
-            />
-            <span class="ml-2 text-sm text-gray-800">{{ benefit }}</span>
-          </div>
-          <span
-            class="ml-2 text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-0.5"
-            aria-label="result count"
-          >
-            {{ getCountForOption(benefit, 'benefits') }}
-          </span>
-        </label>
-      </div>
-    </div>
+    <FilterSection
+      v-if="allBenefits.length > 0"
+      id="benefits"
+      label="Benefits"
+      aria-label="Benefit filters"
+      :options="allBenefits"
+      :selected-options="selectedBenefits"
+      :show-count="true"
+      :get-count-for-option="getBenefitCount"
+      @toggle="toggleBenefit"
+    />
 
-    <!-- Date Added Filter -->
-    <div class="mb-6">
-      <h4 class="text-sm font-medium text-gray-900 mb-3">Date Added</h4>
+    <fieldset class="mb-6">
+      <legend class="text-sm font-medium text-gray-900 mb-3">
+        Date Added
+      </legend>
       <div
         role="radiogroup"
         aria-label="Filter by date added"
@@ -235,7 +97,7 @@
             :checked="selectedDateRange === 'anytime'"
             class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
             @change="onDateRangeChange('anytime')"
-          />
+          >
           <span class="ml-2 text-sm text-gray-800">Any time</span>
         </label>
         <label class="flex items-center">
@@ -246,7 +108,7 @@
             :checked="selectedDateRange === 'lastWeek'"
             class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
             @change="onDateRangeChange('lastWeek')"
-          />
+          >
           <span class="ml-2 text-sm text-gray-800">Last week</span>
         </label>
         <label class="flex items-center">
@@ -257,7 +119,7 @@
             :checked="selectedDateRange === 'lastMonth'"
             class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
             @change="onDateRangeChange('lastMonth')"
-          />
+          >
           <span class="ml-2 text-sm text-gray-800">Last month</span>
         </label>
         <label class="flex items-center">
@@ -268,13 +130,12 @@
             :checked="selectedDateRange === 'lastYear'"
             class="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
             @change="onDateRangeChange('lastYear')"
-          />
+          >
           <span class="ml-2 text-sm text-gray-800">Last year</span>
         </label>
       </div>
-    </div>
+    </fieldset>
 
-    <!-- Saved Searches -->
     <SavedSearches
       v-if="savedSearches && savedSearches.length > 0"
       :saved-searches="savedSearches"
@@ -287,6 +148,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import SavedSearches from '~/components/SavedSearches.vue'
+import FilterSection from '~/components/FilterSection.vue'
 
 interface FacetCounts {
   [key: string]: number
@@ -311,7 +173,6 @@ interface Props {
   savedSearches?: Array<{ name: string; query: string; createdAt: Date }>
 }
 
-/* eslint-disable */
 interface Emits {
   (event: 'toggle-category', category: string): void
   (event: 'toggle-pricing-model', pricingModel: string): void
@@ -327,7 +188,6 @@ interface Emits {
   ): void
   (event: 'remove-saved-search', query: string): void
 }
-/* eslint-enable */
 
 const props = withDefaults(defineProps<Props>(), {
   searchQuery: '',
@@ -336,6 +196,7 @@ const props = withDefaults(defineProps<Props>(), {
   selectedDateRange: 'anytime',
   savedSearches: () => [],
 })
+
 const emit = defineEmits<Emits>()
 
 const toggleCategory = (category: string) => {
@@ -370,7 +231,6 @@ const onResetFilters = () => {
   emit('reset-filters')
 }
 
-// Computed property to get unique benefits from all resources
 const allBenefits = computed(() => {
   const uniqueBenefits = new Set<string>()
   Object.keys(props.facetCounts || {}).forEach(key => {
@@ -382,13 +242,29 @@ const allBenefits = computed(() => {
   return Array.from(uniqueBenefits)
 })
 
-// Helper function to get count for a specific filter option
-const getCountForOption = (option: string, filterType: string): number => {
+const getCategoryCount = (option: string): number => {
   if (!props.facetCounts) return 0
+  return props.facetCounts[`category_${option}`] || 0
+}
 
-  // The facetCounts should be structured as [filterType]_[option] = count
-  const key = `${filterType}_${option}`
-  return props.facetCounts[key] || 0
+const getPricingCount = (option: string): number => {
+  if (!props.facetCounts) return 0
+  return props.facetCounts[`pricing_${option}`] || 0
+}
+
+const getDifficultyCount = (option: string): number => {
+  if (!props.facetCounts) return 0
+  return props.facetCounts[`difficulty_${option}`] || 0
+}
+
+const getTechnologyCount = (option: string): number => {
+  if (!props.facetCounts) return 0
+  return props.facetCounts[`technology_${option}`] || 0
+}
+
+const getBenefitCount = (option: string): number => {
+  if (!props.facetCounts) return 0
+  return props.facetCounts[`benefits_${option}`] || 0
 }
 
 const onUseSavedSearch = (search: {
