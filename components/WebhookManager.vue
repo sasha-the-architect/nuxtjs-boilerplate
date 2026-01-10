@@ -34,7 +34,7 @@
         {{ errorMessage }}
       </div>
 
-      <form novalidate @submit.prevent="createWebhook">
+      <form novalidate @submit.prevent="handleCreateWebhook">
         <div class="form-group">
           <label for="webhook-url"
             >Webhook URL <span aria-hidden="true">*</span>
@@ -171,7 +171,7 @@
             <button
               class="btn btn-sm btn-danger"
               aria-label="Delete webhook"
-              @click="deleteWebhook(webhook.id)"
+              @click="handleDeleteWebhook(webhook)"
             >
               Delete
             </button>
@@ -183,132 +183,37 @@
 </template>
 
 <script setup lang="ts">
-import logger from '~/utils/logger'
 import type { Webhook } from '~/types/webhook'
+import { useWebhooksManager } from '~/composables/useWebhooksManager'
 
 const showCreateForm = ref(false)
-const webhooks = ref<Webhook[]>([])
-const loading = ref(true)
-const errorMessage = ref('')
-const announcement = ref('')
 
-const newWebhook = reactive({
-  url: '',
-  events: [] as string[],
-  active: true,
-})
+const {
+  webhooks,
+  loading,
+  errorMessage,
+  announcement,
+  newWebhook,
+  availableEvents,
+  fetchWebhooks,
+  createWebhook,
+  toggleWebhook,
+  deleteWebhook,
+  resetForm,
+} = useWebhooksManager()
 
-const availableEvents = [
-  'resource.created',
-  'resource.updated',
-  'resource.deleted',
-  'resource.approved',
-  'user.registered',
-  'submission.received',
-]
-
-// Fetch webhooks
-const fetchWebhooks = async () => {
-  try {
-    loading.value = true
-    errorMessage.value = ''
-    const response = await $fetch('/api/v1/webhooks')
-    webhooks.value = response.data
-  } catch (error) {
-    logger.error('Error fetching webhooks:', error)
-    errorMessage.value = 'Failed to fetch webhooks. Please try again.'
-  } finally {
-    loading.value = false
-  }
-}
-
-// Create new webhook
-const createWebhook = async () => {
-  errorMessage.value = ''
-
-  if (!newWebhook.url) {
-    errorMessage.value = 'Webhook URL is required.'
-    return
-  }
-
-  if (!newWebhook.events || newWebhook.events.length === 0) {
-    errorMessage.value = 'At least one event must be selected.'
-    return
-  }
-
-  try {
-    await $fetch('/api/v1/webhooks', {
-      method: 'POST',
-      body: newWebhook,
-    })
-
-    announcement.value = 'Webhook created successfully'
-
-    setTimeout(() => {
-      announcement.value = ''
-    }, 3000)
-
-    // Reset form
-    newWebhook.url = ''
-    newWebhook.events = []
-    newWebhook.active = true
+const handleCreateWebhook = async () => {
+  const success = await createWebhook(newWebhook)
+  if (success) {
+    resetForm()
     showCreateForm.value = false
-
-    // Refresh list
-    await fetchWebhooks()
-  } catch (error) {
-    logger.error('Error creating webhook:', error)
-    errorMessage.value = 'Failed to create webhook. Please try again.'
   }
 }
 
-// Toggle webhook active status
-const toggleWebhook = async (webhook: Webhook) => {
-  try {
-    const newStatus = !webhook.active
-    await $fetch(`/api/v1/webhooks/${webhook.id}`, {
-      method: 'PUT',
-      body: { active: newStatus },
-    })
-
-    announcement.value = newStatus ? 'Webhook activated' : 'Webhook deactivated'
-
-    setTimeout(() => {
-      announcement.value = ''
-    }, 3000)
-
-    // Refresh list
-    await fetchWebhooks()
-  } catch (error) {
-    logger.error('Error toggling webhook:', error)
-    errorMessage.value = 'Failed to update webhook status. Please try again.'
-  }
+const handleDeleteWebhook = async (webhook: Webhook) => {
+  await deleteWebhook(webhook)
 }
 
-// Delete webhook
-const deleteWebhook = async (id: string) => {
-  if (confirm('Are you sure you want to delete this webhook?')) {
-    try {
-      await $fetch(`/api/v1/webhooks/${id}`, {
-        method: 'DELETE',
-      })
-
-      announcement.value = 'Webhook deleted successfully'
-
-      setTimeout(() => {
-        announcement.value = ''
-      }, 3000)
-
-      // Refresh list
-      await fetchWebhooks()
-    } catch (error) {
-      logger.error('Error deleting webhook:', error)
-      errorMessage.value = 'Failed to delete webhook. Please try again.'
-    }
-  }
-}
-
-// Load webhooks on component mount
 onMounted(() => {
   fetchWebhooks()
 })
