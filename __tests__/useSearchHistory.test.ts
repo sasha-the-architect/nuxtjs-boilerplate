@@ -123,8 +123,8 @@ describe('useSearchHistory', () => {
 
     const {
       getSearchHistory,
-      addSearchToHistory,
-      clearSearchHistory,
+      addSearchToHistory: _addSearchToHistory,
+      clearSearchHistory: _clearSearchHistory,
       removeSearch,
     } = useSearchHistory()
 
