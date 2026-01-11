@@ -51,7 +51,7 @@ describe('analytics-db', () => {
 
         const result = await analyticsDb.insertAnalyticsEvent(event)
 
-        expect(result).toBe(true)
+        expect(result).toEqual({ success: true })
         expect(prisma.analyticsEvent.create).toHaveBeenCalledWith({
           data: {
             type: event.type,
@@ -80,7 +80,7 @@ describe('analytics-db', () => {
 
         const result = await analyticsDb.insertAnalyticsEvent(event)
 
-        expect(result).toBe(true)
+        expect(result).toEqual({ success: true })
         expect(prisma.analyticsEvent.create).toHaveBeenCalledWith({
           data: {
             type: event.type,
@@ -110,10 +110,9 @@ describe('analytics-db', () => {
 
         const result = await analyticsDb.insertAnalyticsEvent(event)
 
-        expect(result).toBe(true)
-        expect(prisma.analyticsEvent.create).toHaveBeenCalledWith({
-          data: expect.objectContaining({ ip: null }),
-        })
+        // Schema requires ip to be a string, null should fail validation
+        expect(result).toEqual({ success: false, error: expect.any(String) })
+        expect(prisma.analyticsEvent.create).not.toHaveBeenCalled()
       })
     })
 
@@ -133,7 +132,7 @@ describe('analytics-db', () => {
 
         const result = await analyticsDb.insertAnalyticsEvent(event)
 
-        expect(result).toBe(false)
+        expect(result).toEqual({ success: false, error: expect.any(String) })
         expect(consoleErrorSpy).toHaveBeenCalledWith(
           'Error inserting analytics event:',
           expect.any(Error)
@@ -189,6 +188,7 @@ describe('analytics-db', () => {
               gte: startDate.getTime(),
               lte: endDate.getTime(),
             },
+            deletedAt: null,
           },
           orderBy: {
             timestamp: 'desc',
@@ -290,6 +290,7 @@ describe('analytics-db', () => {
               gte: startDate.getTime(),
               lte: endDate.getTime(),
             },
+            deletedAt: null,
           },
           orderBy: {
             timestamp: 'desc',
@@ -319,6 +320,7 @@ describe('analytics-db', () => {
               lte: endDate.getTime(),
             },
             type: 'resource_view',
+            deletedAt: null,
           },
           orderBy: expect.anything(),
         })

@@ -98,7 +98,7 @@ describe('Resource Lifecycle Components', () => {
       })
 
       expect(wrapper.text()).toContain('Deprecated Resource')
-      expect(wrapper.text()).toContain('migration path')
+      expect(wrapper.text()).toContain('Migration Path')
     })
 
     it('shows discontinuation notice for discontinued resources', () => {
