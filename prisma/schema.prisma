@@ -29,6 +29,9 @@ model AnalyticsEvent {
   @@index([ip, timestamp])
   @@index([category, timestamp])
   @@index([deletedAt])
+  @@index([resourceId, type, timestamp, deletedAt])
+  @@index([timestamp, deletedAt])
+  @@index([ip, timestamp, deletedAt])
 }
 
 // Valid event type values (enforced at application layer via Zod):
