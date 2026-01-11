@@ -24,8 +24,8 @@ export interface UserContributions {
 }
 
 export interface UserPrivacy {
-  showEmail: boolean
-  showActivity: boolean
+  showEmail?: boolean
+  showActivity?: boolean
 }
 
 export interface CreateUserData {

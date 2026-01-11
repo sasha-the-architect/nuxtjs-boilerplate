@@ -418,7 +418,8 @@ describe('useModeration', () => {
 
       const userFlags = manager.getUserFlags('user-1')
 
-      expect(userFlags).toHaveLength(0)
+      expect(userFlags).toHaveLength(2)
+      expect(userFlags.every(f => f.userId === 'user-1')).toBe(true)
     })
 
     it('should return empty array for user with no flags', () => {

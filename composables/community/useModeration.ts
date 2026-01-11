@@ -125,7 +125,7 @@ export const useModeration = (
 
   const getUserFlags = (userId: string): Flag[] => {
     // O(n) filter on flags array (acceptable for user-based queries)
-    return flags.value.filter(f => f.flaggedBy === userId)
+    return flags.value.filter(f => f.userId === userId)
   }
 
   const getModeratedBy = (moderatorId: string): Flag[] => {

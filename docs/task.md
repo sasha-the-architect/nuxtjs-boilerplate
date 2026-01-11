@@ -1,3 +1,138 @@
+# Code Architect Task
+
+## Date: 2026-01-11
+
+## Agent: Principal Software Architect
+
+## Branch: agent
+
+---
+
+## [BUG FIXES] Community Composables ✅ COMPLETED (2026-01-11)
+
+### Overview
+
+Fixed 2 critical bugs found during testing in community composables - `useModeration` and `useUserProfiles`. These fixes address functional defects that prevented proper operation of community moderation and user profile management features.
+
+### Success Criteria
+
+- [x] Bugs fixed - Both reported bugs resolved
+- [x] Tests pass - All community composable tests pass (115 total)
+- [x] Type safety improved - UserPrivacy interface fixed
+- [x] Zero regressions - No new test failures introduced
+
+### 1. Bug 1: getUserFlags Property Mismatch (MEDIUM Severity) ✅
+
+**Location**: `composables/community/useModeration.ts:128`
+
+**Issue**:
+
+- When creating a flag, `flagContent` sets `userId` property to `currentUser.id`
+- When filtering flags, `getUserFlags` filtered by `flaggedBy` property
+- Since `flaggedBy` was never set (optional field), `getUserFlags` always returned empty array
+
+**Fix Applied**:
+
+Changed `getUserFlags` to filter by `userId` instead of `flaggedBy`:
+
+```typescript
+// Before (buggy):
+const getUserFlags = (userId: string): Flag[] => {
+  return flags.value.filter(f => f.flaggedBy === userId)
+}
+
+// After (fixed):
+const getUserFlags = (userId: string): Flag[] => {
+  return flags.value.filter(f => f.userId === userId)
+}
+```
+
+**Test Updated**:
+
+Updated test in `__tests__/community/useModeration.test.ts` to expect correct behavior:
+
+```typescript
+it('should return flags created by specific user', () => {
+  const manager = useModeration([], mockRemoveCommentByModerator)
+  manager.flagContent('comment', 'comment-1', 'spam', mockRegularUser)
+  manager.flagContent('comment', 'comment-1', 'abuse', mockRegularUser)
+  manager.flagContent('comment', 'comment-3', 'spam', mockModerator)
+
+  const userFlags = manager.getUserFlags('user-1')
+
+  expect(userFlags).toHaveLength(2) // Changed from 0 to 2
+  expect(userFlags.every(f => f.userId === 'user-1')).toBe(true)
+})
+```
+
+**Impact**:
+
+- Moderators can now see flags created by specific users
+- User-based flag queries return correct results
+- Test coverage validated with all 54 tests passing
+
+### 2. Bug 2: TypeScript Type Errors in useUserProfiles (LOW Severity) ✅
+
+**Location**: `types/community.ts:26-29`
+
+**Issue**:
+
+- `UserPrivacy` interface had required properties (`showEmail`, `showActivity`)
+- `UpdateUserData` interface had `privacy?: Partial<UserPrivacy>`
+- When spreading partial privacy updates, TypeScript couldn't guarantee all properties would be present
+
+**Fix Applied**:
+
+Made `UserPrivacy` properties optional to support partial updates:
+
+```typescript
+// Before (buggy):
+export interface UserPrivacy {
+  showEmail: boolean
+  showActivity: boolean
+}
+
+// After (fixed):
+export interface UserPrivacy {
+  showEmail?: boolean
+  showActivity?: boolean
+}
+```
+
+**Impact**:
+
+- TypeScript compilation errors resolved
+- Partial privacy updates now type-safe
+- User profile updates work correctly with partial privacy data
+
+### Files Modified
+
+1. `composables/community/useModeration.ts` - Fixed getUserFlags filter (1 line)
+2. `types/community.ts` - Made UserPrivacy properties optional (2 lines)
+3. `__tests__/community/useModeration.test.ts` - Updated test to expect correct behavior (2 lines)
+
+### Test Results
+
+- `useModeration` tests: **54/54 passing** ✅
+- `useUserProfiles` tests: **61/61 passing** ✅
+- **Total: 115/115 passing** ✅
+
+### Architectural Principles Applied
+
+✅ **Type Safety**: Fixed TypeScript compilation errors
+✅ **Bug Fixes**: Resolved functional defects in community features
+✅ **Test Accuracy**: Updated tests to validate correct behavior
+✅ **Zero Regressions**: All existing tests still pass
+
+### Anti-Patterns Avoided
+
+✅ **No Broken Functionality**: Bugs fixed without breaking existing features
+✅ **No Type Errors**: TypeScript compilation successful
+✅ **No Test Failures**: All community tests pass
+✅ **No Inconsistent Types**: Unified type system maintained
+
+---
+
 # Technical Writer Task
 
 ## Date: 2026-01-10
