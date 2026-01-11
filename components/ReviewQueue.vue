@@ -95,14 +95,12 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const {
-  submissions,
   loading,
   error,
   statusFilter,
   categoryFilter,
   filteredSubmissions,
   formatDate,
-  fetchSubmissions,
 } = useReviewQueue(props.initialSubmissions)
 </script>
 
