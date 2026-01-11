@@ -581,23 +581,24 @@ HTTP Delivery (10s timeout, HMAC signature)
 
 ### Integration Decision Log
 
-| Date       | Decision                                              | Rationale                                                                                                                                   |
-| ---------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2025-01-07 | Implement circuit breaker pattern                     | Prevent cascading failures from external services                                                                                           |
-| 2025-01-07 | Add exponential backoff with jitter                   | Prevent thundering herd on retries, improve distributed system resilience                                                                   |
-| 2025-01-07 | Standardize error responses with codes and categories | Consistent client error handling, better debugging and monitoring                                                                           |
-| 2025-01-07 | Create retry presets for different operation types    | Appropriate retry strategies for different use cases                                                                                        |
-| 2025-01-07 | Add circuit breaker stats monitoring                  | Proactive identification of failing services                                                                                                |
-| 2025-01-08 | Standardize API endpoints with error helpers          | Replace custom error responses with standardized helpers, improve consistency                                                               |
-| 2026-01-09 | Complete API standardization across all endpoints     | All API endpoints now use centralized error response helpers for consistency                                                                |
-| 2026-01-09 | Implement webhook idempotency keys                    | Prevent duplicate webhook deliveries for same event (at-least-once semantics)                                                               |
-| 2026-01-09 | Add async webhook delivery queue                      | Prevent API blocking on webhook delivery, improve response times by 95%                                                                     |
-| 2026-01-09 | Implement webhook dead letter queue                   | Preserve failed webhooks for manual inspection and retry, prevent data loss                                                                 |
-| 2026-01-09 | Add webhook retry with exponential backoff            | Automatic retry for transient failures with proper backoff and jitter                                                                       |
-| 2026-01-10 | Add Zod schemas for API validation                    | Consistent validation across all API endpoints with type-safe schemas                                                                       |
-| 2026-01-10 | Standardize API response format                       | All endpoints use sendSuccessResponse helper for consistent output                                                                          |
-| 2026-01-10 | Pre-computed Lookup Maps for Search Suggestions       | Added computed Maps for tag/category counts, eliminating O(n²) array scans in suggestion generation                                         |
-| 2026-01-10 | Complete API documentation in OpenAPI spec            | Added 10+ missing API endpoints including alternatives, health checks, submissions, moderation, webhook queue management, dead letter retry |
+| Date       | Decision                                              | Rationale                                                                                                                                      |
+| ---------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2025-01-07 | Implement circuit breaker pattern                     | Prevent cascading failures from external services                                                                                              |
+| 2025-01-07 | Add exponential backoff with jitter                   | Prevent thundering herd on retries, improve distributed system resilience                                                                      |
+| 2025-01-07 | Standardize error responses with codes and categories | Consistent client error handling, better debugging and monitoring                                                                              |
+| 2025-01-07 | Create retry presets for different operation types    | Appropriate retry strategies for different use cases                                                                                           |
+| 2025-01-07 | Add circuit breaker stats monitoring                  | Proactive identification of failing services                                                                                                   |
+| 2025-01-08 | Standardize API endpoints with error helpers          | Replace custom error responses with standardized helpers, improve consistency                                                                  |
+| 2026-01-09 | Complete API standardization across all endpoints     | All API endpoints now use centralized error response helpers for consistency                                                                   |
+| 2026-01-09 | Implement webhook idempotency keys                    | Prevent duplicate webhook deliveries for same event (at-least-once semantics)                                                                  |
+| 2026-01-09 | Add async webhook delivery queue                      | Prevent API blocking on webhook delivery, improve response times by 95%                                                                        |
+| 2026-01-09 | Implement webhook dead letter queue                   | Preserve failed webhooks for manual inspection and retry, prevent data loss                                                                    |
+| 2026-01-09 | Add webhook retry with exponential backoff            | Automatic retry for transient failures with proper backoff and jitter                                                                          |
+| 2026-01-10 | Add Zod schemas for API validation                    | Consistent validation across all API endpoints with type-safe schemas                                                                          |
+| 2026-01-10 | Standardize API response format                       | All endpoints use sendSuccessResponse helper for consistent output                                                                             |
+| 2026-01-10 | Pre-computed Lookup Maps for Search Suggestions       | Added computed Maps for tag/category counts, eliminating O(n²) array scans in suggestion generation                                            |
+| 2026-01-10 | Complete API documentation in OpenAPI spec            | Added 10+ missing API endpoints including alternatives, health checks, submissions, moderation, webhook queue management, dead letter retry    |
+| 2026-01-11 | Complete API documentation - Add 4 missing endpoints  | Added JSON export, XML sitemap, resource comparisons, analytics data endpoints with proper schemas, reaching 100% endpoint coverage (45 total) |
 
 ## 📦 Configuration Architecture
 

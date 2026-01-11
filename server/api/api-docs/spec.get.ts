@@ -42,6 +42,7 @@ export default defineEventHandler(async () => {
       { name: 'Validation', description: 'URL validation' },
       { name: 'Export', description: 'Data export' },
       { name: 'User', description: 'User preferences and settings' },
+      { name: 'Sitemap', description: 'XML sitemap for SEO' },
     ],
     paths: {
       '/api/v1/resources': {
@@ -3343,6 +3344,316 @@ export default defineEventHandler(async () => {
           },
         },
       },
+      '/api/v1/export/json': {
+        get: {
+          summary: 'Export resources as JSON',
+          description:
+            'Export all resources in JSON format. Returns array of all resources with Content-Disposition header for file download.',
+          operationId: 'exportResourcesJson',
+          tags: ['Export'],
+          responses: {
+            '200': {
+              description: 'JSON export of all resources',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'array',
+                    items: {
+                      $ref: '#/components/schemas/Resource',
+                    },
+                  },
+                },
+              },
+              headers: {
+                'Content-Disposition': {
+                  description: 'File attachment with filename',
+                  schema: {
+                    type: 'string',
+                    example: 'attachment; filename="resources.json"',
+                  },
+                },
+              },
+            },
+            '500': {
+              description: 'Internal server error',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/sitemap': {
+        get: {
+          summary: 'Get XML sitemap',
+          description:
+            'Retrieve XML sitemap for SEO indexing. Includes static pages with priorities and change frequencies.',
+          operationId: 'getSitemap',
+          tags: ['Sitemap'],
+          responses: {
+            '200': {
+              description: 'XML sitemap',
+              content: {
+                'application/xml': {
+                  schema: {
+                    type: 'string',
+                    example:
+                      '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url>\n    <loc>https://example.com</loc>\n    <priority>1.0</priority>\n  </url>\n</urlset>',
+                  },
+                },
+              },
+            },
+            '500': {
+              description: 'Sitemap generation error',
+              content: {
+                'application/xml': {
+                  schema: {
+                    type: 'string',
+                    example:
+                      '<?xml version="1.0" encoding="UTF-8"?>\n<error>\n  <message>Failed to generate sitemap</message>\n</error>',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/v1/comparisons/index': {
+        get: {
+          summary: 'Compare resources',
+          description:
+            'Compare multiple resources side-by-side. Accepts comma-separated resource IDs and returns comparison data with caching.',
+          operationId: 'compareResources',
+          tags: ['Resources'],
+          parameters: [
+            {
+              name: 'ids',
+              in: 'query',
+              required: true,
+              description: 'Comma-separated list of resource IDs to compare',
+              schema: {
+                type: 'array',
+                items: { type: 'string' },
+                minItems: 2,
+                maxItems: 5,
+              },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Comparison result',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          comparison: {
+                            $ref: '#/components/schemas/ResourceComparison',
+                          },
+                          resources: {
+                            type: 'array',
+                            items: {
+                              $ref: '#/components/schemas/Resource',
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              headers: {
+                'X-Cache': {
+                  description: 'Cache status (HIT or MISS)',
+                  schema: { type: 'string', enum: ['HIT', 'MISS'] },
+                },
+                'X-Cache-Key': {
+                  description: 'Cache key used',
+                  schema: { type: 'string' },
+                },
+              },
+            },
+            '400': {
+              description: 'Bad request',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+            '404': {
+              description: 'Resource(s) not found',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+            '429': {
+              description: 'Rate limit exceeded',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+              headers: {
+                'Retry-After': {
+                  description: 'Seconds until retry is allowed',
+                  schema: { type: 'integer' },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/api/analytics/data': {
+        get: {
+          summary: 'Get analytics dashboard data',
+          description:
+            'Retrieve aggregated analytics data for dashboard display. Includes top resources, categories, and date-range filtering with rate limiting.',
+          operationId: 'getAnalyticsDashboardData',
+          tags: ['Analytics'],
+          parameters: [
+            {
+              name: 'startDate',
+              in: 'query',
+              required: false,
+              description:
+                'Start date for analytics data (ISO 8601 format, defaults to 30 days ago)',
+              schema: { type: 'string', format: 'date-time' },
+            },
+            {
+              name: 'endDate',
+              in: 'query',
+              required: false,
+              description:
+                'End date for analytics data (ISO 8601 format, defaults to now)',
+              schema: { type: 'string', format: 'date-time' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Analytics dashboard data',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          totalEvents: { type: 'integer', example: 1234 },
+                          eventsByType: {
+                            type: 'object',
+                            additionalProperties: { type: 'integer' },
+                          },
+                          resourceViews: {
+                            type: 'object',
+                            additionalProperties: { type: 'integer' },
+                          },
+                          eventsByCategory: {
+                            type: 'object',
+                            additionalProperties: { type: 'integer' },
+                          },
+                          dailyTrends: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                date: { type: 'string' },
+                                count: { type: 'integer' },
+                              },
+                            },
+                          },
+                          topResources: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                id: { type: 'string' },
+                                title: { type: 'string' },
+                                views: { type: 'integer' },
+                              },
+                            },
+                          },
+                          topCategories: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                name: { type: 'string' },
+                                count: { type: 'integer' },
+                              },
+                            },
+                          },
+                        },
+                      },
+                      dateRange: {
+                        type: 'object',
+                        properties: {
+                          start: { type: 'string', format: 'date-time' },
+                          end: { type: 'string', format: 'date-time' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '400': {
+              description: 'Bad request',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+            '429': {
+              description: 'Rate limit exceeded',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+              headers: {
+                'Retry-After': {
+                  description: 'Seconds until retry is allowed',
+                  schema: { type: 'integer' },
+                },
+              },
+            },
+            '500': {
+              description: 'Internal server error',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ErrorResponse',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     components: {
       schemas: {
@@ -3656,6 +3967,51 @@ export default defineEventHandler(async () => {
               type: 'boolean',
               description: 'Whether there are previous items',
             },
+          },
+        },
+      },
+      ResourceComparison: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Unique comparison ID',
+            example: 'cmp_1704967234567_abc123',
+          },
+          resources: {
+            type: 'array',
+            description: 'List of resource IDs being compared',
+            items: { type: 'string' },
+            example: ['res_1', 'res_2', 'res_3'],
+          },
+          criteria: {
+            type: 'array',
+            description: 'Comparison criteria used',
+            items: { type: 'string' },
+            example: ['price', 'features', 'ease_of_use'],
+          },
+          scores: {
+            type: 'object',
+            description: 'Scoring data for each criterion',
+            additionalProperties: {
+              type: 'number',
+            },
+          },
+          createdAt: {
+            type: 'string',
+            format: 'date-time',
+            description: 'When comparison was created',
+            example: '2024-01-10T12:00:00Z',
+          },
+          isPublic: {
+            type: 'boolean',
+            description: 'Whether comparison is publicly accessible',
+            example: true,
+          },
+          slug: {
+            type: 'string',
+            description: 'URL-friendly identifier for sharing',
+            example: 'resource-a-vs-resource-b-vs-resource-c',
           },
         },
       },
