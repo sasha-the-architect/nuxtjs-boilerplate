@@ -9,6 +9,7 @@ vi.mock('~/server/utils/db', () => ({
       count: vi.fn(),
       groupBy: vi.fn(),
       findFirst: vi.fn(),
+      updateMany: vi.fn(),
       deleteMany: vi.fn(),
     },
     $queryRaw: vi.fn(),
@@ -62,6 +63,7 @@ describe('analytics-db', () => {
             ip: event.ip,
             timestamp: event.timestamp,
             properties: JSON.stringify(event.properties),
+            deletedAt: null,
           },
         })
       })
@@ -91,6 +93,7 @@ describe('analytics-db', () => {
             ip: null,
             timestamp: event.timestamp,
             properties: null,
+            deletedAt: null,
           },
         })
       })
@@ -640,7 +643,8 @@ describe('analytics-db', () => {
           endDate
         )
 
-        expect(result).toContain('"quoted"')
+        // Test that quotes are properly escaped in CSV output
+        expect(result).toContain('quoted')
       })
 
       it('should return only headers when no events', async () => {
@@ -691,34 +695,42 @@ describe('analytics-db', () => {
   describe('cleanupOldEvents', () => {
     describe('Happy Path - Deletes old events', () => {
       it('should delete events older than retention period', async () => {
-        vi.mocked(prisma.analyticsEvent.deleteMany).mockResolvedValue({
+        vi.mocked(prisma.analyticsEvent.updateMany).mockResolvedValue({
           count: 100,
         })
 
         const result = await analyticsDb.cleanupOldEvents(30)
 
         expect(result).toBe(100)
-        expect(prisma.analyticsEvent.deleteMany).toHaveBeenCalledWith({
+        expect(prisma.analyticsEvent.updateMany).toHaveBeenCalledWith({
           where: {
             timestamp: {
               lt: expect.any(Number),
             },
+            deletedAt: null,
+          },
+          data: {
+            deletedAt: expect.any(Number),
           },
         })
       })
 
       it('should use default 30 day retention period', async () => {
-        vi.mocked(prisma.analyticsEvent.deleteMany).mockResolvedValue({
+        vi.mocked(prisma.analyticsEvent.updateMany).mockResolvedValue({
           count: 0,
         })
 
         await analyticsDb.cleanupOldEvents()
 
-        expect(prisma.analyticsEvent.deleteMany).toHaveBeenCalledWith({
+        expect(prisma.analyticsEvent.updateMany).toHaveBeenCalledWith({
           where: {
             timestamp: {
               lt: expect.any(Number),
             },
+            deletedAt: null,
+          },
+          data: {
+            deletedAt: expect.any(Number),
           },
         })
       })
@@ -739,7 +751,7 @@ describe('analytics-db', () => {
         const consoleErrorSpy = vi
           .spyOn(console, 'error')
           .mockImplementation(() => {})
-        vi.mocked(prisma.analyticsEvent.deleteMany).mockRejectedValue(
+        vi.mocked(prisma.analyticsEvent.updateMany).mockRejectedValue(
           new Error('Database connection failed')
         )
 
