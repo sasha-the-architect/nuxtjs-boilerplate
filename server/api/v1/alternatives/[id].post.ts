@@ -57,7 +57,7 @@ export default defineEventHandler(async event => {
         alternativeRelationships.set(resourceId, currentAlternatives)
 
         // Also add reverse relationship
-        let reverseAlternatives =
+        const reverseAlternatives =
           alternativeRelationships.get(alternativeId) || []
         if (!reverseAlternatives.includes(resourceId)) {
           reverseAlternatives.push(resourceId)

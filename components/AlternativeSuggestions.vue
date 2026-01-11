@@ -1,5 +1,8 @@
 <template>
-  <div v-if="alternatives.length > 0" class="mt-12">
+  <div
+    v-if="alternatives.length > 0"
+    class="mt-12"
+  >
     <h2 class="text-2xl font-bold text-gray-900 mb-6">
       Alternative Suggestions
     </h2>

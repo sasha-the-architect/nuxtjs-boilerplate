@@ -3,28 +3,50 @@
     <div class="queue-header">
       <h2>Moderation Queue</h2>
       <div class="queue-filters">
-        <select v-model="statusFilter" class="filter-select">
-          <option value="">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
+        <select
+          v-model="statusFilter"
+          class="filter-select"
+        >
+          <option value="">
+            All Statuses
+          </option>
+          <option value="pending">
+            Pending
+          </option>
+          <option value="approved">
+            Approved
+          </option>
+          <option value="rejected">
+            Rejected
+          </option>
         </select>
         <input
           v-model="categoryFilter"
           type="text"
           placeholder="Filter by category..."
           class="filter-input"
-        />
+        >
       </div>
     </div>
 
-    <div v-if="loading" class="loading">Loading submissions...</div>
+    <div
+      v-if="loading"
+      class="loading"
+    >
+      Loading submissions...
+    </div>
 
-    <div v-else-if="error" class="error">
+    <div
+      v-else-if="error"
+      class="error"
+    >
       {{ error }}
     </div>
 
-    <div v-else class="queue-list">
+    <div
+      v-else
+      class="queue-list"
+    >
       <div
         v-for="submission in filteredSubmissions"
         :key="submission.id"
@@ -38,17 +60,13 @@
         </div>
 
         <div class="submission-details">
-          <p class="description">{{ submission.resourceData?.description }}</p>
+          <p class="description">
+            {{ submission.resourceData?.description }}
+          </p>
           <div class="meta-info">
-            <span class="category"
-              >Category: {{ submission.resourceData?.category }}</span
-            >
-            <span class="submitted-by"
-              >Submitted by: {{ submission.submittedBy }}</span
-            >
-            <span class="submitted-at"
-              >Submitted: {{ formatDate(submission.submittedAt) }}</span
-            >
+            <span class="category">Category: {{ submission.resourceData?.category }}</span>
+            <span class="submitted-by">Submitted by: {{ submission.submittedBy }}</span>
+            <span class="submitted-at">Submitted: {{ formatDate(submission.submittedAt) }}</span>
           </div>
 
           <div class="tags">

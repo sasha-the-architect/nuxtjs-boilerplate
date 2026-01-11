@@ -42,7 +42,10 @@
         </div>
 
         <div class="mt-8 space-y-4">
-          <details v-if="error.message" class="text-left inline-block">
+          <details
+            v-if="error.message"
+            class="text-left inline-block"
+          >
             <summary class="text-sm text-gray-500 cursor-pointer">
               Error Details
             </summary>

@@ -7,7 +7,7 @@ import {
 } from '~/server/utils/api-response'
 
 // Mock data for demonstration - in a real application, this would come from a database
-let mockSubmissions: Submission[] = [
+const mockSubmissions: Submission[] = [
   {
     id: 'sub_1648729345_abc123',
     resourceData: {

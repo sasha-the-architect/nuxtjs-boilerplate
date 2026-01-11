@@ -26,10 +26,16 @@
           </svg>
         </div>
         <div>
-          <h3 id="pwa-install-title" class="font-medium text-gray-900">
+          <h3
+            id="pwa-install-title"
+            class="font-medium text-gray-900"
+          >
             Install App
           </h3>
-          <p id="pwa-install-description" class="text-sm text-gray-500">
+          <p
+            id="pwa-install-description"
+            class="text-sm text-gray-500"
+          >
             Add to your home screen
           </p>
         </div>

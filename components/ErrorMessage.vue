@@ -51,8 +51,13 @@
       </svg>
     </div>
     <div class="error-message__content">
-      <p class="error-message__text">{{ message }}</p>
-      <div v-if="action" class="error-message__action">
+      <p class="error-message__text">
+        {{ message }}
+      </p>
+      <div
+        v-if="action"
+        class="error-message__action"
+      >
         <button
           type="button"
           class="error-message__action-button"

@@ -1,6 +1,8 @@
 <template>
   <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
-    <h3 class="text-lg font-medium text-gray-900 mb-4">Popular Searches</h3>
+    <h3 class="text-lg font-medium text-gray-900 mb-4">
+      Popular Searches
+    </h3>
     <div class="space-y-3">
       <button
         v-for="(search, index) in popularSearches"

@@ -3,7 +3,6 @@ import { randomUUID } from 'node:crypto'
 import { webhookStorage } from '~/server/utils/webhookStorage'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
 import {
-  sendBadRequestError,
   sendSuccessResponse,
   sendValidationError,
   handleApiRouteError,
@@ -23,8 +22,7 @@ export default defineEventHandler(async event => {
       return sendValidationError(
         event,
         firstError.path[0] as string,
-        firstError.message,
-        (firstError as any).received
+        firstError.message
       )
     }
 

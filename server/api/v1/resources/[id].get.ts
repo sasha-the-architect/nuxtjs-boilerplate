@@ -1,6 +1,5 @@
-import { defineEventHandler, setResponseStatus } from 'h3'
+import { defineEventHandler } from 'h3'
 import type { Resource } from '~/types/resource'
-import { logError } from '~/utils/errorLogger'
 import { cacheManager, cacheSetWithTags } from '~/server/utils/enhanced-cache'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
 import { convertResourcesToHierarchicalTags } from '~/utils/tags'

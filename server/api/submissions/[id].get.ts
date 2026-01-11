@@ -1,7 +1,7 @@
 import type { Submission } from '~/types/submission'
 
 // Mock data for demonstration - in a real application, this would come from a database
-let mockSubmissions: Submission[] = []
+const mockSubmissions: Submission[] = []
 
 import {
   sendBadRequestError,

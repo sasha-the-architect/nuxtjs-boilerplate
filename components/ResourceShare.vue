@@ -1,6 +1,8 @@
 <template>
   <div class="mb-8">
-    <h3 class="text-lg font-medium text-gray-900 mb-3">Share</h3>
+    <h3 class="text-lg font-medium text-gray-900 mb-3">
+      Share
+    </h3>
     <div class="flex flex-wrap gap-3">
       <a
         :href="shareUrls.twitter"

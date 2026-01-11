@@ -1,7 +1,9 @@
 <template>
   <div class="mt-12">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold text-gray-900">Comments</h2>
+      <h2 class="text-2xl font-bold text-gray-900">
+        Comments
+      </h2>
       <span class="text-sm text-gray-500">{{ commentCount }} comments</span>
     </div>
 
@@ -24,7 +26,11 @@
     </div>
 
     <div class="space-y-4">
-      <div v-for="comment in comments" :key="comment.id" class="flex space-x-4">
+      <div
+        v-for="comment in comments"
+        :key="comment.id"
+        class="flex space-x-4"
+      >
         <div class="flex-shrink-0">
           <div
             class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10"

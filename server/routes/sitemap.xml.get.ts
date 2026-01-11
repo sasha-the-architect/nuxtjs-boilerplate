@@ -41,7 +41,6 @@ export default defineEventHandler(async event => {
 
     return sitemap
   } catch (error) {
-    const err = error as { status?: number; message?: string }
     if (process.dev) {
       console.error('Error generating sitemap.xml:', error)
     }

@@ -1,8 +1,8 @@
 import { readBody } from 'h3'
 import type { Flag } from '~/types/resource'
 
-let mockFlags: Flag[] = []
-let mockResources: unknown[] = []
+const mockFlags: Flag[] = []
+const mockResources: unknown[] = []
 
 import {
   sendBadRequestError,

@@ -2,7 +2,6 @@ import type { WebhookEvent, WebhookPayload } from '~/types/webhook'
 import { webhookStorage } from '~/server/utils/webhookStorage'
 import { webhookQueueSystem } from '~/server/utils/webhookQueue'
 import {
-  sendBadRequestError,
   sendSuccessResponse,
   sendValidationError,
   handleApiRouteError,
@@ -21,8 +20,7 @@ export default defineEventHandler(async event => {
       return sendValidationError(
         event,
         firstError.path[0] as string,
-        firstError.message,
-        (firstError as any).received
+        firstError.message
       )
     }
 

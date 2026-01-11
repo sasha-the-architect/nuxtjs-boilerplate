@@ -17,7 +17,7 @@
             stroke-linejoin="round"
             stroke-width="2"
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          ></path>
+          />
         </svg>
       </div>
       <input
@@ -31,7 +31,7 @@
         aria-describedby="search-results-info"
         :aria-expanded="
           showSuggestions &&
-          (suggestions.length > 0 || searchHistory.length > 0)
+            (suggestions.length > 0 || searchHistory.length > 0)
         "
         aria-controls="search-suggestions-dropdown"
         aria-autocomplete="list"
@@ -39,7 +39,7 @@
         @keydown="handleKeyDown"
         @focus="handleFocus"
         @blur="handleBlur"
-      />
+      >
       <div
         v-if="modelValue"
         class="absolute inset-y-0 right-0 flex items-center pr-3"
@@ -62,7 +62,7 @@
               stroke-linejoin="round"
               stroke-width="2"
               d="M6 18L18 6M6 6l12 12"
-            ></path>
+            />
           </svg>
         </button>
       </div>
@@ -73,7 +73,7 @@
       <LazySearchSuggestions
         v-if="
           showSuggestions &&
-          (suggestions.length > 0 || searchHistory.length > 0)
+            (suggestions.length > 0 || searchHistory.length > 0)
         "
         id="search-suggestions-dropdown"
         :suggestions="suggestions"
@@ -115,7 +115,7 @@ interface Emits {
   (event: 'search', value: string): void
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 const props = withDefaults(defineProps<Props>(), {
   debounceTime: 300,
   enableAdvancedFeatures: true,

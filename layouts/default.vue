@@ -8,7 +8,10 @@
       Skip to main content
     </a>
 
-    <header class="bg-white shadow" role="banner">
+    <header
+      class="bg-white shadow"
+      role="banner"
+    >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center">
@@ -46,8 +49,9 @@
               to="/search"
               class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               active-class="bg-gray-100"
-              >Search</NuxtLink
             >
+              Search
+            </NuxtLink>
             <NuxtLink
               to="/ai-keys"
               class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
@@ -73,8 +77,9 @@
               to="/submit"
               class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium font-medium bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
               active-class="bg-gray-200"
-              >Submit</NuxtLink
             >
+              Submit
+            </NuxtLink>
             <NuxtLink
               to="/developer"
               class="text-gray-800 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-800 focus:rounded"
@@ -144,9 +149,9 @@
 
       <!-- Mobile menu -->
       <div
-        ref="mobileMenuRef"
         v-show="mobileMenuOpen"
         id="mobile-menu"
+        ref="mobileMenuRef"
         class="lg:hidden"
       >
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
@@ -224,16 +229,24 @@
         </div>
       </div>
     </header>
-    <main id="main-content" role="main">
+    <main
+      id="main-content"
+      role="main"
+    >
       <slot />
     </main>
-    <footer class="bg-white mt-8 py-6 border-t" role="contentinfo">
+    <footer
+      class="bg-white mt-8 py-6 border-t"
+      role="contentinfo"
+    >
       <div
         class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-600 text-sm"
       >
         © {{ new Date().getFullYear() }} Free Stuff on the Internet. All rights
         reserved.
-        <p class="sr-only">Footer content ends</p>
+        <p class="sr-only">
+          Footer content ends
+        </p>
       </div>
     </footer>
 

@@ -1,6 +1,9 @@
 <template>
   <div class="resource-status">
-    <span :class="['status-badge', statusClass]" :title="statusTitle">
+    <span
+      :class="['status-badge', statusClass]"
+      :title="statusTitle"
+    >
       {{ statusText }}
     </span>
     <span

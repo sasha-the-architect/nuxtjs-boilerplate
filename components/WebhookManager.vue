@@ -22,7 +22,10 @@
     </div>
 
     <!-- Create Webhook Form -->
-    <div v-if="showCreateForm" class="webhook-form">
+    <div
+      v-if="showCreateForm"
+      class="webhook-form"
+    >
       <h3>Create New Webhook</h3>
 
       <div
@@ -34,10 +37,12 @@
         {{ errorMessage }}
       </div>
 
-      <form novalidate @submit.prevent="handleCreateWebhook">
+      <form
+        novalidate
+        @submit.prevent="handleCreateWebhook"
+      >
         <div class="form-group">
-          <label for="webhook-url"
-            >Webhook URL <span aria-hidden="true">*</span>
+          <label for="webhook-url">Webhook URL <span aria-hidden="true">*</span>
             <span class="sr-only">(required)</span>
           </label>
           <input
@@ -49,15 +54,20 @@
             aria-describedby="webhook-url-description"
             placeholder="https://example.com/webhook"
             class="form-control"
-          />
-          <p id="webhook-url-description" class="mt-1 text-sm text-gray-500">
+          >
+          <p
+            id="webhook-url-description"
+            class="mt-1 text-sm text-gray-500"
+          >
             Enter the endpoint URL where webhook events will be sent
           </p>
         </div>
 
         <div class="form-group">
           <fieldset>
-            <legend class="font-medium mb-2">Events</legend>
+            <legend class="font-medium mb-2">
+              Events
+            </legend>
             <div
               role="group"
               aria-label="Select webhook events"
@@ -73,7 +83,7 @@
                   type="checkbox"
                   :value="event"
                   :aria-label="`Subscribe to ${event} event`"
-                />
+                >
                 {{ event }}
               </label>
             </div>
@@ -86,7 +96,7 @@
               v-model="newWebhook.active"
               type="checkbox"
               aria-label="Enable webhook"
-            />
+            >
             Active
           </label>
         </div>
@@ -122,7 +132,10 @@
       >
         No webhooks configured
       </div>
-      <div v-else class="webhook-items">
+      <div
+        v-else
+        class="webhook-items"
+      >
         <div
           v-for="webhook in webhooks"
           :key="webhook.id"
@@ -130,8 +143,13 @@
           role="listitem"
         >
           <div class="webhook-info">
-            <div class="webhook-url">{{ webhook.url }}</div>
-            <div class="webhook-events" aria-label="Subscribed events">
+            <div class="webhook-url">
+              {{ webhook.url }}
+            </div>
+            <div
+              class="webhook-events"
+              aria-label="Subscribed events"
+            >
               <span
                 v-for="event in webhook.events"
                 :key="event"

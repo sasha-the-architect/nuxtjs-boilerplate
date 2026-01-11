@@ -121,7 +121,7 @@ class RateLimiter {
     }
 
     const now = Date.now()
-    let bucket = tokenBucketStore.get(key)
+    const bucket = tokenBucketStore.get(key)
 
     if (!bucket) {
       return {

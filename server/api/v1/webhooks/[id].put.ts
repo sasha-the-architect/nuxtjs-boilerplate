@@ -1,4 +1,4 @@
-import type { UpdateWebhookRequest, Webhook } from '~/types/webhook'
+import type { UpdateWebhookRequest } from '~/types/webhook'
 import { webhookStorage } from '~/server/utils/webhookStorage'
 import {
   sendBadRequestError,
@@ -37,7 +37,7 @@ export default defineEventHandler(async event => {
     }
 
     // Return without secret for security
-    const { secret: _, ...webhookWithoutSecret } = updatedWebhook
+    const { secret: _secret, ...webhookWithoutSecret } = updatedWebhook
 
     sendSuccessResponse(event, webhookWithoutSecret)
   } catch (error) {

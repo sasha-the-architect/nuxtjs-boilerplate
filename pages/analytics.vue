@@ -2,7 +2,9 @@
   <div class="analytics-dashboard min-h-screen bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+        <h1 class="text-3xl font-bold text-gray-900">
+          Analytics Dashboard
+        </h1>
         <p class="mt-2 text-gray-600">
           Track user behavior and resource performance
         </p>
@@ -14,24 +16,20 @@
           class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-4 sm:space-y-0"
         >
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Start Date</label
-            >
+            <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
             <input
               v-model="startDate"
               type="date"
               class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            >
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >End Date</label
-            >
+            <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
             <input
               v-model="endDate"
               type="date"
               class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            >
           </div>
           <div class="flex items-end">
             <button
@@ -51,14 +49,21 @@
       >
         <div
           class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
-        ></div>
+        />
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="bg-white p-8 rounded-lg shadow">
+      <div
+        v-else-if="error"
+        class="bg-white p-8 rounded-lg shadow"
+      >
         <div class="text-red-600 text-center">
-          <p class="text-lg font-medium">Error loading analytics data</p>
-          <p class="mt-2">{{ error }}</p>
+          <p class="text-lg font-medium">
+            Error loading analytics data
+          </p>
+          <p class="mt-2">
+            {{ error }}
+          </p>
           <button
             class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
             @click="fetchAnalyticsData"
@@ -91,7 +96,9 @@
               </svg>
             </div>
             <div class="ml-4">
-              <h3 class="text-sm font-medium text-gray-500">Total Events</h3>
+              <h3 class="text-sm font-medium text-gray-500">
+                Total Events
+              </h3>
               <p class="text-2xl font-semibold text-gray-900">
                 {{ analyticsData?.totalEvents || 0 }}
               </p>
@@ -117,7 +124,9 @@
               </svg>
             </div>
             <div class="ml-4">
-              <h3 class="text-sm font-medium text-gray-500">Unique Views</h3>
+              <h3 class="text-sm font-medium text-gray-500">
+                Unique Views
+              </h3>
               <p class="text-2xl font-semibold text-gray-900">
                 {{ analyticsData?.eventsByType?.page_view || 0 }}
               </p>
@@ -143,7 +152,9 @@
               </svg>
             </div>
             <div class="ml-4">
-              <h3 class="text-sm font-medium text-gray-500">Resource Clicks</h3>
+              <h3 class="text-sm font-medium text-gray-500">
+                Resource Clicks
+              </h3>
               <p class="text-2xl font-semibold text-gray-900">
                 {{ analyticsData?.eventsByType?.resource_click || 0 }}
               </p>
@@ -169,7 +180,9 @@
               </svg>
             </div>
             <div class="ml-4">
-              <h3 class="text-sm font-medium text-gray-500">Searches</h3>
+              <h3 class="text-sm font-medium text-gray-500">
+                Searches
+              </h3>
               <p class="text-2xl font-semibold text-gray-900">
                 {{ analyticsData?.eventsByType?.search || 0 }}
               </p>
@@ -182,14 +195,21 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <!-- Daily Trends Chart -->
         <div class="bg-white p-6 rounded-lg shadow">
-          <h2 class="text-lg font-medium text-gray-900 mb-4">Daily Activity</h2>
+          <h2 class="text-lg font-medium text-gray-900 mb-4">
+            Daily Activity
+          </h2>
           <div
             v-if="!analyticsData?.dailyTrends?.length"
             class="h-64 flex items-center justify-center"
           >
-            <p class="text-gray-500">No data available</p>
+            <p class="text-gray-500">
+              No data available
+            </p>
           </div>
-          <div v-else class="h-64">
+          <div
+            v-else
+            class="h-64"
+          >
             <!-- Simple bar chart visualization -->
             <div class="flex items-end h-48 space-x-1">
               <div
@@ -202,12 +222,11 @@
                     class="w-3/4 bg-blue-500 rounded-t hover:bg-blue-600 transition-colors"
                     :style="{ height: `${(day.count / maxDailyCount) * 100}%` }"
                     :title="`${day.date}: ${day.count} events`"
-                  ></div>
+                  />
                 </div>
                 <span
                   class="text-xs text-gray-500 mt-1 truncate w-full text-center"
-                  >{{ formatDate(day.date) }}</span
-                >
+                >{{ formatDate(day.date) }}</span>
               </div>
             </div>
           </div>
@@ -215,30 +234,31 @@
 
         <!-- Top Resources -->
         <div class="bg-white p-6 rounded-lg shadow">
-          <h2 class="text-lg font-medium text-gray-900 mb-4">Top Resources</h2>
+          <h2 class="text-lg font-medium text-gray-900 mb-4">
+            Top Resources
+          </h2>
           <div
             v-if="!analyticsData?.topResources?.length"
             class="text-gray-500 text-center py-8"
           >
             No resource data available
           </div>
-          <ul v-else class="space-y-3">
+          <ul
+            v-else
+            class="space-y-3"
+          >
             <li
               v-for="(resource, index) in analyticsData?.topResources"
               :key="resource.id"
               class="flex items-center justify-between p-3 bg-gray-50 rounded-md"
             >
               <div class="flex items-center">
-                <span class="text-gray-500 font-medium w-6"
-                  >#{{ index + 1 }}</span
-                >
+                <span class="text-gray-500 font-medium w-6">#{{ index + 1 }}</span>
                 <span class="ml-2 font-medium truncate max-w-xs">{{
                   resource.title
                 }}</span>
               </div>
-              <span class="text-gray-700 font-medium"
-                >{{ resource.views }} views</span
-              >
+              <span class="text-gray-700 font-medium">{{ resource.views }} views</span>
             </li>
           </ul>
         </div>
@@ -248,17 +268,22 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Events by Type -->
         <div class="bg-white p-6 rounded-lg shadow">
-          <h2 class="text-lg font-medium text-gray-900 mb-4">Events by Type</h2>
+          <h2 class="text-lg font-medium text-gray-900 mb-4">
+            Events by Type
+          </h2>
           <div
             v-if="
               !analyticsData?.eventsByType ||
-              Object.keys(analyticsData.eventsByType).length === 0
+                Object.keys(analyticsData.eventsByType).length === 0
             "
             class="text-gray-500 text-center py-8"
           >
             No event type data available
           </div>
-          <ul v-else class="space-y-2">
+          <ul
+            v-else
+            class="space-y-2"
+          >
             <li
               v-for="(count, type) in analyticsData.eventsByType"
               :key="type"
@@ -274,14 +299,19 @@
 
         <!-- Top Categories -->
         <div class="bg-white p-6 rounded-lg shadow">
-          <h2 class="text-lg font-medium text-gray-900 mb-4">Top Categories</h2>
+          <h2 class="text-lg font-medium text-gray-900 mb-4">
+            Top Categories
+          </h2>
           <div
             v-if="!analyticsData?.topCategories?.length"
             class="text-gray-500 text-center py-8"
           >
             No category data available
           </div>
-          <ul v-else class="space-y-2">
+          <ul
+            v-else
+            class="space-y-2"
+          >
             <li
               v-for="(category, index) in analyticsData?.topCategories"
               :key="category.name"

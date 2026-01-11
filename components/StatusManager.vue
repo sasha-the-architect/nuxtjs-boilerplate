@@ -10,11 +10,21 @@
           v-model="selectedStatus"
           class="status-dropdown"
         >
-          <option value="active">Active</option>
-          <option value="deprecated">Deprecated</option>
-          <option value="discontinued">Discontinued</option>
-          <option value="updated">Updated</option>
-          <option value="pending">Pending</option>
+          <option value="active">
+            Active
+          </option>
+          <option value="deprecated">
+            Deprecated
+          </option>
+          <option value="discontinued">
+            Discontinued
+          </option>
+          <option value="updated">
+            Updated
+          </option>
+          <option value="pending">
+            Pending
+          </option>
         </select>
       </div>
 
@@ -26,7 +36,7 @@
           type="text"
           placeholder="Enter reason for status change"
           class="reason-field"
-        />
+        >
       </div>
 
       <div class="notes-input">
@@ -36,7 +46,7 @@
           v-model="notes"
           placeholder="Additional notes about this change"
           class="notes-field"
-        ></textarea>
+        />
       </div>
 
       <button
@@ -48,11 +58,20 @@
       </button>
     </div>
 
-    <div v-if="lastUpdate" class="update-result">
-      <div v-if="lastUpdate.success" class="success-message">
+    <div
+      v-if="lastUpdate"
+      class="update-result"
+    >
+      <div
+        v-if="lastUpdate.success"
+        class="success-message"
+      >
         Status updated successfully!
       </div>
-      <div v-else class="error-message">
+      <div
+        v-else
+        class="error-message"
+      >
         Error updating status: {{ lastUpdate.error }}
       </div>
     </div>

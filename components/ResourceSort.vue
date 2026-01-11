@@ -4,7 +4,10 @@
       <span class="font-medium">{{ totalResources }}</span> resources found
     </div>
     <div class="flex items-center space-x-2">
-      <label for="sort" class="text-sm text-gray-800">Sort by:</label>
+      <label
+        for="sort"
+        class="text-sm text-gray-800"
+      >Sort by:</label>
       <select
         id="sort"
         :value="selectedSortOption ?? 'popularity-desc'"
@@ -13,10 +16,18 @@
         @keydown.enter="handleChange"
         @keydown.space="handleChange"
       >
-        <option value="popularity-desc">Most Popular</option>
-        <option value="alphabetical-asc">A-Z</option>
-        <option value="alphabetical-desc">Z-A</option>
-        <option value="date-added-desc">Newest First</option>
+        <option value="popularity-desc">
+          Most Popular
+        </option>
+        <option value="alphabetical-asc">
+          A-Z
+        </option>
+        <option value="alphabetical-desc">
+          Z-A
+        </option>
+        <option value="date-added-desc">
+          Newest First
+        </option>
       </select>
     </div>
   </div>
@@ -32,7 +43,7 @@ type EmitsType = {
   'update-sort-option': (option: string) => void
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 defineProps<Props>()
 const emit = defineEmits<EmitsType>()
 

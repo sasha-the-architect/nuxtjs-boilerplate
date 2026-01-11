@@ -11,10 +11,16 @@
       </button>
     </div>
 
-    <div v-if="healthStatus" class="health-status">
+    <div
+      v-if="healthStatus"
+      class="health-status"
+    >
       <div class="status-summary">
         <div class="status-item">
-          <div class="status-icon" :class="healthClass">
+          <div
+            class="status-icon"
+            :class="healthClass"
+          >
             <span v-if="healthStatus.isHealthy">✓</span>
             <span v-else-if="healthStatus.lastStatus === null">?</span>
             <span v-else>✗</span>
@@ -38,11 +44,17 @@
                 formatDate(healthStatus.lastChecked)
               }}</span>
             </div>
-            <div v-if="healthStatus.responseTime" class="status-info">
+            <div
+              v-if="healthStatus.responseTime"
+              class="status-info"
+            >
               <span class="info-label">Response time:</span>
               <span class="info-value">{{ healthStatus.responseTime }}ms</span>
             </div>
-            <div v-if="healthStatus.error" class="status-error">
+            <div
+              v-if="healthStatus.error"
+              class="status-error"
+            >
               <span class="error-label">Error:</span>
               <span class="error-value">{{ healthStatus.error }}</span>
             </div>
@@ -53,7 +65,7 @@
       <div
         v-if="
           healthStatus.validationHistory &&
-          healthStatus.validationHistory.length > 0
+            healthStatus.validationHistory.length > 0
         "
         class="history-section"
       >
@@ -68,18 +80,23 @@
             :class="check.isAccessible ? 'history-success' : 'history-error'"
           >
             <div class="history-status">
-              <span v-if="check.isAccessible" class="success-icon">✓</span>
-              <span v-else class="error-icon">✗</span>
+              <span
+                v-if="check.isAccessible"
+                class="success-icon"
+              >✓</span>
+              <span
+                v-else
+                class="error-icon"
+              >✗</span>
             </div>
             <div class="history-details">
               <div>{{ formatDate(check.timestamp) }}</div>
               <div class="history-info">
-                <span v-if="check.status"
-                  >{{ check.status }} {{ check.statusText }}</span
-                >
-                <span v-if="check.responseTime" class="response-time"
-                  >({{ check.responseTime }}ms)</span
-                >
+                <span v-if="check.status">{{ check.status }} {{ check.statusText }}</span>
+                <span
+                  v-if="check.responseTime"
+                  class="response-time"
+                >({{ check.responseTime }}ms)</span>
               </div>
             </div>
           </div>
@@ -87,7 +104,10 @@
       </div>
     </div>
 
-    <div v-else class="no-health-data">
+    <div
+      v-else
+      class="no-health-data"
+    >
       Health data not available for this resource.
     </div>
   </div>

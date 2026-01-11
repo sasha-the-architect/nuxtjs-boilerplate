@@ -17,7 +17,7 @@ export function runQualityChecks(resource: Resource): QualityCheckResult[] {
 
   // URL validation check
   try {
-    const url = new URL(resource.url)
+    new URL(resource.url)
     checks.push({
       id: 'url-validation',
       title: 'URL Validation',

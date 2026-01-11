@@ -23,8 +23,14 @@
         stroke-miterlimit="10"
       />
     </svg>
-    <span v-if="label" class="loading-spinner__label">{{ label }}</span>
-    <span v-else class="sr-only">Loading</span>
+    <span
+      v-if="label"
+      class="loading-spinner__label"
+    >{{ label }}</span>
+    <span
+      v-else
+      class="sr-only"
+    >Loading</span>
   </div>
 </template>
 

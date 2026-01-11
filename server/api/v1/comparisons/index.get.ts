@@ -76,12 +76,6 @@ export default defineEventHandler(async event => {
       slug: undefined,
     }
 
-    const response = {
-      success: true,
-      data: comparisonData,
-      resources: requestedResources,
-    }
-
     const responseData = {
       comparison: comparisonData,
       resources: requestedResources,

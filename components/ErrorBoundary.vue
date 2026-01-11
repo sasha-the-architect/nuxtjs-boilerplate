@@ -1,5 +1,8 @@
 <template>
-  <div v-if="hasError" class="error-boundary">
+  <div
+    v-if="hasError"
+    class="error-boundary"
+  >
     <div class="error-content">
       <div class="error-icon">
         <svg
@@ -18,13 +21,20 @@
           />
         </svg>
       </div>
-      <h2 class="error-title">Something went wrong</h2>
+      <h2 class="error-title">
+        Something went wrong
+      </h2>
       <p class="error-message">
         {{ errorMessage }}
       </p>
-      <div v-if="showDetails" class="error-details">
+      <div
+        v-if="showDetails"
+        class="error-details"
+      >
         <details class="error-details-container">
-          <summary class="error-details-summary">Error Details</summary>
+          <summary class="error-details-summary">
+            Error Details
+          </summary>
           <pre class="error-stack">{{ errorStack }}</pre>
         </details>
       </div>

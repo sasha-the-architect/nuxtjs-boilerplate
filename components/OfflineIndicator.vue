@@ -20,9 +20,7 @@
           clip-rule="evenodd"
         />
       </svg>
-      <span class="text-yellow-800 text-sm font-medium"
-        >You are offline. Some features may be limited.</span
-      >
+      <span class="text-yellow-800 text-sm font-medium">You are offline. Some features may be limited.</span>
     </div>
   </div>
 </template>

@@ -352,8 +352,7 @@ export { cacheManager }
  */
 export function cached<T = unknown>(
   ttl: number = 3600,
-  keyGenerator?: (event: H3Event) => string,
-  tags?: string[] // For cache invalidation by tags
+  keyGenerator?: (event: H3Event) => string
 ) {
   return function (
     target: unknown,
@@ -364,7 +363,7 @@ export function cached<T = unknown>(
 
     descriptor.value = async function (event: H3Event): Promise<T> {
       // Generate cache key
-      let cacheKey = keyGenerator
+      const cacheKey = keyGenerator
         ? keyGenerator(event)
         : `${propertyKey}:${event.path}:${JSON.stringify(event.context.params || {})}`
 
@@ -413,7 +412,7 @@ export async function cacheSetWithTags<T = unknown>(
   // Create tag mappings for later invalidation
   for (const tag of tags) {
     const tagKey = `tag:${tag}`
-    let tagMembers: string[] = (await cacheManager.get(tagKey)) || []
+    const tagMembers: string[] = (await cacheManager.get(tagKey)) || []
     if (!tagMembers.includes(key)) {
       tagMembers.push(key)
       await cacheManager.set(tagKey, tagMembers, ttl + 3600) // Tag mapping expires later

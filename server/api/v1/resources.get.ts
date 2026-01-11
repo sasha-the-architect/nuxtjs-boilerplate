@@ -1,4 +1,4 @@
-import { defineEventHandler, getQuery, setResponseHeader } from 'h3'
+import { defineEventHandler, getQuery } from 'h3'
 import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
 import { cacheManager, cacheSetWithTags } from '~/server/utils/enhanced-cache'
@@ -149,10 +149,6 @@ export default defineEventHandler(async event => {
     // Apply pagination BEFORE hierarchical tag conversion for performance
     const total = resources.length
     const paginatedResources = resources.slice(offset, offset + limit)
-
-    // Convert only paginated resources to include hierarchical tags
-    const resourcesWithHierarchicalTags =
-      convertResourcesToHierarchicalTags(paginatedResources)
 
     // Prepare response
     const response = {

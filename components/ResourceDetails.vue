@@ -3,9 +3,9 @@
     <DeprecationNotice
       v-if="
         status &&
-        (status === 'deprecated' ||
-          status === 'discontinued' ||
-          status === 'pending')
+          (status === 'deprecated' ||
+            status === 'discontinued' ||
+            status === 'pending')
       "
       :status="status"
       :migration-path="migrationPath"

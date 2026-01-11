@@ -1,12 +1,23 @@
 <template>
   <div class="submission-review">
-    <div v-if="loading" class="loading">Loading submission...</div>
+    <div
+      v-if="loading"
+      class="loading"
+    >
+      Loading submission...
+    </div>
 
-    <div v-else-if="error" class="error">
+    <div
+      v-else-if="error"
+      class="error"
+    >
       {{ error }}
     </div>
 
-    <div v-else-if="submission" class="review-content">
+    <div
+      v-else-if="submission"
+      class="review-content"
+    >
       <div class="review-header">
         <h1>{{ submission.resourceData?.title }}</h1>
         <span :class="['status-badge', `status-${submission.status}`]">
@@ -102,24 +113,36 @@
               <span>{{ formatDate(submission.submittedAt) }}</span>
             </div>
 
-            <div v-if="submission.reviewedAt" class="info-item">
+            <div
+              v-if="submission.reviewedAt"
+              class="info-item"
+            >
               <label>Reviewed By:</label>
               <span>{{ submission.reviewedBy || 'N/A' }}</span>
             </div>
 
-            <div v-if="submission.reviewedAt" class="info-item">
+            <div
+              v-if="submission.reviewedAt"
+              class="info-item"
+            >
               <label>Reviewed At:</label>
               <span>{{ formatDate(submission.reviewedAt) }}</span>
             </div>
 
-            <div v-if="submission.rejectionReason" class="info-item">
+            <div
+              v-if="submission.rejectionReason"
+              class="info-item"
+            >
               <label>Rejection Reason:</label>
               <span class="rejection-reason">{{
                 submission.rejectionReason
               }}</span>
             </div>
 
-            <div v-if="submission.notes" class="info-item">
+            <div
+              v-if="submission.notes"
+              class="info-item"
+            >
               <label>Notes:</label>
               <span>{{ submission.notes }}</span>
             </div>
@@ -127,10 +150,16 @@
         </div>
       </div>
 
-      <div v-if="submission.status === 'pending'" class="review-actions">
+      <div
+        v-if="submission.status === 'pending'"
+        class="review-actions"
+      >
         <div class="action-group">
           <h4>Approve Submission</h4>
-          <button class="btn btn-approve" @click="handleApprove">
+          <button
+            class="btn btn-approve"
+            @click="handleApprove"
+          >
             Approve
           </button>
         </div>
@@ -141,8 +170,13 @@
             v-model="rejectionReason"
             placeholder="Enter reason for rejection..."
             class="rejection-textarea"
-          ></textarea>
-          <button class="btn btn-reject" @click="handleReject">Reject</button>
+          />
+          <button
+            class="btn btn-reject"
+            @click="handleReject"
+          >
+            Reject
+          </button>
         </div>
       </div>
     </div>
