@@ -42,7 +42,7 @@
       <button
         class="update-button"
         :disabled="isUpdating || !selectedStatus"
-        @click="updateStatus"
+        @click="handleUpdate"
       >
         {{ isUpdating ? 'Updating...' : 'Update Status' }}
       </button>
@@ -60,77 +60,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { useResourceStatusManager } from '~/composables/useResourceStatusManager'
 
 interface Props {
   resourceId: string
   currentStatus?: string
 }
 
-interface UpdateStatusResponse {
-  success: boolean
-  resource?: {
-    id: string
-    status: string
-    reason?: string
-    notes?: string
-  }
-}
-
-interface UpdateStatusError {
-  success: false
-  error: string
-}
-
 const props = withDefaults(defineProps<Props>(), {
   currentStatus: 'active',
 })
 
-const selectedStatus = ref(props.currentStatus)
-const reason = ref('')
-const notes = ref('')
-const isUpdating = ref(false)
-const lastUpdate = ref<{ success: boolean; error?: string } | null>(null)
-
-const updateStatus = async () => {
-  if (!selectedStatus.value) return
-
-  isUpdating.value = true
-  lastUpdate.value = null
-
-  try {
-    const response = await $fetch<UpdateStatusResponse | UpdateStatusError>(
-      `/api/resources/${props.resourceId}/status`,
-      {
-        method: 'PUT',
-        body: {
-          status: selectedStatus.value,
-          reason: reason.value,
-          notes: notes.value,
-        },
-      }
-    )
-
-    if (response.success) {
-      lastUpdate.value = { success: true }
-      if (response.resource) {
-        emit('statusUpdated', response.resource)
-      }
-    } else {
-      lastUpdate.value = {
-        success: false,
-        error: response.error || 'Failed to update status',
-      }
-    }
-  } catch (error: { message?: string }) {
-    lastUpdate.value = {
-      success: false,
-      error: error.message || 'Unknown error',
-    }
-  } finally {
-    isUpdating.value = false
-  }
-}
+const { selectedStatus, reason, notes, isUpdating, lastUpdate, updateStatus } =
+  useResourceStatusManager(props.currentStatus)
 
 const emit = defineEmits<{
   statusUpdated: [
@@ -142,6 +84,13 @@ const emit = defineEmits<{
     },
   ]
 }>()
+
+const handleUpdate = async () => {
+  const resource = await updateStatus(props.resourceId)
+  if (resource) {
+    emit('statusUpdated', resource)
+  }
+}
 </script>
 
 <style scoped>

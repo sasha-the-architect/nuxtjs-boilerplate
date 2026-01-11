@@ -1136,6 +1136,7 @@ tests/
 | 2026-01-10 | Architecture | DRY - Extracted generic toggle utility for filter arrays | Eliminated 70+ lines of duplicate toggle logic in useSearchPage, created reusable toggleArrayItem utility in useFilterUtils, reduced code by 23 lines (net 12 lines total reduction) |
 | 2026-01-10 | UI/UX Architecture | Component Extraction - Created FilterSection reusable component | Eliminated 220 lines of duplicate filter section code (54% reduction in ResourceFilters), created single-responsibility component for all checkbox-based filters with full ARIA accessibility support |
 | 2026-01-11 | Architecture | Layer Separation - ApiKeys component refactoring | Extracted business logic from components/ApiKeys.vue to dedicated composable (useApiKeysManager), eliminated API calls and state management from presentation layer, components now handle UI only (reduced from 484 to ~360 lines, 26% reduction) |
+| 2026-01-11 | Architecture | Layer Separation - StatusManager component refactoring | Extracted business logic from components/StatusManager.vue to dedicated composable (useResourceStatusManager), eliminated API calls and state management from presentation layer, components now handle UI only (reduced from 247 to 196 lines, 21% reduction) |
 
 ## 🎓 Design Principles Applied
 
