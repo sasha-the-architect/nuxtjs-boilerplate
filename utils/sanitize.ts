@@ -179,10 +179,11 @@ export const sanitizeForXSS = (content: string): string => {
   // First layer: Preprocessing to remove dangerous content
   let preprocessed = content
 
-  // Remove script tags and their content (including self-closing tags)
+  // Remove script tags and their content while preserving whitespace
+  // Match <script>content</script> or <script/> and replace with same whitespace
   preprocessed = preprocessed.replace(
-    /<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi,
-    ''
+    /(\s*)<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi,
+    '$1'
   )
   preprocessed = preprocessed.replace(/<\s*script[^>]*\/?\s*>/gi, '')
 
@@ -211,8 +212,8 @@ export const sanitizeForXSS = (content: string): string => {
   preprocessed = preprocessed.replace(/<![\s\S]*?>/g, '') // Remove any other declarations
 
   const sanitized = DOMPurify.sanitize(preprocessed, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [],
+    ALLOWED_TAGS: ['mark'],
+    ALLOWED_ATTR: ['class'],
     ...SANITIZE_CONFIG,
   })
 
@@ -257,7 +258,7 @@ export const sanitizeAndHighlight = (
   // Create highlighted text - only highlighting the already sanitized text
   const highlighted = sanitizedText.replace(
     regex,
-    '<mark class="bg-yellow-200 text-gray-900">$1</mark>'
+    '<mark class="bg-yellow-200 text-gray-900">$&</mark>'
   )
 
   const fullySanitized = DOMPurify.sanitize(highlighted, {
@@ -266,17 +267,6 @@ export const sanitizeAndHighlight = (
     ...SANITIZE_CONFIG,
   })
 
-  // Additional check to ensure no dangerous patterns remain in the final HTML
+  // Return the fully sanitized HTML
   return fullySanitized
-    .replace(/javascript:/gi, '')
-    .replace(/data:/gi, '')
-    .replace(/vbscript:/gi, '')
-    .replace(/on\w+\s*=/gi, '') // Remove any event handlers
-    .replace(/script/gi, '') // Additional protection
-    .replace(/iframe/gi, '') // Additional protection
-    .replace(/object/gi, '') // Additional protection
-    .replace(/embed/gi, '') // Additional protection
-    .replace(/img/gi, '') // Additional protection
-    .replace(/svg/gi, '') // Additional protection
-    .replace(/vbs/gi, '') // Additional protection
 }

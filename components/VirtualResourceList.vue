@@ -29,18 +29,18 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" generic="T">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useVirtualizer } from '@tanstack/vue-virtual'
 
 interface Props {
-  items: any[]
+  items: T[]
   itemHeight?: number
   overscan?: number
   containerHeight?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props<T>>(), {
   itemHeight: 320,
   overscan: 5,
   containerHeight: 'calc(100vh - 200px)',
