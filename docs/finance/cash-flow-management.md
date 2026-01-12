@@ -2,11 +2,11 @@
 
 ## Current Cash Position
 
-- **Cash on Hand**: TBD
-- **Bank Accounts**: TBD
-- **Investment Accounts**: TBD
-- **Restricted Cash**: TBD
-- **Total Available Cash**: TBD
+- **Cash on Hand**: Self-funded (Founder capital)
+- **Bank Accounts**: Founder personal account
+- **Investment Accounts**: None (Bootstrapping mode)
+- **Restricted Cash**: None
+- **Total Available Cash**: ~$50,000 (Estimated founder runway)
 
 ## Cash Flow Statement
 
@@ -14,29 +14,29 @@
 
 | Category                | Amount | Notes                |
 | ----------------------- | ------ | -------------------- |
-| Cash from Customers     | TBD    | MRR + Prepayments    |
-| Operating Expenses      | TBD    | Salaries, rent, etc. |
-| Net Operating Cash Flow | TBD    |                      |
+| Cash from Customers     | $0     | Pre-revenue          |
+| Operating Expenses      | -$500  | Cloud infrastructure |
+| Net Operating Cash Flow | -$500  | Monthly burn         |
 
 ### Investing Activities
 
-| Category                | Amount | Notes                |
-| ----------------------- | ------ | -------------------- |
-| Capital Expenditures    | TBD    | Equipment, servers   |
-| Software Licenses       | TBD    | Annual subscriptions |
-| Net Investing Cash Flow | TBD    |                      |
+| Category                | Amount | Notes               |
+| ----------------------- | ------ | ------------------- |
+| Capital Expenditures    | $0     | No equipment needed |
+| Software Licenses       | -$100  | Dev tools           |
+| Net Investing Cash Flow | -$100  |                     |
 
 ### Financing Activities
 
-| Category                | Amount | Notes            |
-| ----------------------- | ------ | ---------------- |
-| Funding Received        | TBD    | Investor capital |
-| Loan Payments           | TBD    | Debt service     |
-| Net Financing Cash Flow | TBD    |                  |
+| Category                | Amount | Notes         |
+| ----------------------- | ------ | ------------- |
+| Funding Received        | $0     | Bootstrapping |
+| Loan Payments           | $0     | No debt       |
+| Net Financing Cash Flow | $0     |               |
 
 ### Net Cash Flow
 
-- **Total Net Cash Flow**: TBD
+- **Total Net Cash Flow**: -$600/month (Operating -$500 + Investing -$100 + Financing $0)
 
 ## Cash Flow Projections
 
@@ -44,48 +44,48 @@
 
 | Month | Operating | Investing | Financing | Net Cash |
 | ----- | --------- | --------- | --------- | -------- |
-| Jan   | TBD       | TBD       | TBD       | TBD      |
-| Feb   | TBD       | TBD       | TBD       | TBD      |
-| Mar   | TBD       | TBD       | TBD       | TBD      |
+| Jan   | -$500     | -$100     | $0        | -$600    |
+| Feb   | -$500     | -$100     | $0        | -$600    |
+| Mar   | -$500     | -$100     | $0        | -$600    |
 
 ### 12-Month Projection
 
 | Month | Opening Cash | Cash In | Cash Out | Net Change | Closing Cash |
 | ----- | ------------ | ------- | -------- | ---------- | ------------ |
-| Jan   | TBD          | TBD     | TBD      | TBD        | TBD          |
-| Feb   | TBD          | TBD     | TBD      | TBD        | TBD          |
-| Mar   | TBD          | TBD     | TBD      | TBD        | TBD          |
-| Apr   | TBD          | TBD     | TBD      | TBD        | TBD          |
-| May   | TBD          | TBD     | TBD      | TBD        | TBD          |
-| Jun   | TBD          | TBD     | TBD      | TBD        | TBD          |
-| Jul   | TBD          | TBD     | TBD      | TBD        | TBD          |
-| Aug   | TBD          | TBD     | TBD      | TBD        | TBD          |
-| Sep   | TBD          | TBD     | TBD      | TBD        | TBD          |
-| Oct   | TBD          | TBD     | TBD      | TBD        | TBD          |
-| Nov   | TBD          | TBD     | TBD      | TBD        | TBD          |
-| Dec   | TBD          | TBD     | TBD      | TBD        | TBD          |
+| Jan   | $50,000      | $0      | $600     | -$600      | $49,400      |
+| Feb   | $49,400      | $0      | $600     | -$600      | $48,800      |
+| Mar   | $48,800      | $0      | $600     | -$600      | $48,200      |
+| Apr   | $48,200      | $0      | $800     | -$800      | $47,400      |
+| May   | $47,400      | $500    | $2,000   | -$1,500    | $45,900      |
+| Jun   | $45,900      | $1,500  | $3,000   | -$1,500    | $44,400      |
+| Jul   | $44,400      | $3,000  | $5,000   | -$2,000    | $42,400      |
+| Aug   | $42,400      | $5,000  | $7,000   | -$2,000    | $40,400      |
+| Sep   | $40,400      | $8,000  | $10,000  | -$2,000    | $38,400      |
+| Oct   | $38,400      | $12,000 | $15,000  | -$3,000    | $35,400      |
+| Nov   | $35,400      | $15,000 | $18,000  | -$3,000    | $32,400      |
+| Dec   | $32,400      | $20,000 | $22,000  | -$2,000    | $30,400      |
 
 ## Runway Analysis
 
 ### Current Burn Rate
 
-- **Monthly Burn**: TBD
-- **Annualized Burn**: TBD
-- **Burn Trend**: ▲/▼/→ (Increasing/Decreasing/Stable)
+- **Monthly Burn**: $600 (Current, Q1 2026)
+- **Annualized Burn**: $7,200 (Current, assuming no revenue)
+- **Burn Trend**: → Stable (planned increase to $8,000-$15,000 post-PMF)
 
 ### Runway Scenarios
 
-| Scenario     | Burn Rate | Cash Available | Runway     |
-| ------------ | --------- | -------------- | ---------- |
-| Conservative | TBD       | TBD            | TBD months |
-| Base Case    | TBD       | TBD            | TBD months |
-| Aggressive   | TBD       | TBD            | TBD months |
+| Scenario     | Burn Rate | Cash Available | Runway    |
+| ------------ | --------- | -------------- | --------- |
+| Conservative | $8,000    | $50,000        | ~6 months |
+| Base Case    | $15,000   | $50,000        | ~3 months |
+| Aggressive   | $25,000   | $50,000        | ~2 months |
 
 ### Runway Milestones
 
-- **12-month runway threshold**: TBD date
-- **6-month runway threshold**: TBD date
-- **3-month runway threshold**: TBD date
+- **12-month runway threshold**: N/A (Bootstrapping mode, will seed fund by Q2 2026)
+- **6-month runway threshold**: June 2026 (Target: Seed fundraising complete)
+- **3-month runway threshold**: March 2026 (Target: MVP complete, PMF validation started)
 
 ## Working Capital Management
 
@@ -93,40 +93,42 @@
 
 | Metric                       | Current | Target    | Status |
 | ---------------------------- | ------- | --------- | ------ |
-| DSO (Days Sales Outstanding) | TBD     | < 30 days | TBD    |
-| Outstanding Invoices         | TBD     | -         | TBD    |
-| Overdue > 60 days            | TBD     | $0        | TBD    |
+| DSO (Days Sales Outstanding) | N/A     | < 30 days | N/A    |
+| Outstanding Invoices         | $0      | -         | ✅     |
+| Overdue > 60 days            | $0      | $0        | ✅     |
 
 ### Accounts Payable
 
 | Metric                         | Current | Target     | Status |
 | ------------------------------ | ------- | ---------- | ------ |
-| DPO (Days Payable Outstanding) | TBD     | 45-60 days | TBD    |
-| Urgent Payments                | TBD     | -          | TBD    |
-| Upcoming Large Payments        | TBD     | -          | TBD    |
+| DPO (Days Payable Outstanding) | N/A     | 45-60 days | N/A    |
+| Urgent Payments                | $0      | -          | ✅     |
+| Upcoming Large Payments        | $0      | -          | ✅     |
 
 ### Cash Conversion Cycle
 
-- **Inventory Days**: TBD
-- **DSO**: TBD
-- **DPO**: TBD
-- **CCC**: TBD days
+- **Inventory Days**: 0 (SaaS product)
+- **DSO**: N/A (Pre-revenue)
+- **DPO**: N/A (No suppliers yet)
+- **CCC**: 0 days (SaaS model)
 
 ## Liquidity Management
 
 ### Cash Reserves
 
-- **Operating Reserve**: TBD (3-6 months operating expenses)
-- **Contingency Fund**: TBD (unforeseen expenses)
-- **Growth Capital**: TBD (strategic investments)
+- **Operating Reserve**: ~$50,000 (Founder capital)
+- **Contingency Fund**: ~$5,000 (10% of reserves)
+- **Growth Capital**: TBD (Will be part of seed round)
 
 ### Investment Policy
 
 | Category            | Allocation | Risk Level | Target Return |
 | ------------------- | ---------- | ---------- | ------------- |
-| Cash & Equivalents  | TBD%       | Low        | 4-5%          |
-| Short-term Treasury | TBD%       | Low        | 5-6%          |
-| Money Market        | TBD%       | Low        | 5-6%          |
+| Cash & Equivalents  | 100%       | Low        | 4-5%          |
+| Short-term Treasury | 0%         | Low        | 5-6%          |
+| Money Market        | 0%         | Low        | 5-6%          |
+
+Note: All cash in founder account, no investments yet (bootstrapping)
 
 ## Payment Collection Strategy
 
@@ -153,22 +155,22 @@
 
 ### Near-Term (Next 30 Days)
 
-- **Payroll**: TBD
-- **Tax Payments**: TBD
-- **Rent**: TBD
-- **Software Renewals**: TBD
+- **Payroll**: $0 (Founder-only)
+- **Tax Payments**: $0 (No revenue yet)
+- **Rent**: $0 (Remote-first)
+- **Software Renewals**: $100 (GitHub, Vercel)
 
 ### Medium-Term (Next 90 Days)
 
-- **Equipment Purchases**: TBD
-- **Marketing Campaigns**: TBD
-- **Hiring Commitments**: TBD
+- **Equipment Purchases**: $0 (No hardware needed)
+- **Marketing Campaigns**: $500 (Content, blog setup)
+- **Hiring Commitments**: $0 (Founder-only until seed funding)
 
 ### Long-Term (6-12 Months)
 
-- **Office Lease Renewal**: TBD
-- **Major CapEx Projects**: TBD
-- **Debt Payments**: TBD
+- **Office Lease Renewal**: $0 (Remote-first, no plans for office)
+- **Major CapEx Projects**: $0 (No equipment needed)
+- **Debt Payments**: $0 (No debt)
 
 ## Risk Factors
 
@@ -188,6 +190,6 @@
 
 ---
 
-**Last Updated**: 2026-01-10
+**Last Updated**: 2026-01-12
 **Review Cycle**: Weekly
 **Owner**: CFO Agent
