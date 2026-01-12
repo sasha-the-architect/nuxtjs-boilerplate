@@ -3,6 +3,7 @@ import { useRoute, useRuntimeConfig, useNuxtApp } from '#app'
 import { useSeoMeta, useHead } from '#imports'
 import logger from '~/utils/logger'
 import type { Resource } from '~/types/resource'
+import type { Comment } from '~/types/community'
 import { useResources } from '~/composables/useResources'
 import { useRecommendationEngine } from '~/composables/useRecommendationEngine'
 import { generateResourceShareUrls } from '~/utils/shareUtils'
@@ -27,20 +28,32 @@ export const useResourceDetailPage = () => {
   })
 
   // Sample comments data
-  const sampleComments = ref([
+  const sampleComments = ref<Comment[]>([
     {
       id: '1',
-      author: 'Jane Doe',
-      text: "I've been using this for a few months now and it's been really helpful for my development workflow.",
-      timeAgo: '2 days ago',
-      likes: 12,
+      resourceId: '',
+      content:
+        "I've been using this for a few months now and it's been really helpful for my development workflow.",
+      userId: 'user-1',
+      userName: 'Jane Doe',
+      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      votes: 12,
+      replies: [],
+      isEdited: false,
+      status: 'active',
     },
     {
       id: '2',
-      author: 'John Smith',
-      text: "The free tier limitations are a bit restrictive, but overall it's a great service.",
-      timeAgo: '1 week ago',
-      likes: 5,
+      resourceId: '',
+      content:
+        "The free tier limitations are a bit restrictive, but overall it's a great service.",
+      userId: 'user-2',
+      userName: 'John Smith',
+      timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      votes: 5,
+      replies: [],
+      isEdited: false,
+      status: 'active',
     },
   ])
 
