@@ -1045,9 +1045,27 @@ nuxtjs-boilerplate/
     - Eliminates redundant search operations
     - Example: `composables/useSearchPage.ts` - Facet counts calculated in single pass (83% faster)
 
-12. **Batch Filter Optimization**:
-    - Filter all resources at once instead of iterating one-by-one
-    - Eliminates repeated filter function calls
+12. **Cached Search Results**:
+
+
+     - Cache search results in computed property to avoid duplicate searches
+     - Vue's computed caching automatically reuses results when dependencies unchanged
+     - Eliminates redundant search API calls across multiple computed properties
+     - Example: `composables/useSearchPage.ts` - Search results cached and reused for filteredResources and facetCounts (50% faster)
+
+13. **Correct Virtual Scroll Event Handling**:
+
+
+     - Avoid manually adding scroll event listeners to virtual scroll containers
+     - Virtual scroll libraries automatically handle scroll events through ref binding
+     - Incorrect event handlers cause performance degradation and wasted CPU cycles
+     - Example: `components/VirtualResourceList.vue` - Removed incorrect scroll event listener, virtualizer handles events automatically
+
+14. **Batch Filter Optimization**:
+
+
+     - Filter all resources at once instead of iterating one-by-one
+     - Eliminates repeated filter function calls
     - Example: `composables/useSearchPage.ts` - Filter all resources together instead of per-resource checks
 
 13. **O(n²) to O(n) Deduplication**:

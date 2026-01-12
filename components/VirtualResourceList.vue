@@ -23,10 +23,7 @@
           transform: `translateY(${virtualRow.start}px)`,
         }"
       >
-        <slot
-          :item="items[virtualRow.index]"
-          :index="virtualRow.index"
-        />
+        <slot :item="items[virtualRow.index]" :index="virtualRow.index" />
       </div>
     </div>
   </div>
@@ -50,7 +47,6 @@ const props = withDefaults(defineProps<Props<T>>(), {
 })
 
 const scrollContainer = ref<HTMLElement | null>(null)
-const scrollContent = ref<HTMLElement | null>(null)
 
 const totalHeight = computed(() => props.items.length * props.itemHeight)
 
@@ -59,27 +55,6 @@ const virtualizer = useVirtualizer({
   getScrollElement: () => scrollContainer.value,
   estimateSize: () => props.itemHeight,
   overscan: props.overscan,
-})
-
-onMounted(() => {
-  if (scrollContainer.value) {
-    scrollContainer.value.addEventListener(
-      'scroll',
-      virtualizer.scrollToOffset,
-      {
-        passive: true,
-      }
-    )
-  }
-})
-
-onUnmounted(() => {
-  if (scrollContainer.value) {
-    scrollContainer.value.removeEventListener(
-      'scroll',
-      virtualizer.scrollToOffset
-    )
-  }
 })
 </script>
 

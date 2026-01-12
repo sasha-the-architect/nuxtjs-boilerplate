@@ -69,18 +69,20 @@ export const useSearchPage = () => {
     sortOption
   )
 
+  const searchedResources = computed(() => {
+    const query = filterOptions.value.searchQuery
+    if (!query || !resources.value.length) {
+      return [...resources.value]
+    }
+    return advancedSearch.advancedSearchResources(query)
+  })
+
   const filteredResources = computed(() => {
     if (!resources.value.length) {
       return []
     }
 
-    let result = [...resources.value]
-
-    if (filterOptions.value.searchQuery) {
-      result = advancedSearch.advancedSearchResources(
-        filterOptions.value.searchQuery
-      )
-    }
+    let result = searchedResources.value
 
     result = result.filter(
       resource =>
@@ -95,9 +97,8 @@ export const useSearchPage = () => {
   })
 
   const facetCounts = computed(() => {
-    const searchQuery = filterOptions.value.searchQuery || ''
-
-    const allFacets = advancedSearch.calculateAllFacetCounts(searchQuery)
+    const query = filterOptions.value.searchQuery || ''
+    const allFacets = advancedSearch.calculateAllFacetCounts(query)
 
     const allCounts: Record<string, number> = {}
 
@@ -122,7 +123,7 @@ export const useSearchPage = () => {
     })
 
     Object.entries(allFacets.benefits).forEach(([key, value]) => {
-      allCounts[`benefits_${key}`] = value
+      allCounts[`benefit_${key}`] = value
     })
 
     return allCounts
