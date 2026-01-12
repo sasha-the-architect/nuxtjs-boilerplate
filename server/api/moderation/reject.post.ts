@@ -54,7 +54,7 @@ export default defineEventHandler(async event => {
 
     // In a real application, we would notify the submitter about rejection
     // For now, we'll just log it
-    console.log(
+    console.info(
       `Notification: Submission ${submission.id} rejected for user ${submission.submittedBy}`
     )
 

@@ -20,4 +20,5 @@ export interface Submission {
   reviewedBy?: string
   reviewedAt?: string
   notes?: string
+  rejectionReason?: string
 }

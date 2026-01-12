@@ -5,7 +5,8 @@ export default defineEventHandler(async event => {
   // This would typically filter by user in a real implementation
   // For now, return all keys
   const apiKeys = webhookStorage.getAllApiKeys()
-  const keysWithoutSecrets = apiKeys.map(({ key, ...rest }) => rest)
+  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+  const keysWithoutSecrets = apiKeys.map(({ key: _key, ...rest }) => rest)
 
   return sendSuccessResponse(event, {
     data: keysWithoutSecrets,

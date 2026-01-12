@@ -37,7 +37,8 @@ export default defineEventHandler(async event => {
     }
 
     // Return without secret for security
-    const { secret: _secret, ...webhookWithoutSecret } = updatedWebhook
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    const { secret: _secretValue, ...webhookWithoutSecret } = updatedWebhook
 
     sendSuccessResponse(event, webhookWithoutSecret)
   } catch (error) {

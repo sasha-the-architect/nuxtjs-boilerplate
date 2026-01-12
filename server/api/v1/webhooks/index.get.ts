@@ -25,7 +25,8 @@ export default defineEventHandler(async event => {
 
   // Return webhooks without secrets for security
   const webhooksWithoutSecrets = filteredWebhooks.map(
-    ({ secret: _secret, ...webhook }) => webhook
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    ({ secret: _secretValue, ...webhook }) => webhook
   )
 
   return sendSuccessResponse(event, {

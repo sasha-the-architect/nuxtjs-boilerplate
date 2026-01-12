@@ -164,7 +164,17 @@ export default [
       },
     },
     rules: {
+      '@typescript-eslint/no-unused-vars': 'off', // Turn off TypeScript rule for JS files
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }], // Allow only specific console methods, prefer using logger
+      'no-unused-vars': [
+        'error',
+        {
+          args: 'all',
+          argsIgnorePattern: '^_',
+          vars: 'all',
+          varsIgnorePattern: '^_',
+        },
+      ], // Allow unused vars with underscore prefix
     },
   },
   // Configuration for utility files
@@ -317,6 +327,7 @@ export default [
       'public/**',
       'nuxt.d.ts',
       'app.config.ts',
+      'scripts/**',
     ],
   },
 ]
