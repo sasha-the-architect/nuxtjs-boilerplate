@@ -9,10 +9,13 @@
       </p>
     </div>
 
-    <div v-if="loading" class="flex justify-center items-center py-12">
+    <div
+      v-if="loading"
+      class="flex justify-center items-center py-12"
+    >
       <div
         class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"
-      ></div>
+      />
     </div>
 
     <div
@@ -54,139 +57,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { useRoute, navigateTo } from '#app'
-import logger from '~/utils/logger'
-import type { Resource } from '~/types/resource'
-import type { ComparisonCriteria } from '~/types/comparison'
 import ComparisonTable from '~/components/ComparisonTable.vue'
+import { useComparisonPage } from '~/composables/useComparisonPage'
+import { useRoute } from '#app'
 
-// Get resource IDs from route
 const route = useRoute()
-const resourceIds = computed(() => {
-  if (typeof route.params.ids === 'string') {
-    return route.params.ids.split(',')
-  }
-  return []
-})
-
-// State
-const loading = ref(true)
-const error = ref<string | null>(null)
-const resources = ref<Resource[]>([])
-
-// Default comparison criteria
-const defaultCriteria: ComparisonCriteria[] = [
-  { id: 'title', name: 'Name', type: 'text', category: 'basic', weight: 1 },
-  {
-    id: 'description',
-    name: 'Description',
-    type: 'text',
-    category: 'basic',
-    weight: 1,
-  },
-  {
-    id: 'pricingModel',
-    name: 'Pricing',
-    type: 'text',
-    category: 'business',
-    weight: 1,
-  },
-  {
-    id: 'category',
-    name: 'Category',
-    type: 'text',
-    category: 'basic',
-    weight: 0.8,
-  },
-  {
-    id: 'technology',
-    name: 'Technology',
-    type: 'list',
-    category: 'technical',
-    weight: 1,
-  },
-  {
-    id: 'popularity',
-    name: 'Popularity',
-    type: 'number',
-    category: 'metrics',
-    weight: 0.7,
-  },
-  {
-    id: 'benefits',
-    name: 'Benefits',
-    type: 'list',
-    category: 'features',
-    weight: 1,
-  },
-  {
-    id: 'limitations',
-    name: 'Limitations',
-    type: 'list',
-    category: 'features',
-    weight: 0.8,
-  },
-  {
-    id: 'platforms',
-    name: 'Platforms',
-    type: 'list',
-    category: 'technical',
-    weight: 0.7,
-  },
-  {
-    id: 'features',
-    name: 'Features',
-    type: 'list',
-    category: 'features',
-    weight: 1,
-  },
-]
-
-// Fetch comparison data
-const fetchComparison = async () => {
-  try {
-    loading.value = true
-    error.value = null
-
-    const response = await $fetch(`/api/v1/comparisons`, {
-      params: {
-        ids: resourceIds.value,
-      },
-    })
-
-    resources.value = response.resources || []
-  } catch (err: any) {
-    logger.error('Error fetching comparison:', err)
-    error.value =
-      err.data?.statusMessage || err.message || 'Failed to load comparison'
-  } finally {
-    loading.value = false
-  }
-}
-
-// Watch for route changes and fetch new data
-watch(
-  resourceIds,
-  () => {
-    if (resourceIds.value.length > 0) {
-      fetchComparison()
-    }
-  },
-  { immediate: true }
-)
-
-// Page metadata
-const title = computed(() => {
-  if (resources.value.length > 0) {
-    const titles = resources.value.slice(0, 3).map(r => r.title)
-    if (resources.value.length > 3) {
-      return `Compare ${titles.join(' vs ')} and ${resources.value.length - 3} more`
-    }
-    return `Compare ${titles.join(' vs ')}`
-  }
-  return 'Resource Comparison'
-})
+const {
+  loading,
+  error,
+  resources,
+  defaultCriteria,
+  title,
+  handleRemoveResource,
+} = useComparisonPage()
 
 useSeoMeta({
   title: title.value,
@@ -197,15 +80,4 @@ useSeoMeta({
   ogType: 'website',
   ogUrl: route.fullPath,
 })
-
-// Methods
-const handleRemoveResource = (resourceId: string) => {
-  // Remove the resource from the comparison and redirect to a new comparison URL
-  const newIds = resourceIds.value.filter(id => id !== resourceId)
-  if (newIds.length > 0) {
-    navigateTo(`/compare/${newIds.join(',')}`)
-  } else {
-    navigateTo('/compare')
-  }
-}
 </script>

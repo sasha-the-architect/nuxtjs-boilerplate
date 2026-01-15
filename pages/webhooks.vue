@@ -1,15 +1,21 @@
 <template>
   <div class="webhooks-page">
     <div class="container mx-auto px-4 py-8">
-      <h1 class="text-3xl font-bold mb-8">Webhook & API Integration</h1>
+      <h1 class="text-3xl font-bold mb-8">
+        Webhook & API Integration
+      </h1>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div class="card">
-          <WebhookManager />
+          <ClientOnly>
+            <LazyWebhookManager />
+          </ClientOnly>
         </div>
 
         <div class="card">
-          <ApiKeys />
+          <ClientOnly>
+            <LazyApiKeys />
+          </ClientOnly>
         </div>
       </div>
     </div>

@@ -1,7 +1,13 @@
 import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
-import { createError, defineEventHandler, getRouterParam, readBody } from 'h3'
+import {
+  sendBadRequestError,
+  sendNotFoundError,
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
+import { defineEventHandler, getRouterParam, readBody } from 'h3'
 
 // This is a simplified implementation for demonstration
 // In a real implementation, you'd want to persist these relationships in a database
@@ -15,10 +21,8 @@ export default defineEventHandler(async event => {
     const resourceId = getRouterParam(event, 'id')
 
     if (!resourceId) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Resource ID is required',
-      })
+      sendBadRequestError(event, 'Resource ID is required')
+      return
     }
 
     // Parse request body
@@ -26,10 +30,8 @@ export default defineEventHandler(async event => {
     const { alternativeId, action = 'add' } = body
 
     if (!alternativeId) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Alternative resource ID is required',
-      })
+      sendBadRequestError(event, 'Alternative resource ID is required')
+      return
     }
 
     // Import resources from JSON to validate IDs
@@ -41,10 +43,8 @@ export default defineEventHandler(async event => {
     const alternativeResource = resources.find(r => r.id === alternativeId)
 
     if (!resource || !alternativeResource) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Resource or alternative resource not found',
-      })
+      sendNotFoundError(event, 'Resource or alternative resource')
+      return
     }
 
     // Get existing alternatives for this resource
@@ -57,7 +57,7 @@ export default defineEventHandler(async event => {
         alternativeRelationships.set(resourceId, currentAlternatives)
 
         // Also add reverse relationship
-        let reverseAlternatives =
+        const reverseAlternatives =
           alternativeRelationships.get(alternativeId) || []
         if (!reverseAlternatives.includes(resourceId)) {
           reverseAlternatives.push(resourceId)
@@ -77,22 +77,17 @@ export default defineEventHandler(async event => {
       reverseAlternatives = reverseAlternatives.filter(id => id !== resourceId)
       alternativeRelationships.set(alternativeId, reverseAlternatives)
     } else {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid action. Use "add" or "remove".',
-      })
+      sendBadRequestError(event, 'Invalid action. Use "add" or "remove".')
+      return
     }
 
-    return {
-      success: true,
-      data: {
-        resourceId,
-        alternativeId,
-        action,
-        alternatives: currentAlternatives,
-      },
-    }
-  } catch (error: any) {
+    sendSuccessResponse(event, {
+      resourceId,
+      alternativeId,
+      action,
+      alternatives: currentAlternatives,
+    })
+  } catch (error) {
     // Log error using our error logging service
     logError(
       `Error managing alternative relationship for resource ${getRouterParam(event, 'id')}: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -100,14 +95,10 @@ export default defineEventHandler(async event => {
       'api-v1-alternatives-post',
       {
         resourceId: getRouterParam(event, 'id'),
-        errorType: error?.constructor?.name,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
       }
     )
 
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage:
-        error.statusMessage || 'Failed to manage alternative relationship',
-    })
+    handleApiRouteError(event, error)
   }
 })

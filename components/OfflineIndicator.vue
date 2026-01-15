@@ -1,6 +1,9 @@
 <template>
   <div
     v-if="isOffline"
+    role="alert"
+    aria-live="assertive"
+    aria-atomic="true"
     class="fixed top-0 left-0 right-0 bg-yellow-100 border-b border-yellow-300 p-2 z-50"
   >
     <div class="max-w-7xl mx-auto px-4 flex items-center justify-center">
@@ -9,6 +12,7 @@
         class="h-5 w-5 text-yellow-600 mr-2"
         viewBox="0 0 20 20"
         fill="currentColor"
+        aria-hidden="true"
       >
         <path
           fill-rule="evenodd"
@@ -16,9 +20,7 @@
           clip-rule="evenodd"
         />
       </svg>
-      <span class="text-yellow-800 text-sm font-medium"
-        >You are offline. Some features may be limited.</span
-      >
+      <span class="text-yellow-800 text-sm font-medium">You are offline. Some features may be limited.</span>
     </div>
   </div>
 </template>

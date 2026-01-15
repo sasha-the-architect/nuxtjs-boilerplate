@@ -1,12 +1,23 @@
 <template>
   <div class="submission-review">
-    <div v-if="loading" class="loading">Loading submission...</div>
+    <div
+      v-if="loading"
+      class="loading"
+    >
+      Loading submission...
+    </div>
 
-    <div v-else-if="error" class="error">
+    <div
+      v-else-if="error"
+      class="error"
+    >
       {{ error }}
     </div>
 
-    <div v-else-if="submission" class="review-content">
+    <div
+      v-else-if="submission"
+      class="review-content"
+    >
       <div class="review-header">
         <h1>{{ submission.resourceData?.title }}</h1>
         <span :class="['status-badge', `status-${submission.status}`]">
@@ -102,24 +113,36 @@
               <span>{{ formatDate(submission.submittedAt) }}</span>
             </div>
 
-            <div v-if="submission.reviewedAt" class="info-item">
+            <div
+              v-if="submission.reviewedAt"
+              class="info-item"
+            >
               <label>Reviewed By:</label>
               <span>{{ submission.reviewedBy || 'N/A' }}</span>
             </div>
 
-            <div v-if="submission.reviewedAt" class="info-item">
+            <div
+              v-if="submission.reviewedAt"
+              class="info-item"
+            >
               <label>Reviewed At:</label>
               <span>{{ formatDate(submission.reviewedAt) }}</span>
             </div>
 
-            <div v-if="submission.rejectionReason" class="info-item">
+            <div
+              v-if="submission.rejectionReason"
+              class="info-item"
+            >
               <label>Rejection Reason:</label>
               <span class="rejection-reason">{{
                 submission.rejectionReason
               }}</span>
             </div>
 
-            <div v-if="submission.notes" class="info-item">
+            <div
+              v-if="submission.notes"
+              class="info-item"
+            >
               <label>Notes:</label>
               <span>{{ submission.notes }}</span>
             </div>
@@ -127,10 +150,16 @@
         </div>
       </div>
 
-      <div v-if="submission.status === 'pending'" class="review-actions">
+      <div
+        v-if="submission.status === 'pending'"
+        class="review-actions"
+      >
         <div class="action-group">
           <h4>Approve Submission</h4>
-          <button class="btn btn-approve" @click="approveSubmission">
+          <button
+            class="btn btn-approve"
+            @click="handleApprove"
+          >
             Approve
           </button>
         </div>
@@ -141,8 +170,11 @@
             v-model="rejectionReason"
             placeholder="Enter reason for rejection..."
             class="rejection-textarea"
-          ></textarea>
-          <button class="btn btn-reject" @click="rejectSubmission">
+          />
+          <button
+            class="btn btn-reject"
+            @click="handleReject"
+          >
             Reject
           </button>
         </div>
@@ -152,9 +184,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { logError } from '~/utils/errorLogger'
-import type { Submission } from '~/types/submission'
+import { onMounted } from 'vue'
+import { useSubmissionReview } from '~/composables/useSubmissionReview'
 
 interface Props {
   submissionId?: string
@@ -163,110 +194,42 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   submissionId: '',
 })
-const loading = ref(true)
-const error = ref('')
-const submission = ref<Submission | null>(null)
-const rejectionReason = ref('')
 
-// Fetch submission data
-const fetchSubmission = async () => {
-  try {
-    loading.value = true
-    error.value = ''
+const {
+  loading,
+  error,
+  submission,
+  rejectionReason,
+  fetchSubmission,
+  approveSubmission,
+  rejectSubmission,
+} = useSubmissionReview({
+  submissionId: props.submissionId,
+})
 
-    const response = await $fetch(`/api/submissions/${props.submissionId}`)
-
-    if (response.success) {
-      submission.value = response.submission
-    } else {
-      error.value = response.message || 'Failed to load submission'
-    }
-  } catch (err) {
-    error.value = 'An error occurred while fetching submission'
-    logError(
-      'Error fetching submission in SubmissionReview:',
-      err as Error,
-      'SubmissionReview'
-    )
-  } finally {
-    loading.value = false
+const handleApprove = async () => {
+  const success = await approveSubmission()
+  if (success) {
+    alert('Submission approved successfully!')
+  } else {
+    alert(error.value || 'Failed to approve submission')
   }
 }
 
-// Approve submission
-const approveSubmission = async () => {
-  if (!submission.value) return
-
-  try {
-    const response = await $fetch('/api/moderation/approve', {
-      method: 'POST',
-      body: {
-        submissionId: props.submissionId,
-        reviewedBy: 'moderator_123', // In a real app, this would be the current user
-        notes: 'Approved via moderation interface',
-      },
-    })
-
-    if (response.success) {
-      // Update the submission status
-      submission.value.status = 'approved'
-      submission.value.reviewedBy = 'moderator_123'
-      submission.value.reviewedAt = new Date().toISOString()
-
-      alert('Submission approved successfully!')
-    } else {
-      alert(response.message || 'Failed to approve submission')
-    }
-  } catch (err) {
-    logError('Error approving submission:', err as Error, 'SubmissionReview')
-    alert('An error occurred while approving the submission')
+const handleReject = async () => {
+  const success = await rejectSubmission(rejectionReason.value)
+  if (success) {
+    alert('Submission rejected successfully!')
+  } else {
+    alert(error.value || 'Failed to reject submission')
   }
 }
 
-// Reject submission
-const rejectSubmission = async () => {
-  if (!submission.value) return
-
-  if (!rejectionReason.value.trim()) {
-    alert('Please provide a reason for rejection')
-    return
-  }
-
-  try {
-    const response = await $fetch('/api/moderation/reject', {
-      method: 'POST',
-      body: {
-        submissionId: props.submissionId,
-        reviewedBy: 'moderator_123', // In a real app, this would be the current user
-        rejectionReason: rejectionReason.value,
-        notes: 'Rejected via moderation interface',
-      },
-    })
-
-    if (response.success) {
-      // Update the submission status
-      submission.value.status = 'rejected'
-      submission.value.reviewedBy = 'moderator_123'
-      submission.value.reviewedAt = new Date().toISOString()
-      submission.value.rejectionReason = rejectionReason.value
-
-      alert('Submission rejected successfully!')
-    } else {
-      alert(response.message || 'Failed to reject submission')
-    }
-  } catch (err) {
-    logError('Error rejecting submission:', err as Error, 'SubmissionReview')
-    alert('An error occurred while rejecting the submission')
-  }
-}
-
-// Helper function to format date
 const formatDate = (dateString?: string) => {
   if (!dateString) return 'N/A'
   return new Date(dateString).toLocaleString()
 }
 
-// Initialize data
 onMounted(() => {
   fetchSubmission()
 })

@@ -1,0 +1,15 @@
+export const useNuxtApp = () => ({})
+export const useRuntimeConfig = () => ({})
+export const useState = () => ({})
+export const useRequestHeaders = () => ({})
+export const useCookie = () => ({})
+export const useAsyncData = () => ({})
+export const useFetch = () => ({})
+export const navigateTo = () => {}
+export const definePageMeta = () => {}
+export const useHead = () => {}
+export const useError = () => ({})
+export const showError = () => {}
+export const clearError = () => {}
+export const useRouter = () => ({})
+export const useRoute = () => ({})

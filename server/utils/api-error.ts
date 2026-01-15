@@ -1,7 +1,4 @@
-export {}
-
 // Error codes and categories are exported for external use
-/* eslint-disable no-unused-vars */
 export enum ErrorCode {
   INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
   BAD_REQUEST = 'BAD_REQUEST',
@@ -27,7 +24,6 @@ export enum ErrorCategory {
   INTERNAL = 'internal',
   NETWORK = 'network',
 }
-/* eslint-enable no-unused-vars */
 
 export interface ApiError {
   success: false

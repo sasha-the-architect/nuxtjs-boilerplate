@@ -1,11 +1,20 @@
-import { defineVitestConfig } from '@nuxt/test-utils/config'
+import { defineConfig } from 'vitest/config'
+import vue from '@vitejs/plugin-vue'
+import path from 'path'
 
-export default defineVitestConfig({
+export default defineConfig({
+  plugins: [vue()],
   test: {
     globals: true,
     environment: 'jsdom',
     testTimeout: 10000,
     setupFiles: ['./test-setup.ts'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.nuxt/**',
+      '**/__tests__/*integration*.test.ts',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -27,6 +36,15 @@ export default defineVitestConfig({
           statements: 80,
         },
       },
+    },
+  },
+  resolve: {
+    alias: {
+      '~': path.resolve(__dirname, '.'),
+      '@': path.resolve(__dirname, '.'),
+      '#app': path.resolve(__dirname, 'test-mocks/nuxt-app.ts'),
+      '#imports': path.resolve(__dirname, 'test-mocks/nuxt-imports.ts'),
+      '#build': path.resolve(__dirname, 'test-mocks/nuxt-app.ts'),
     },
   },
 })

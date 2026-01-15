@@ -106,15 +106,10 @@ onMounted(() => {
   window.addEventListener('keydown', handleKeyDown)
   window.addEventListener('mousedown', handleMouseDown)
 
-  // PWA installation prompt
-  // let deferredPrompt: Event | null = null
-
-  window.addEventListener('beforeinstallprompt', e => {
-    // Prevent the mini-infobar from appearing on mobile
-    e.preventDefault()
-    // Stash the event so it can be triggered later
-    // deferredPrompt = e
-    // Show the install button or notification
+  // Cleanup event listeners
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeyDown)
+    window.removeEventListener('mousedown', handleMouseDown)
   })
 
   // Handle online/offline status

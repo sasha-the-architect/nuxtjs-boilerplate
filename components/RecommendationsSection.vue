@@ -9,13 +9,19 @@
       </p>
     </div>
 
-    <div v-if="loading" class="flex justify-center items-center py-12">
+    <div
+      v-if="loading"
+      class="flex justify-center items-center py-12"
+    >
       <div
         class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"
-      ></div>
+      />
     </div>
 
-    <div v-else-if="error" class="bg-red-50 border-l-4 border-red-400 p-4">
+    <div
+      v-else-if="error"
+      class="bg-red-50 border-l-4 border-red-400 p-4"
+    >
       <div class="flex">
         <div class="flex-shrink-0">
           <svg
@@ -32,12 +38,17 @@
           </svg>
         </div>
         <div class="ml-3">
-          <p class="text-sm text-red-700">{{ error }}</p>
+          <p class="text-sm text-red-700">
+            {{ error }}
+          </p>
         </div>
       </div>
     </div>
 
-    <div v-else-if="recommendations.length === 0" class="text-center py-12">
+    <div
+      v-else-if="recommendations.length === 0"
+      class="text-center py-12"
+    >
       <svg
         class="mx-auto h-12 w-12 text-gray-400"
         fill="none"
@@ -59,7 +70,10 @@
       </p>
     </div>
 
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div
+      v-else
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
       <RecommendationCard
         v-for="rec in recommendations"
         :key="rec.resource.id"
@@ -70,7 +84,10 @@
       />
     </div>
 
-    <div v-if="recommendations.length > 0" class="mt-6 flex justify-center">
+    <div
+      v-if="recommendations.length > 0"
+      class="mt-6 flex justify-center"
+    >
       <button
         class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
         @click="refreshRecommendations"

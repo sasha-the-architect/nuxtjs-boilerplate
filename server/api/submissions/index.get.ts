@@ -1,9 +1,12 @@
 import type { Submission } from '~/types/submission'
 import { getQuery } from 'h3'
-import { logger } from '~/utils/logger'
+import {
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 // Mock data for demonstration - in a real application, this would come from a database
-let mockSubmissions: Submission[] = []
+const mockSubmissions: Submission[] = []
 
 export default defineEventHandler(async event => {
   try {
@@ -35,21 +38,13 @@ export default defineEventHandler(async event => {
       offset + limit
     )
 
-    return {
-      success: true,
+    return sendSuccessResponse(event, {
       submissions: paginatedSubmissions,
       total: filteredSubmissions.length,
       limit,
       offset,
-    }
-  } catch (error: any) {
-    logger.error('Error fetching submissions:', error)
-
-    return {
-      success: false,
-      message: 'An error occurred while fetching submissions',
-      submissions: [],
-      total: 0,
-    }
+    })
+  } catch (error) {
+    return handleApiRouteError(event, error)
   }
 })

@@ -1,46 +1,34 @@
 import type { Submission } from '~/types/submission'
 
 // Mock data for demonstration - in a real application, this would come from a database
-let mockSubmissions: Submission[] = []
+const mockSubmissions: Submission[] = []
+
+import {
+  sendBadRequestError,
+  sendNotFoundError,
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 export default defineEventHandler(async event => {
   try {
-    const id = event.context.params?.id
+    const id = event.context.params?.id as string
 
     if (!id) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Submission ID is required',
-      })
+      sendBadRequestError(event, 'Submission ID is required')
+      return
     }
 
     // Find the submission
     const submission = mockSubmissions.find(sub => sub.id === id)
 
     if (!submission) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Submission not found',
-      })
+      sendNotFoundError(event, 'Submission', id)
+      return
     }
 
-    return {
-      success: true,
-      submission,
-    }
-  } catch (error: any) {
-    console.error('Error fetching submission:', error)
-
-    if (error.statusCode) {
-      return {
-        success: false,
-        message: error.statusMessage,
-      }
-    }
-
-    return {
-      success: false,
-      message: 'An error occurred while fetching the submission',
-    }
+    sendSuccessResponse(event, submission)
+  } catch (error) {
+    handleApiRouteError(event, error)
   }
 })

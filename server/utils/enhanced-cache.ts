@@ -2,8 +2,8 @@ import type { H3Event } from 'h3'
 import Redis from 'ioredis'
 import logger from '~/utils/logger'
 
-interface CacheEntry {
-  data: any
+interface CacheEntry<T = unknown> {
+  data: T
   timestamp: number
   ttl: number // Time to live in seconds
 }
@@ -17,7 +17,7 @@ interface CacheConfig {
 }
 
 class CacheManager {
-  private memoryCache: Map<string, CacheEntry>
+  private memoryCache: Map<string, CacheEntry<unknown>>
   private maxMemorySize: number
   private cleanupInterval: number
   private enableRedis: boolean
@@ -36,7 +36,7 @@ class CacheManager {
       enableAnalytics = true,
     } = config
 
-    this.memoryCache = new Map<string, CacheEntry>()
+    this.memoryCache = new Map<string, CacheEntry<unknown>>()
     this.maxMemorySize = maxMemorySize
     this.cleanupInterval = cleanupInterval
     this.enableRedis = enableRedis
@@ -119,35 +119,29 @@ class CacheManager {
   /**
    * Get value from cache (memory first, then Redis if configured)
    */
-  async get(key: string): Promise<any | null> {
-    // Try memory cache first
+  async get<T = unknown>(key: string): Promise<T | null> {
     const memoryEntry = this.memoryCache.get(key)
     if (memoryEntry) {
-      // Check if entry is expired
       const now = Date.now()
       if (now - memoryEntry.timestamp <= memoryEntry.ttl * 1000) {
         if (this.enableAnalytics) this.hitCount++
-        return memoryEntry.data
+        return memoryEntry.data as T
       } else {
-        // Entry is expired, remove it
         this.memoryCache.delete(key)
       }
     }
 
-    // If Redis is enabled, try to get from Redis
     if (this.enableRedis && this.redisClient && this.redisConnected) {
       try {
         const redisValue = await this.redisClient.get(key)
         if (redisValue) {
           const parsedValue = JSON.parse(redisValue)
-          // Cache in memory for faster subsequent access
           await this.set(key, parsedValue, memoryEntry?.ttl || 3600)
           if (this.enableAnalytics) this.hitCount++
-          return parsedValue
+          return parsedValue as T
         }
       } catch (error) {
         logger.warn('Redis get error, falling back to memory cache:', error)
-        // Don't disable Redis here, just log the error and continue
       }
     }
 
@@ -158,7 +152,11 @@ class CacheManager {
   /**
    * Set value in cache (both memory and Redis if configured)
    */
-  async set(key: string, value: any, ttl: number = 3600): Promise<boolean> {
+  async set<T = unknown>(
+    key: string,
+    value: T,
+    ttl: number = 3600
+  ): Promise<boolean> {
     // Clean up expired entries if cache is full
     if (this.memoryCache.size >= this.maxMemorySize) {
       this.cleanupExpired()
@@ -269,8 +267,8 @@ class CacheManager {
   /**
    * Preload cache with initial data
    */
-  async preload(
-    keys: Array<{ key: string; value: any; ttl?: number }>
+  async preload<T = unknown>(
+    keys: Array<{ key: string; value: T; ttl?: number }>
   ): Promise<void> {
     for (const item of keys) {
       await this.set(item.key, item.value, item.ttl || 3600)
@@ -352,26 +350,25 @@ export { cacheManager }
 /**
  * Cache decorator function for API endpoints
  */
-export function cached(
+export function cached<T = unknown>(
   ttl: number = 3600,
-  keyGenerator?: (event: H3Event) => string,
-  tags?: string[] // For cache invalidation by tags
+  keyGenerator?: (event: H3Event) => string
 ) {
   return function (
-    target: any,
+    target: unknown,
     propertyKey: string,
     descriptor: PropertyDescriptor
   ) {
     const originalMethod = descriptor.value
 
-    descriptor.value = async function (event: H3Event) {
+    descriptor.value = async function (event: H3Event): Promise<T> {
       // Generate cache key
-      let cacheKey = keyGenerator
+      const cacheKey = keyGenerator
         ? keyGenerator(event)
         : `${propertyKey}:${event.path}:${JSON.stringify(event.context.params || {})}`
 
       // Try to get from cache first
-      const cachedResult = await cacheManager.get(cacheKey)
+      const cachedResult = await cacheManager.get<T>(cacheKey)
       if (cachedResult !== null) {
         // Set cache hit header
         if (event.node.res?.setHeader) {
@@ -382,9 +379,9 @@ export function cached(
       }
 
       // Execute original method
-      const result = await originalMethod.apply(this, [event])
+      const result = (await originalMethod.apply(this, [event])) as T
 
-      // Cache the result
+      // Cache result
       await cacheManager.set(cacheKey, result, ttl)
 
       // Set cache miss header
@@ -403,9 +400,9 @@ export function cached(
 /**
  * Cache with tags for easier invalidation
  */
-export async function cacheSetWithTags(
+export async function cacheSetWithTags<T = unknown>(
   key: string,
-  value: any,
+  value: T,
   ttl: number = 3600,
   tags: string[] = []
 ): Promise<boolean> {
@@ -415,7 +412,7 @@ export async function cacheSetWithTags(
   // Create tag mappings for later invalidation
   for (const tag of tags) {
     const tagKey = `tag:${tag}`
-    let tagMembers: string[] = (await cacheManager.get(tagKey)) || []
+    const tagMembers: string[] = (await cacheManager.get(tagKey)) || []
     if (!tagMembers.includes(key)) {
       tagMembers.push(key)
       await cacheManager.set(tagKey, tagMembers, ttl + 3600) // Tag mapping expires later

@@ -4,20 +4,20 @@
  */
 
 export interface Logger {
-  debug: (_message: string, ..._data: any[]) => void
-  info: (_message: string, ..._data: any[]) => void
-  warn: (_message: string, ..._data: any[]) => void
-  error: (_message: string, ..._data: any[]) => void
+  debug: (_message: string, ..._data: unknown[]) => void
+  info: (_message: string, ..._data: unknown[]) => void
+  warn: (_message: string, ..._data: unknown[]) => void
+  error: (_message: string, ..._data: unknown[]) => void
 }
 
 export const logger: Logger = {
-  debug: (_message: string, ..._data: any[]) => {
+  debug: (_message: string, ..._data: unknown[]) => {
     if (process.env.NODE_ENV === 'development') {
       // eslint-disable-next-line no-console
       console.debug(`[DEBUG] ${_message}`, ..._data)
     }
   },
-  info: (_message: string, ..._data: any[]) => {
+  info: (_message: string, ..._data: unknown[]) => {
     // Only log info in development or when specifically enabled
     if (
       process.env.NODE_ENV === 'development' ||
@@ -28,20 +28,18 @@ export const logger: Logger = {
       console.info(`[INFO] ${_message}`, ..._data)
     }
   },
-  warn: (_message: string, ..._data: any[]) => {
+  warn: (_message: string, ..._data: unknown[]) => {
     // Log warnings in all environments except production unless specifically disabled
     if (
       process.env.NODE_ENV !== 'production' ||
       process.env.LOG_WARNINGS === 'true'
     ) {
-      // eslint-disable-next-line no-console
       console.warn(`[WARN] ${_message}`, ..._data)
     }
   },
-  error: (_message: string, ..._data: any[]) => {
+  error: (_message: string, ..._data: unknown[]) => {
     // Always log errors unless specifically disabled
     if (process.env.LOG_ERRORS !== 'false') {
-      // eslint-disable-next-line no-console
       console.error(`[ERROR] ${_message}`, ..._data)
     }
   },

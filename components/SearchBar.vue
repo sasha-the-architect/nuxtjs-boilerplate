@@ -17,7 +17,7 @@
             stroke-linejoin="round"
             stroke-width="2"
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          ></path>
+          />
         </svg>
       </div>
       <input
@@ -29,11 +29,17 @@
         placeholder="Search resources by name, description, tags..."
         aria-label="Search resources"
         aria-describedby="search-results-info"
+        :aria-expanded="
+          showSuggestions &&
+            (suggestions.length > 0 || searchHistory.length > 0)
+        "
+        aria-controls="search-suggestions-dropdown"
+        aria-autocomplete="list"
         @input="handleInput"
         @keydown="handleKeyDown"
         @focus="handleFocus"
         @blur="handleBlur"
-      />
+      >
       <div
         v-if="modelValue"
         class="absolute inset-y-0 right-0 flex items-center pr-3"
@@ -56,25 +62,29 @@
               stroke-linejoin="round"
               stroke-width="2"
               d="M6 18L18 6M6 6l12 12"
-            ></path>
+            />
           </svg>
         </button>
       </div>
     </div>
 
     <!-- Search Suggestions Dropdown -->
-    <SearchSuggestions
-      v-if="
-        showSuggestions && (suggestions.length > 0 || searchHistory.length > 0)
-      "
-      :suggestions="suggestions"
-      :search-history="searchHistory"
-      :visible="showSuggestions"
-      @select-suggestion="handleSuggestionSelect"
-      @select-history="handleHistorySelect"
-      @clear-history="handleClearHistory"
-      @navigate="handleNavigate"
-    />
+    <ClientOnly>
+      <LazySearchSuggestions
+        v-if="
+          showSuggestions &&
+            (suggestions.length > 0 || searchHistory.length > 0)
+        "
+        id="search-suggestions-dropdown"
+        :suggestions="suggestions"
+        :search-history="searchHistory"
+        :visible="showSuggestions"
+        @select-suggestion="handleSuggestionSelect"
+        @select-history="handleHistorySelect"
+        @clear-history="handleClearHistory"
+        @navigate="handleNavigate"
+      />
+    </ClientOnly>
 
     <!-- ARIA live region for search results information -->
     <div
@@ -89,14 +99,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import SearchSuggestions from '~/components/SearchSuggestions.vue'
+import { ref, onUnmounted } from 'vue'
 import { useResources } from '~/composables/useResources'
 import { useAdvancedResourceSearch } from '~/composables/useAdvancedResourceSearch'
 import { useResourceData } from '~/composables/useResourceData'
-
-// Define EventListener type for TypeScript
-type EventListener = (evt: Event) => void
 
 interface Props {
   modelValue: string
@@ -109,6 +115,7 @@ interface Emits {
   (event: 'search', value: string): void
 }
 
+ 
 const props = withDefaults(defineProps<Props>(), {
   debounceTime: 300,
   enableAdvancedFeatures: true,
@@ -119,7 +126,9 @@ const emit = defineEmits<Emits>()
 const searchInputRef = ref<HTMLInputElement>()
 const inputTimeout = ref<ReturnType<typeof setTimeout> | number>()
 const debouncedQuery = ref('')
-const suggestions = ref<any[]>([])
+const suggestions = ref<
+  Array<{ id: string; title: string; description: string; url: string }>
+>([])
 const showSuggestions = ref(false)
 const searchHistory = ref<string[]>([])
 
@@ -132,12 +141,7 @@ const {
 } = useAdvancedResourceSearch(resources)
 
 // Use the basic resources composable for fallback
-const {
-  getSuggestions: getBasicSuggestions,
-  getSearchHistory: getBasicSearchHistory,
-  addSearchToHistory: addBasicSearchToHistory,
-  clearSearchHistory: clearBasicSearchHistory,
-} = useResources()
+const { getSuggestions: getBasicSuggestions } = useResources()
 
 // Handle input with debounce
 const handleInput = (event: Event) => {
@@ -167,7 +171,7 @@ const updateSuggestions = (query: string) => {
       ? getAdvancedSuggestions(query, 5)
       : getBasicSuggestions(query, 5)
 
-    suggestions.value = suggestionsData.map((resource: any) => ({
+    suggestions.value = suggestionsData.map(resource => ({
       id: resource.id,
       title: resource.title,
       description:
@@ -210,7 +214,12 @@ const handleKeyDown = (event: KeyboardEvent) => {
   }
 }
 
-const handleSuggestionSelect = (suggestion: any) => {
+const handleSuggestionSelect = (suggestion: {
+  id: string
+  title: string
+  description: string
+  url: string
+}) => {
   emit('update:modelValue', suggestion.title)
   emit('search', suggestion.title)
   addToSearchHistory(suggestion.title)
@@ -230,8 +239,8 @@ const handleClearHistory = () => {
   searchHistory.value = []
 }
 
-const handleNavigate = (direction: 'up' | 'down') => {
-  // This is handled by the SearchSuggestions component
+const handleNavigate = () => {
+  // This is handled by SearchSuggestions component
   // but we can add additional logic here if needed
 }
 
@@ -255,17 +264,17 @@ if (typeof window !== 'undefined') {
   }
 
   const savedSearchAddedHandler = (event: CustomEvent) => {
-    const { name, query } = event.detail
+    const { name } = event.detail
     showToast(`Saved search "${name}" successfully!`, 'success')
   }
 
   const savedSearchUpdatedHandler = (event: CustomEvent) => {
-    const { name, query } = event.detail
+    const { name } = event.detail
     showToast(`Updated saved search "${name}"!`, 'success')
   }
 
   const savedSearchRemovedHandler = (event: CustomEvent) => {
-    const { name, query } = event.detail
+    const { name } = event.detail
     showToast(`Removed saved search "${name}".`, 'info')
   }
 

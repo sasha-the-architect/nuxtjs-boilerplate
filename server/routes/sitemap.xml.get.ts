@@ -40,13 +40,11 @@ export default defineEventHandler(async event => {
 </urlset>`
 
     return sitemap
-  } catch (error: any) {
-    // In production, we might want to use a proper error tracking service instead of console
+  } catch (error) {
     if (process.dev) {
       console.error('Error generating sitemap.xml:', error)
     }
 
-    // Set response status to 500 in case of error
     setResponseStatus(event, 500)
     setResponseHeader(event, 'Content-Type', 'application/xml')
     return `<?xml version="1.0" encoding="UTF-8"?>

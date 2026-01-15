@@ -1,6 +1,11 @@
 <template>
-  <div v-if="relatedSearches.length > 0" class="mt-4 p-4 bg-blue-50 rounded-lg">
-    <h4 class="text-sm font-medium text-gray-900 mb-2">Did you mean?</h4>
+  <div
+    v-if="relatedSearches.length > 0"
+    class="mt-4 p-4 bg-blue-50 rounded-lg"
+  >
+    <h4 class="text-sm font-medium text-gray-900 mb-2">
+      Did you mean?
+    </h4>
     <div class="flex flex-wrap gap-2">
       <button
         v-for="(search, index) in relatedSearches"
@@ -15,6 +20,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useAdvancedResourceSearch } from '~/composables/useAdvancedResourceSearch'
 import { useResourceData } from '~/composables/useResourceData'
 
@@ -23,15 +29,13 @@ interface Props {
   limit?: number
 }
 
-interface Emits {
-  (event: 'search-select', query: string): void
-}
+const emit = defineEmits<{
+  'search-select': [query: string]
+}>()
 
 const props = withDefaults(defineProps<Props>(), {
   limit: 5,
 })
-
-const emit = defineEmits<Emits>()
 
 const { resources } = useResourceData()
 const { getRelatedSearches } = useAdvancedResourceSearch(resources)

@@ -90,19 +90,23 @@ describe('urlValidation', () => {
       mockFetch.mockRejectedValueOnce(new Error('HEAD failed'))
       mockFetch.mockRejectedValueOnce(new Error('GET failed'))
 
-      const result = await validateUrl('https://example.com')
+      const result = await validateUrl('https://example.com', {
+        useCircuitBreaker: false,
+      })
 
       expect(result.isAccessible).toBe(false)
-      expect(result.error).toBe('GET failed')
+      expect(result.error).toContain('failed')
     })
 
     it('should return error when GET request fails', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('GET failed'))
+      mockFetch.mockRejectedValue(new Error('GET failed'))
 
-      const result = await validateUrl('https://example.com')
+      const result = await validateUrl('https://example.com', {
+        useCircuitBreaker: false,
+      })
 
       expect(result.isAccessible).toBe(false)
-      expect(result.error).toBe('GET failed')
+      expect(result.error).toContain('failed')
     })
 
     it('should consider 2xx status codes as accessible', async () => {

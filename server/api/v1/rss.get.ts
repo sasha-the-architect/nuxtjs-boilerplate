@@ -32,18 +32,21 @@ export default defineEventHandler(async event => {
     )
 
     return rssContent
-  } catch (error: any) {
-    // Log error using our error logging service
+  } catch (error) {
+    const err = error instanceof Error ? error : undefined
     logError(
       `Error generating RSS feed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      error as Error,
+      err,
       'api-v1-rss'
     )
 
     return {
       success: false,
       message: 'An error occurred while generating RSS feed',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error:
+        process.env.NODE_ENV === 'development' && error instanceof Error
+          ? error.message
+          : undefined,
     }
   }
 })

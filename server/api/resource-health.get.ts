@@ -10,7 +10,7 @@ import {
 } from '../utils/resourceHealth'
 import { logger } from '~/utils/logger'
 
-export default defineEventHandler(async event => {
+export default defineEventHandler(async () => {
   try {
     const healthStatuses = getAllResourceHealthStatuses()
     const stats = getResourceHealthStats()
@@ -23,13 +23,16 @@ export default defineEventHandler(async event => {
         timestamp: new Date().toISOString(),
       },
     }
-  } catch (error: any) {
+  } catch (error) {
     logger.error('Error fetching resource health:', error)
 
     return {
       success: false,
       message: 'An error occurred while fetching resource health data',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error:
+        process.env.NODE_ENV === 'development' && error instanceof Error
+          ? error.message
+          : undefined,
     }
   }
 })

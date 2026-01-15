@@ -10,7 +10,7 @@ export interface ErrorLog {
   userAgent?: string
   component?: string
   severity: 'info' | 'warning' | 'error' | 'critical'
-  additionalInfo?: Record<string, any>
+  additionalInfo?: Record<string, unknown>
 }
 
 class ErrorLogger {
@@ -23,7 +23,7 @@ class ErrorLogger {
     severity: ErrorLog['severity'] = 'error',
     error?: Error,
     component?: string,
-    additionalInfo?: Record<string, any>
+    additionalInfo?: Record<string, unknown>
   ): void {
     const log: ErrorLog = {
       id: Math.random().toString(36).substring(2, 15),
@@ -95,7 +95,6 @@ class ErrorLogger {
   }
 
   // Send logs to external service (placeholder)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async sendToExternalService(_log: ErrorLog): Promise<void> {
     // This is a placeholder for sending logs to an external service like Sentry, LogRocket, etc.
     // In a real implementation, you would send log to your preferred error tracking service
@@ -115,7 +114,7 @@ export const logError = (
   message: string,
   error?: Error,
   component?: string,
-  additionalInfo?: Record<string, any>
+  additionalInfo?: Record<string, unknown>
 ) => {
   errorLogger.log(message, 'error', error, component, additionalInfo)
 }
@@ -124,7 +123,7 @@ export const logWarning = (
   message: string,
   error?: Error,
   component?: string,
-  additionalInfo?: Record<string, any>
+  additionalInfo?: Record<string, unknown>
 ) => {
   errorLogger.log(message, 'warning', error, component, additionalInfo)
 }
@@ -133,7 +132,7 @@ export const logInfo = (
   message: string,
   error?: Error,
   component?: string,
-  additionalInfo?: Record<string, any>
+  additionalInfo?: Record<string, unknown>
 ) => {
   errorLogger.log(message, 'info', error, component, additionalInfo)
 }
@@ -142,7 +141,7 @@ export const logCritical = (
   message: string,
   error?: Error,
   component?: string,
-  additionalInfo?: Record<string, any>
+  additionalInfo?: Record<string, unknown>
 ) => {
   errorLogger.log(message, 'critical', error, component, additionalInfo)
 }

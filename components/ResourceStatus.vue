@@ -1,19 +1,26 @@
 <template>
   <div class="resource-status">
-    <span :class="['status-badge', statusClass]" :title="statusTitle">
+    <span
+      :class="['status-badge', statusClass]"
+      :title="statusTitle"
+    >
       {{ statusText }}
     </span>
     <span
       v-if="healthScore !== undefined"
       :class="['health-indicator', healthClass]"
       :title="`Health: ${healthScore}%`"
+      :aria-label="healthLabel"
     >
       ●
+      <span class="sr-only">{{ healthText }}</span>
     </span>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
 interface Props {
   status?:
     | 'active'
@@ -86,6 +93,19 @@ const healthClass = computed(() => {
   if (props.healthScore >= 90) return 'health-good'
   if (props.healthScore >= 70) return 'health-warning'
   return 'health-bad'
+})
+
+const healthText = computed(() => {
+  if (props.healthScore === undefined) return 'Health status unknown'
+  if (props.healthScore >= 90) return 'Health: Excellent'
+  if (props.healthScore >= 70) return 'Health: Good'
+  if (props.healthScore >= 50) return 'Health: Fair'
+  return 'Health: Poor'
+})
+
+const healthLabel = computed(() => {
+  if (props.healthScore === undefined) return 'Health status unknown'
+  return `Health score: ${props.healthScore}%`
 })
 </script>
 

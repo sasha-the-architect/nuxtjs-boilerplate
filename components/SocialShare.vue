@@ -240,21 +240,10 @@ const handleClickOutside = (event: Event) => {
 }
 
 // Track share events
-const trackShare = (platform: string) => {
+const trackShare = () => {
   // In a real implementation, this would call an analytics service
-  // Close the dropdown after clicking a share option
+  // Close dropdown after clicking a share option
   isOpen.value = false
-}
-
-// Copy link to clipboard
-const copyLink = async () => {
-  try {
-    await navigator.clipboard.writeText(props.url)
-    // In a real implementation, show a toast notification
-    isOpen.value = false
-  } catch (err) {
-    // Failed to copy link: err - console logging removed for production
-  }
 }
 
 // Add event listeners when component is mounted

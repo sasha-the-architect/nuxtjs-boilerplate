@@ -1,7 +1,9 @@
 <template>
   <div class="mt-12">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold text-gray-900">Comments</h2>
+      <h2 class="text-2xl font-bold text-gray-900">
+        Comments
+      </h2>
       <span class="text-sm text-gray-500">{{ commentCount }} comments</span>
     </div>
 
@@ -24,7 +26,11 @@
     </div>
 
     <div class="space-y-4">
-      <div v-for="comment in comments" :key="comment.id" class="flex space-x-4">
+      <div
+        v-for="comment in formattedComments"
+        :key="comment.id"
+        class="flex space-x-4"
+      >
         <div class="flex-shrink-0">
           <div
             class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10"
@@ -35,21 +41,21 @@
           <div class="bg-gray-50 rounded-lg p-4">
             <div class="flex items-center">
               <span class="font-medium text-gray-900">{{
-                comment.author
+                comment.displayName
               }}</span>
               <span class="ml-2 text-sm text-gray-500">{{
-                comment.timeAgo
+                comment.displayTime
               }}</span>
             </div>
             <p class="mt-1 text-gray-700">
-              {{ comment.text }}
+              {{ comment.displayContent }}
             </p>
             <div class="mt-2 flex space-x-4">
               <button
                 class="text-sm text-gray-500 hover:text-gray-700"
                 aria-label="Like this comment"
               >
-                Like ({{ comment.likes }})
+                Like ({{ comment.displayLikes }})
               </button>
               <button
                 class="text-sm text-gray-500 hover:text-gray-700"
@@ -66,22 +72,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
-interface Comment {
-  id: string
-  author: string
-  text: string
-  timeAgo: string
-  likes: number
-}
+import { ref, computed } from 'vue'
+import type { Comment } from '~/types/community'
 
 interface Props {
   comments: Comment[]
   commentCount: number
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const newComment = ref('')
 
@@ -94,5 +93,27 @@ const submitComment = () => {
     emit('submit', newComment.value.trim())
     newComment.value = ''
   }
+}
+
+const formattedComments = computed(() => {
+  return props.comments.map(comment => ({
+    ...comment,
+    displayName: comment.userName || comment.userId,
+    displayContent: comment.content,
+    displayTime: formatTimeAgo(comment.timestamp),
+    displayLikes: comment.votes,
+  }))
+})
+
+const formatTimeAgo = (timestamp: string): string => {
+  const date = new Date(timestamp)
+  const now = new Date()
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+  if (seconds < 60) return 'just now'
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`
+  return date.toLocaleDateString()
 }
 </script>

@@ -14,9 +14,16 @@
           <span v-else>❓</span>
         </div>
         <div class="check-content">
-          <div class="check-title">{{ check.title }}</div>
-          <div class="check-description">{{ check.description }}</div>
-          <div v-if="check.details" class="check-details">
+          <div class="check-title">
+            {{ check.title }}
+          </div>
+          <div class="check-description">
+            {{ check.description }}
+          </div>
+          <div
+            v-if="check.details"
+            class="check-details"
+          >
             <pre>{{ check.details }}</pre>
           </div>
         </div>

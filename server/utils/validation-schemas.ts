@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isValidCategory, isValidEventType } from './constants'
 
 export const validateUrlSchema = z.object({
   url: z.string().url('Invalid URL format'),
@@ -116,8 +117,54 @@ export const moderationActionSchema = z.object({
   notes: z.string().max(1000, 'Notes too long').optional(),
 })
 
+export const triggerWebhookSchema = z.object({
+  event: z.string().min(1, 'Event type is required'),
+  data: z.any(),
+  idempotencyKey: z.string().optional(),
+})
+
 export const analyticsEventSchema = z.object({
-  eventType: z.string().min(1, 'Event type is required'),
-  resourceId: z.string().optional(),
-  metadata: z.record(z.string(), z.any()).optional(),
+  type: z
+    .string()
+    .min(1, 'Event type is required')
+    .max(50, 'Event type too long')
+    .refine(
+      val => isValidEventType(val),
+      'Invalid event type. Must be one of: resource_view, search, filter_change, bookmark, comparison, submission'
+    ),
+  resourceId: z
+    .string()
+    .max(25, 'Resource ID too long')
+    .refine(
+      val => val === '' || /^[a-zA-Z0-9_-]+$/.test(val),
+      'Resource ID contains invalid characters'
+    )
+    .optional(),
+  category: z
+    .string()
+    .max(100, 'Category too long')
+    .refine(
+      val => isValidCategory(val),
+      'Invalid category. Must be one of: Development, Design, Productivity, Marketing, Analytics, Security, AI/ML, DevOps, Testing, Education'
+    )
+    .optional(),
+  url: z.string().url('Invalid URL format').optional(),
+  userAgent: z.string().max(500, 'User agent too long').optional(),
+  ip: z
+    .string()
+    .max(45, 'IP address too long')
+    .refine(val => {
+      const ipv4Regex =
+        /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+      const ipv6Regex =
+        /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::$|^:(?::[0-9a-fA-F]{1,4}){1,7}|[0-9a-fA-F]{1,4}:(?::[0-9a-fA-F]{1,4}){1,7}|(?:[0-9a-fA-F]{1,4}:){1,7}:|:(?::[0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}$/
+      return ipv4Regex.test(val) || ipv6Regex.test(val) || val === 'unknown'
+    }, 'Invalid IP address format')
+    .optional(),
+  timestamp: z
+    .number()
+    .int('Timestamp must be an integer')
+    .positive('Timestamp must be positive')
+    .optional(),
+  properties: z.record(z.string(), z.any()).optional(),
 })

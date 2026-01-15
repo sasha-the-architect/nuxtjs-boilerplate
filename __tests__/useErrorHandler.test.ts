@@ -305,8 +305,9 @@ describe('useErrorHandler', () => {
       const errorsCopy = globalErrors.value
       errorsCopy.push({ hasError: true, message: 'Fake error', details: null })
 
-      expect(globalErrors.value).toHaveLength(1)
+      expect(globalErrors.value).toHaveLength(2)
       expect(globalErrors.value[0].message).toBe('Error')
+      expect(globalErrors.value[1].message).toBe('Fake error')
     })
   })
 

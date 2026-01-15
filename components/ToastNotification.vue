@@ -1,6 +1,10 @@
 <template>
   <div class="toast-container">
-    <transition-group name="toast" tag="div" class="toast-wrapper">
+    <transition-group
+      name="toast"
+      tag="div"
+      class="toast-wrapper"
+    >
       <div
         v-for="toast in toasts"
         :key="toast.id"
@@ -64,8 +68,13 @@
           </svg>
         </div>
         <div class="toast__content">
-          <p class="toast__message">{{ toast.message }}</p>
-          <p v-if="toast.description" class="toast__description">
+          <p class="toast__message">
+            {{ toast.message }}
+          </p>
+          <p
+            v-if="toast.description"
+            class="toast__description"
+          >
             {{ toast.description }}
           </p>
         </div>
@@ -94,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
 

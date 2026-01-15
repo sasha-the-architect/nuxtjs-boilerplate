@@ -1,55 +1,56 @@
 import type { CreateWebhookRequest, Webhook } from '~/types/webhook'
 import { randomUUID } from 'node:crypto'
 import { webhookStorage } from '~/server/utils/webhookStorage'
+import {
+  sendSuccessResponse,
+  sendBadRequestError,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 export default defineEventHandler(async event => {
-  const body = await readBody<CreateWebhookRequest>(event)
-
-  // Validate required fields
-  if (
-    !body.url ||
-    !body.events ||
-    !Array.isArray(body.events) ||
-    body.events.length === 0
-  ) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'URL and events are required',
-    })
-  }
-
-  // Validate URL format
   try {
-    new URL(body.url)
-  } catch {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Invalid URL format',
-    })
-  }
+    const body = await readBody<CreateWebhookRequest>(event)
 
-  // Generate secret for webhook
-  const secret = `whsec_${randomUUID()}`
+    // Validate required fields
+    if (
+      !body.url ||
+      !body.events ||
+      !Array.isArray(body.events) ||
+      body.events.length === 0
+    ) {
+      return sendBadRequestError(event, 'URL and events are required')
+    }
 
-  const newWebhook: Webhook = {
-    id: `wh_${randomUUID()}`,
-    url: body.url,
-    events: body.events,
-    active: body.active ?? true,
-    secret,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    deliveryCount: 0,
-    failureCount: 0,
-  }
+    // Validate URL format
+    try {
+      new URL(body.url)
+    } catch {
+      return sendBadRequestError(event, 'Invalid URL format')
+    }
 
-  webhookStorage.createWebhook(newWebhook)
+    // Generate secret for webhook
+    const secret = `whsec_${randomUUID()}`
 
-  // Return without the secret for security
-  const { secret: _, ...webhookWithoutSecret } = newWebhook
+    const newWebhook: Webhook = {
+      id: `wh_${randomUUID()}`,
+      url: body.url,
+      events: body.events,
+      active: body.active ?? true,
+      secret,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      deliveryCount: 0,
+      failureCount: 0,
+    }
 
-  return {
-    success: true,
-    data: webhookWithoutSecret,
+    webhookStorage.createWebhook(newWebhook)
+
+    // Return without secret for security
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    const { secret: _secretValue, ...webhookWithoutSecret } = newWebhook
+
+    return sendSuccessResponse(event, webhookWithoutSecret)
+  } catch (error) {
+    return handleApiRouteError(event, error)
   }
 })

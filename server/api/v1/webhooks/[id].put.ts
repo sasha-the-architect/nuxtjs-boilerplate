@@ -1,45 +1,47 @@
-import type { UpdateWebhookRequest, Webhook } from '~/types/webhook'
+import type { UpdateWebhookRequest } from '~/types/webhook'
 import { webhookStorage } from '~/server/utils/webhookStorage'
+import {
+  sendBadRequestError,
+  sendNotFoundError,
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 export default defineEventHandler(async event => {
-  const id = event.context.params?.id
-  const body = await readBody<UpdateWebhookRequest>(event)
+  try {
+    const id = event.context.params?.id as string
+    const body = await readBody<UpdateWebhookRequest>(event)
 
-  // Find webhook by ID
-  const existingWebhook = webhookStorage.getWebhookById(id)
-  if (!existingWebhook) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Webhook not found',
-    })
-  }
-
-  // Validate URL if provided
-  if (body.url) {
-    try {
-      new URL(body.url)
-    } catch {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid URL format',
-      })
+    // Find webhook by ID
+    const existingWebhook = webhookStorage.getWebhookById(id)
+    if (!existingWebhook) {
+      sendNotFoundError(event, 'Webhook', id)
+      return
     }
-  }
 
-  // Update webhook
-  const updatedWebhook = webhookStorage.updateWebhook(id, body)
-  if (!updatedWebhook) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Webhook not found',
-    })
-  }
+    // Validate URL if provided
+    if (body.url) {
+      try {
+        new URL(body.url)
+      } catch {
+        sendBadRequestError(event, 'Invalid URL format')
+        return
+      }
+    }
 
-  // Return without the secret for security
-  const { secret: _, ...webhookWithoutSecret } = updatedWebhook
+    // Update webhook
+    const updatedWebhook = webhookStorage.updateWebhook(id, body)
+    if (!updatedWebhook) {
+      sendNotFoundError(event, 'Webhook', id)
+      return
+    }
 
-  return {
-    success: true,
-    data: webhookWithoutSecret,
+    // Return without secret for security
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    const { secret: _secretValue, ...webhookWithoutSecret } = updatedWebhook
+
+    sendSuccessResponse(event, webhookWithoutSecret)
+  } catch (error) {
+    handleApiRouteError(event, error)
   }
 })

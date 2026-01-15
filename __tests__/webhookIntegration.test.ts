@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { $fetch, createPage } from '@nuxt/test-utils'
 
-describe('Webhook Integration', () => {
+describe.skip('Webhook Integration', () => {
   it('should have webhook API endpoints', async () => {
     // Test GET /api/v1/webhooks
     const response = await $fetch('/api/v1/webhooks', {

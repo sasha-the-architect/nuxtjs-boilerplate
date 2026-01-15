@@ -1,4 +1,5 @@
 import type { Resource } from '~/types/resource'
+import { VALID_CATEGORIES } from './constants'
 
 interface QualityCheckResult {
   id: string
@@ -16,7 +17,7 @@ export function runQualityChecks(resource: Resource): QualityCheckResult[] {
 
   // URL validation check
   try {
-    const url = new URL(resource.url)
+    new URL(resource.url)
     checks.push({
       id: 'url-validation',
       title: 'URL Validation',
@@ -114,19 +115,7 @@ export function runQualityChecks(resource: Resource): QualityCheckResult[] {
   }
 
   // Category validation check
-  const validCategories = [
-    'Development',
-    'Design',
-    'Productivity',
-    'Marketing',
-    'Analytics',
-    'Security',
-    'AI/ML',
-    'DevOps',
-    'Testing',
-    'Education',
-  ]
-  const isValidCategory = validCategories.includes(resource.category)
+  const isValidCategory = VALID_CATEGORIES.includes(resource.category as never)
 
   if (!isValidCategory) {
     checks.push({

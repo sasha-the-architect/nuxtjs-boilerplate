@@ -74,7 +74,7 @@
               v-model="notificationSettings.resourceUpdates"
               type="checkbox"
               class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600"
-            />
+            >
             <span class="ml-2 text-gray-700 dark:text-gray-300">
               Updates to resources you've bookmarked
             </span>
@@ -85,7 +85,7 @@
               v-model="notificationSettings.newContent"
               type="checkbox"
               class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600"
-            />
+            >
             <span class="ml-2 text-gray-700 dark:text-gray-300">
               New content in your areas of interest
             </span>
@@ -96,7 +96,7 @@
               v-model="notificationSettings.weeklyDigest"
               type="checkbox"
               class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600"
-            />
+            >
             <span class="ml-2 text-gray-700 dark:text-gray-300">
               Weekly digest of popular resources
             </span>
@@ -119,7 +119,7 @@
               v-model="privacySettings.allowPersonalization"
               type="checkbox"
               class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600"
-            />
+            >
             <span class="ml-2 text-gray-700 dark:text-gray-300">
               Allow personalized recommendations
             </span>
@@ -130,7 +130,7 @@
               v-model="privacySettings.allowDataCollection"
               type="checkbox"
               class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600"
-            />
+            >
             <span class="ml-2 text-gray-700 dark:text-gray-300">
               Allow usage data collection for improvements
             </span>
@@ -141,7 +141,7 @@
               v-model="privacySettings.allowRecommendationExplanations"
               type="checkbox"
               class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600"
-            />
+            >
             <span class="ml-2 text-gray-700 dark:text-gray-300">
               Show explanations for why resources are recommended
             </span>
@@ -165,7 +165,10 @@
         >
           Preferences saved successfully!
         </div>
-        <div v-if="error" class="mt-3 text-red-600 dark:text-red-400 text-sm">
+        <div
+          v-if="error"
+          class="mt-3 text-red-600 dark:text-red-400 text-sm"
+        >
           {{ error }}
         </div>
       </div>

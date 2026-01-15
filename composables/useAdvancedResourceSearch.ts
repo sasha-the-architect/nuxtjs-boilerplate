@@ -1,4 +1,4 @@
-import { ref, readonly } from 'vue'
+import { readonly } from 'vue'
 import type { Resource } from '~/types/resource'
 import { searchAnalyticsTracker } from '~/utils/searchAnalytics'
 import { useSearchHistory } from '~/composables/useSearchHistory'
@@ -51,10 +51,8 @@ export const useAdvancedResourceSearch = (resources: readonly Resource[]) => {
           )
         } else if (operator === 'OR') {
           const allResults = [...results, ...termResources]
-          const uniqueResults = new Set(allResults.map(r => r.id))
-          results = Array.from(uniqueResults).map(
-            id => [...results, ...termResources].find(r => r.id === id)!
-          )
+          const resultMap = new Map(allResults.map(r => [r.id, r]))
+          results = Array.from(resultMap.values())
         } else if (operator === 'NOT') {
           results = results.filter(
             resource => !termResources.some(result => result.id === resource.id)
@@ -64,17 +62,18 @@ export const useAdvancedResourceSearch = (resources: readonly Resource[]) => {
     } else {
       for (const term of parsed.terms) {
         const searchResults = fuse.search(term)
-        const termResults = searchResults.map(item => item.item)
-        results = [...results, ...termResults]
+        const termResources = searchResults.map(item => item.item)
+        results = [...results, ...termResources]
       }
 
-      const uniqueIds = new Set(results.map(r => r.id))
-      results = Array.from(uniqueIds).map(id => results.find(r => r.id === id)!)
+      const resultMap = new Map(results.map(r => [r.id, r]))
+      results = Array.from(resultMap.values())
     }
 
     const endTime = performance.now()
     const duration = endTime - startTime
 
+    // Track the original query, not individual terms
     searchAnalyticsTracker.trackSearch(query, results, duration)
 
     return results
@@ -82,25 +81,89 @@ export const useAdvancedResourceSearch = (resources: readonly Resource[]) => {
 
   const calculateFacetCounts = (
     query: string,
-    filterKey: string
+    filterKey: keyof Resource
   ): FacetCounts => {
     const allResources = query ? advancedSearchResources(query) : [...resources]
     const counts: FacetCounts = {}
 
     allResources.forEach(resource => {
-      const value = (resource as any)[filterKey]
+      const value = resource[filterKey] as unknown
       if (value) {
         if (Array.isArray(value)) {
-          value.forEach(item => {
+          value.forEach((item: string) => {
             counts[item] = (counts[item] || 0) + 1
           })
-        } else {
+        } else if (typeof value === 'string') {
           counts[value] = (counts[value] || 0) + 1
         }
       }
     })
 
     return counts
+  }
+
+  const calculateAllFacetCounts = (
+    query: string
+  ): {
+    category: FacetCounts
+    pricingModel: FacetCounts
+    difficulty: FacetCounts
+    technology: FacetCounts
+    tags: FacetCounts
+    benefits: FacetCounts
+  } => {
+    const allResources = query ? advancedSearchResources(query) : [...resources]
+
+    const categoryCounts: FacetCounts = {}
+    const pricingCounts: FacetCounts = {}
+    const difficultyCounts: FacetCounts = {}
+    const technologyCounts: FacetCounts = {}
+    const tagCounts: FacetCounts = {}
+    const benefitCounts: FacetCounts = {}
+
+    allResources.forEach(resource => {
+      if (resource.category) {
+        categoryCounts[resource.category] =
+          (categoryCounts[resource.category] || 0) + 1
+      }
+
+      if (resource.pricingModel) {
+        pricingCounts[resource.pricingModel] =
+          (pricingCounts[resource.pricingModel] || 0) + 1
+      }
+
+      if (resource.difficulty) {
+        difficultyCounts[resource.difficulty] =
+          (difficultyCounts[resource.difficulty] || 0) + 1
+      }
+
+      if (Array.isArray(resource.technology)) {
+        resource.technology.forEach((tech: string) => {
+          technologyCounts[tech] = (technologyCounts[tech] || 0) + 1
+        })
+      }
+
+      if (Array.isArray(resource.tags)) {
+        resource.tags.forEach((tag: string) => {
+          tagCounts[tag] = (tagCounts[tag] || 0) + 1
+        })
+      }
+
+      if (Array.isArray(resource.benefits)) {
+        resource.benefits.forEach((benefit: string) => {
+          benefitCounts[benefit] = (benefitCounts[benefit] || 0) + 1
+        })
+      }
+    })
+
+    return {
+      category: categoryCounts,
+      pricingModel: pricingCounts,
+      difficulty: difficultyCounts,
+      technology: technologyCounts,
+      tags: tagCounts,
+      benefits: benefitCounts,
+    }
   }
 
   const getFacetedResults = (
@@ -112,7 +175,7 @@ export const useAdvancedResourceSearch = (resources: readonly Resource[]) => {
     Object.entries(filters).forEach(([key, values]) => {
       if (values.length > 0) {
         results = results.filter(resource => {
-          const resourceValue = (resource as any)[key]
+          const resourceValue = resource[key as keyof Resource] as unknown
 
           if (Array.isArray(resourceValue)) {
             return resourceValue.some((item: string) => values.includes(item))
@@ -157,6 +220,7 @@ export const useAdvancedResourceSearch = (resources: readonly Resource[]) => {
     savedSearches,
     advancedSearchResources,
     calculateFacetCounts,
+    calculateAllFacetCounts,
     getFacetedResults,
     getAdvancedSuggestions,
     highlightSearchTerms,

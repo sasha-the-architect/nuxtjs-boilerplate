@@ -115,18 +115,18 @@ class RateLimiter {
     if (bypassKey && adminBypassKeys.has(bypassKey)) {
       return {
         remaining: this.config.maxRequests,
-        resetTime: Date.now() + this.config.intervalMs,
+        resetTime: Math.floor((Date.now() + this.config.intervalMs) / 1000),
         limit: this.config.maxRequests,
       }
     }
 
     const now = Date.now()
-    let bucket = tokenBucketStore.get(key)
+    const bucket = tokenBucketStore.get(key)
 
     if (!bucket) {
       return {
         remaining: this.config.tokensPerInterval,
-        resetTime: Math.floor(now + this.config.intervalMs) / 1000,
+        resetTime: Math.floor((now + this.config.intervalMs) / 1000),
         limit: this.config.maxRequests,
       }
     }
@@ -142,7 +142,9 @@ class RateLimiter {
 
     return {
       remaining: Math.floor(refilledTokens),
-      resetTime: Math.floor(bucket.lastRefill + this.config.intervalMs) / 1000,
+      resetTime: Math.floor(
+        (bucket.lastRefill + this.config.intervalMs) / 1000
+      ),
       limit: this.config.maxRequests,
     }
   }
@@ -327,4 +329,20 @@ export async function rateLimit(event: H3Event, key?: string): Promise<void> {
  */
 export function getRateLimitAnalytics(): Map<string, RateLimitAnalytics> {
   return new Map(analyticsStore)
+}
+
+/**
+ * Add a bypass key for testing purposes
+ * SECURITY: This should only be used in tests, never in production code
+ */
+export function addBypassKeyForTesting(key: string): void {
+  adminBypassKeys.add(key)
+}
+
+/**
+ * Clear all bypass keys for testing purposes
+ * SECURITY: This should only be used in tests, never in production code
+ */
+export function clearBypassKeysForTesting(): void {
+  adminBypassKeys.clear()
 }

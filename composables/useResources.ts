@@ -1,4 +1,4 @@
-import { computed, readonly } from 'vue'
+import { computed } from 'vue'
 import { useResourceData } from './useResourceData'
 import { useResourceFilters } from './useResourceFilters'
 import { useResourceSearch } from './useResourceSearch'
@@ -58,8 +58,9 @@ export const useResources = () => {
   })
 
   // Use the search composable
-  const { fuse, searchResources, getSuggestions, highlightSearchTerms } =
-    useResourceSearch(resources.value)
+  const { getSuggestions, highlightSearchTerms } = useResourceSearch(
+    resources.value
+  )
 
   // Use the sort composable with the properly filtered/combined resources
   const { sortedResources } = useResourceSort(

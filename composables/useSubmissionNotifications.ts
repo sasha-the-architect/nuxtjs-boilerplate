@@ -2,7 +2,15 @@ import type { Submission } from '~/types/submission'
 
 // Simple in-memory store for submission notifications
 // In a real application, this would be stored in a database
-const submissionNotifications: Record<string, any[]> = {}
+interface Notification {
+  id: string
+  submissionId: string
+  status: string
+  message: string
+  timestamp: string
+  read: boolean
+}
+const submissionNotifications: Record<string, Notification[]> = {}
 
 /**
  * Composable for managing submission status notifications

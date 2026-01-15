@@ -10,11 +10,21 @@
           v-model="selectedStatus"
           class="status-dropdown"
         >
-          <option value="active">Active</option>
-          <option value="deprecated">Deprecated</option>
-          <option value="discontinued">Discontinued</option>
-          <option value="updated">Updated</option>
-          <option value="pending">Pending</option>
+          <option value="active">
+            Active
+          </option>
+          <option value="deprecated">
+            Deprecated
+          </option>
+          <option value="discontinued">
+            Discontinued
+          </option>
+          <option value="updated">
+            Updated
+          </option>
+          <option value="pending">
+            Pending
+          </option>
         </select>
       </div>
 
@@ -26,7 +36,7 @@
           type="text"
           placeholder="Enter reason for status change"
           class="reason-field"
-        />
+        >
       </div>
 
       <div class="notes-input">
@@ -36,23 +46,32 @@
           v-model="notes"
           placeholder="Additional notes about this change"
           class="notes-field"
-        ></textarea>
+        />
       </div>
 
       <button
         class="update-button"
         :disabled="isUpdating || !selectedStatus"
-        @click="updateStatus"
+        @click="handleUpdate"
       >
         {{ isUpdating ? 'Updating...' : 'Update Status' }}
       </button>
     </div>
 
-    <div v-if="lastUpdate" class="update-result">
-      <div v-if="lastUpdate.success" class="success-message">
+    <div
+      v-if="lastUpdate"
+      class="update-result"
+    >
+      <div
+        v-if="lastUpdate.success"
+        class="success-message"
+      >
         Status updated successfully!
       </div>
-      <div v-else class="error-message">
+      <div
+        v-else
+        class="error-message"
+      >
         Error updating status: {{ lastUpdate.error }}
       </div>
     </div>
@@ -60,6 +79,8 @@
 </template>
 
 <script setup lang="ts">
+import { useResourceStatusManager } from '~/composables/useResourceStatusManager'
+
 interface Props {
   resourceId: string
   currentStatus?: string
@@ -69,52 +90,26 @@ const props = withDefaults(defineProps<Props>(), {
   currentStatus: 'active',
 })
 
-const selectedStatus = ref(props.currentStatus)
-const reason = ref('')
-const notes = ref('')
-const isUpdating = ref(false)
-const lastUpdate = ref<{ success: boolean; error?: string } | null>(null)
-
-const updateStatus = async () => {
-  if (!selectedStatus.value) return
-
-  isUpdating.value = true
-  lastUpdate.value = null
-
-  try {
-    const response: any = await $fetch(
-      `/api/resources/${props.resourceId}/status`,
-      {
-        method: 'PUT',
-        body: {
-          status: selectedStatus.value,
-          reason: reason.value,
-          notes: notes.value,
-        },
-      }
-    )
-
-    if (response.success) {
-      lastUpdate.value = { success: true }
-      // Optionally emit an event to notify parent component
-      emit('statusUpdated', response.resource)
-    } else {
-      lastUpdate.value = { success: false, error: 'Failed to update status' }
-    }
-  } catch (error: any) {
-    // Error updating resource status
-    lastUpdate.value = {
-      success: false,
-      error: error.message || 'Unknown error',
-    }
-  } finally {
-    isUpdating.value = false
-  }
-}
+const { selectedStatus, reason, notes, isUpdating, lastUpdate, updateStatus } =
+  useResourceStatusManager(props.currentStatus)
 
 const emit = defineEmits<{
-  statusUpdated: [resource: any]
+  statusUpdated: [
+    resource: {
+      id: string
+      status: string
+      reason?: string
+      notes?: string
+    },
+  ]
 }>()
+
+const handleUpdate = async () => {
+  const resource = await updateStatus(props.resourceId)
+  if (resource) {
+    emit('statusUpdated', resource)
+  }
+}
 </script>
 
 <style scoped>

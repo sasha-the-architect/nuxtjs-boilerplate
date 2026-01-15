@@ -1,28 +1,30 @@
 import { webhookStorage } from '~/server/utils/webhookStorage'
+import {
+  sendSuccessResponse,
+  sendNotFoundError,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 export default defineEventHandler(async event => {
-  const id = event.context.params?.id
+  try {
+    const id = event.context.params?.id
 
-  // Find webhook by ID
-  const webhook = webhookStorage.getWebhookById(id)
-  if (!webhook) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Webhook not found',
+    // Find webhook by ID
+    const webhook = webhookStorage.getWebhookById(id as string)
+    if (!webhook) {
+      return sendNotFoundError(event, 'Webhook', id)
+    }
+
+    // Remove webhook
+    const deleted = webhookStorage.deleteWebhook(id as string)
+    if (!deleted) {
+      return sendNotFoundError(event, 'Webhook', id)
+    }
+
+    return sendSuccessResponse(event, {
+      message: 'Webhook deleted successfully',
     })
-  }
-
-  // Remove the webhook
-  const deleted = webhookStorage.deleteWebhook(id)
-  if (!deleted) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Webhook not found',
-    })
-  }
-
-  return {
-    success: true,
-    message: 'Webhook deleted successfully',
+  } catch (error) {
+    return handleApiRouteError(event, error)
   }
 })

@@ -174,10 +174,10 @@ describe('shareUtils', () => {
     it('should include resource-specific UTM parameters in the base URL', () => {
       const result = generateResourceShareUrls(baseUrl, title, description)
 
-      // Check that UTM parameters are in the encoded base URL
-      expect(result.twitter).toContain('utm_source=social')
-      expect(result.twitter).toContain('utm_medium=share')
-      expect(result.twitter).toContain('utm_campaign=resource-sharing')
+      // Check that UTM parameters are in the encoded base URL (URL encoded)
+      expect(result.twitter).toContain('%3Futm_source%3Dsocial')
+      expect(result.twitter).toContain('%26utm_medium%3Dshare')
+      expect(result.twitter).toContain('%26utm_campaign%3Dresource-sharing')
     })
 
     it('should generate a proper Twitter share URL with UTM parameters', () => {

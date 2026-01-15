@@ -2,6 +2,8 @@
 
 This document provides comprehensive documentation for all API endpoints available in the Nuxt.js boilerplate, including request/response formats, authentication requirements, and usage examples.
 
+**Note**: All API endpoints use standardized error responses. See [API Documentation](./README.md) for complete error response format.
+
 ## 📋 Table of Contents
 
 - [Authentication Endpoints](#authentication-endpoints)
@@ -11,7 +13,12 @@ This document provides comprehensive documentation for all API endpoints availab
 - [Analytics and Monitoring](#analytics-and-monitoring)
 - [Comparison Tools](#comparison-tools)
 - [Webhook Management](#webhook-management)
+- [Export and Feeds](#export-and-feeds)
+- [API Key Management](#api-key-management)
 - [Health and Status](#health-and-status)
+- [Standardized Error Responses](#standardized-error-responses)
+
+**Note**: This documentation reflects API v1 paths. All endpoints are prefixed with `/api/v1/` unless otherwise noted.
 
 ## 🔐 Authentication Endpoints
 
@@ -59,6 +66,8 @@ Authenticate user and generate JWT token.
 
 #### Response
 
+**Success (200):**
+
 ```json
 {
   "success": true,
@@ -69,6 +78,22 @@ Authenticate user and generate JWT token.
     "role": "user"
   },
   "token": "jwt_token_here"
+}
+```
+
+**Error (401):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Invalid credentials",
+    "category": "authentication",
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/auth/login"
+  }
 }
 ```
 
@@ -120,22 +145,45 @@ Authorization: Bearer {jwt_token}
 
 #### Response
 
+**Success (200):**
+
 ```json
 {
   "success": true,
   "user": {
     "id": "user_123",
     "email": "user@example.com",
-    "name": "John Doe Updated",
-    "bio": "Senior Software Developer",
-    "avatar": "/avatars/user_123.jpg"
+    "name": "John Doe",
+    "role": "user"
+  },
+  "token": "jwt_token_here"
+}
+```
+
+**Error (400):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Validation failed for field: email",
+    "category": "validation",
+    "details": {
+      "field": "email",
+      "message": "Invalid email format",
+      "value": "invalid-email"
+    },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/auth/register"
   }
 }
 ```
 
 ## 📚 Resource Management
 
-### GET /api/resources
+### GET /api/v1/resources
 
 Get paginated list of resources with filtering and sorting options.
 
@@ -177,7 +225,7 @@ Get paginated list of resources with filtering and sorting options.
 }
 ```
 
-### GET /api/resources/[id]
+### GET /api/v1/resources/{id}
 
 Get a specific resource by ID.
 
@@ -216,9 +264,221 @@ Get a specific resource by ID.
 }
 ```
 
-### POST /api/resources
+### GET /api/v1/resources/{id}/alternatives
 
-Submit a new resource (requires authentication).
+Get alternative resources similar to the specified resource.
+
+#### Query Parameters
+
+- `limit` (optional): Number of alternatives to return (default: 5, max: 20)
+
+#### Response
+
+**Success (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "resourceId": "res_123",
+    "alternatives": [
+      {
+        "id": "res_456",
+        "title": "Alternative Resource",
+        "description": "Alternative description",
+        "url": "https://alternative.com",
+        "score": 0.85
+      }
+    ]
+  }
+}
+```
+
+**Error (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Resource not found: res_123",
+    "category": "not_found",
+    "timestamp": "2026-01-10T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/resources/res_123/alternatives"
+  }
+}
+```
+
+## 📤 Export and Feeds
+
+### GET /api/v1/export/csv
+
+Export resource data as CSV.
+
+#### Query Parameters
+
+- `category` (optional): Filter by category
+- `tag` (optional): Filter by tag
+- `search` (optional): Filter by search term
+
+#### Response
+
+Returns CSV file with resource data.
+
+### GET /api/v1/export/json
+
+Export resource data as JSON.
+
+#### Query Parameters
+
+- `category` (optional): Filter by category
+- `tag` (optional): Filter by tag
+- `search` (optional): Filter by search term
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "res_123",
+      "title": "Example Resource",
+      "description": "Resource description",
+      "url": "https://example.com",
+      "category": "development"
+    }
+  ]
+}
+```
+
+### GET /api/v1/rss
+
+Get RSS feed of resources.
+
+#### Query Parameters
+
+- `limit` (optional): Number of items in feed (default: 20)
+
+#### Response
+
+Returns RSS/XML feed.
+
+### GET /api/v1/sitemap
+
+Get sitemap.xml of all resources.
+
+#### Response
+
+Returns XML sitemap.
+
+## 🔑 API Key Management
+
+### GET /api/v1/auth/api-keys
+
+Get user's API keys (requires authentication).
+
+#### Headers
+
+```
+Authorization: Bearer {jwt_token}
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "key_123",
+      "name": "Production Key",
+      "key": "sk_live_abc123",
+      "lastUsed": "2025-11-29T12:00:00Z",
+      "createdAt": "2025-11-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+### POST /api/v1/auth/api-keys
+
+Create a new API key (requires authentication).
+
+#### Headers
+
+```
+Authorization: Bearer {jwt_token}
+```
+
+#### Request
+
+```json
+{
+  "name": "Production Key",
+  "scopes": ["read", "write"]
+}
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "key_456",
+    "name": "Production Key",
+    "key": "sk_live_xyz789",
+    "createdAt": "2025-11-29T12:00:00Z"
+  }
+}
+```
+
+### DELETE /api/v1/auth/api-keys/{id}
+
+Delete an API key (requires authentication).
+
+#### Headers
+
+```
+Authorization: Bearer {jwt_token}
+```
+
+#### Response
+
+**Success (200):**
+
+```json
+{
+  "success": true,
+  "message": "API key deleted successfully"
+}
+```
+
+**Error (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "API Key not found: key_123",
+    "category": "not_found",
+    "details": {
+      "resource": "API Key",
+      "identifier": "key_123"
+    },
+    "timestamp": "2026-01-10T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/auth/api-keys/key_123"
+  }
+}
+```
+
+### POST /api/submissions
+
+Submit a new resource for moderation (requires authentication).
 
 #### Headers
 
@@ -253,44 +513,6 @@ Authorization: Bearer {jwt_token}
     "tags": ["free", "tools"],
     "featured": false,
     "status": "pending"
-  }
-}
-```
-
-### POST /api/submissions
-
-Submit a resource for moderation.
-
-#### Request
-
-```json
-{
-  "title": "New Resource",
-  "description": "Resource description",
-  "url": "https://newresource.com",
-  "category": "development",
-  "tags": ["free", "tools"],
-  "submittedBy": "user_123"
-}
-```
-
-#### Response
-
-```json
-{
-  "success": true,
-  "submission": {
-    "id": "sub_123",
-    "resourceData": {
-      "title": "New Resource",
-      "description": "Resource description",
-      "url": "https://newresource.com",
-      "category": "development",
-      "tags": ["free", "tools"]
-    },
-    "status": "pending",
-    "submittedBy": "user_123",
-    "submittedAt": "2025-11-29T12:00:00Z"
   }
 }
 ```
@@ -339,7 +561,7 @@ Authorization: Bearer {jwt_token}
 
 ## 🔍 Search and Discovery
 
-### GET /api/search
+### GET /api/v1/search
 
 Perform search across resources with advanced filtering.
 
@@ -413,40 +635,44 @@ Get search suggestions based on user input.
 }
 ```
 
-### GET /api/search/facets
+### GET /api/v1/categories
 
-Get dynamic filter counts for faceted search.
-
-#### Query Parameters
-
-- `search` (optional): Search query to apply to facet calculations
-- `category` (optional): Applied category filter
-- `tag` (optional): Applied tag filter
+Get all categories with resource counts.
 
 #### Response
 
 ```json
 {
-  "categories": [
-    { "name": "development", "count": 45 },
-    { "name": "design", "count": 32 },
-    { "name": "ai", "count": 28 }
-  ],
-  "pricing": [
-    { "name": "free", "count": 78 },
-    { "name": "freemium", "count": 35 },
-    { "name": "paid", "count": 22 }
-  ],
-  "tags": [
-    { "name": "tools", "count": 65 },
-    { "name": "tutorials", "count": 42 },
-    { "name": "framework", "count": 38 }
-  ],
-  "difficulty": [
-    { "name": "beginner", "count": 52 },
-    { "name": "intermediate", "count": 48 },
-    { "name": "advanced", "count": 35 }
+  "success": true,
+  "data": [
+    { "name": "Development", "count": 42 },
+    { "name": "Design", "count": 35 },
+    { "name": "AI", "count": 28 }
   ]
+}
+```
+
+### GET /api/v1/tags
+
+Get all tags with optional hierarchy parameters.
+
+#### Query Parameters
+
+- `includeChildren` (optional): Include child tags
+- `includeParents` (optional): Include parent tags
+- `rootOnly` (optional): Return only root-level tags
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "tags": ["react", "vue", "javascript"],
+    "includeChildren": false,
+    "includeParents": false,
+    "rootOnly": false
+  }
 }
 ```
 
@@ -798,7 +1024,41 @@ Returns CSV file with analytics data.
 
 ## ⚖️ Comparison Tools
 
-### POST /api/comparisons
+### GET /api/v1/comparisons
+
+Get a comparison of multiple resources.
+
+#### Query Parameters
+
+- `ids` (required): Comma-separated list of resource IDs
+
+#### Response
+
+**Success (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "comparison": {
+      "id": "cmp_123",
+      "resources": ["res_1", "res_2"],
+      "criteria": [],
+      "scores": {}
+    },
+    "resources": [
+      {
+        "id": "res_1",
+        "title": "React",
+        "description": "JavaScript library for building UIs",
+        "url": "https://reactjs.org"
+      }
+    ]
+  }
+}
+```
+
+### POST /api/v1/comparisons
 
 Create a new resource comparison.
 
@@ -845,9 +1105,11 @@ Authorization: Bearer {jwt_token}
 }
 ```
 
-### GET /api/comparisons
+## 🔔 Webhook Management
 
-Get user's comparisons or public comparisons.
+### GET /api/v1/webhooks
+
+Get user's webhooks (requires authentication).
 
 #### Headers
 
@@ -862,6 +1124,8 @@ Authorization: Bearer {jwt_token}
 - `limit` (optional): Items per page (default: 20)
 
 #### Response
+
+**Success (200):**
 
 ```json
 {
@@ -885,11 +1149,49 @@ Authorization: Bearer {jwt_token}
 }
 ```
 
-### GET /api/v1/comparisons/[id]
+**Error (400):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "BAD_REQUEST",
+    "message": "Resource IDs are required for comparison",
+    "category": "validation",
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/comparisons"
+  }
+}
+```
+
+**Error (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Resources not found: res_123, res_456",
+    "category": "not_found",
+    "details": {
+      "resource": "Resources",
+      "identifier": "res_123, res_456"
+    },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/comparisons"
+  }
+}
+```
+
+### GET /api/v1/comparisons/{id}
 
 Get a specific comparison by ID.
 
 #### Response
+
+**Success (200):**
 
 ```json
 {
@@ -927,6 +1229,26 @@ Get a specific comparison by ID.
   },
   "createdAt": "2025-11-29T12:00:00Z",
   "createdBy": "user_123"
+}
+```
+
+**Error (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Comparison not found: comp_123",
+    "category": "not_found",
+    "details": {
+      "resource": "Comparison",
+      "identifier": "comp_123"
+    },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/comparisons/comp_123"
+  }
 }
 ```
 
@@ -994,6 +1316,8 @@ Authorization: Bearer {jwt_token}
 
 #### Response
 
+**Success (200):**
+
 ```json
 {
   "success": true,
@@ -1008,7 +1332,24 @@ Authorization: Bearer {jwt_token}
 }
 ```
 
-### PUT /api/v1/webhooks/[id]
+**Error (400):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "BAD_REQUEST",
+    "message": "Invalid webhook URL",
+    "category": "validation",
+    "details": "URL must be a valid HTTPS endpoint",
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/webhooks"
+  }
+}
+```
+
+### PUT /api/v1/webhooks/{id}
 
 Update a webhook (requires authentication).
 
@@ -1031,6 +1372,8 @@ Authorization: Bearer {jwt_token}
 
 #### Response
 
+**Success (200):**
+
 ```json
 {
   "success": true,
@@ -1045,7 +1388,27 @@ Authorization: Bearer {jwt_token}
 }
 ```
 
-### DELETE /api/v1/webhooks/[id]
+**Error (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "API Key not found: webhook_123",
+    "category": "not_found",
+    "details": {
+      "resource": "API Key",
+      "identifier": "webhook_123"
+    },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/webhooks/webhook_123"
+  }
+}
+```
+
+### DELETE /api/v1/webhooks/{id}
 
 Delete a webhook (requires authentication).
 
@@ -1057,9 +1420,31 @@ Authorization: Bearer {jwt_token}
 
 #### Response
 
+**Success (200):**
+
 ```json
 {
   "success": true
+}
+```
+
+**Error (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Webhook not found: webhook_123",
+    "category": "not_found",
+    "details": {
+      "resource": "Webhook",
+      "identifier": "webhook_123"
+    },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/webhooks/webhook_123"
+  }
 }
 ```
 
@@ -1090,6 +1475,8 @@ Authorization: Bearer {jwt_token}
 
 #### Response
 
+**Success (200):**
+
 ```json
 {
   "success": true,
@@ -1097,6 +1484,146 @@ Authorization: Bearer {jwt_token}
   "response": {
     "status": 200,
     "timestamp": "2025-11-29T12:00:00Z"
+  }
+}
+```
+
+**Error (400):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "BAD_REQUEST",
+    "message": "Event type is required",
+    "category": "validation",
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/webhooks/trigger"
+  }
+}
+```
+
+### GET /api/v1/webhooks/queue
+
+Get webhook queue statistics and dead letter queue (moderator/admin access required).
+
+#### Headers
+
+```
+Authorization: Bearer {jwt_token}
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "stats": {
+      "totalQueued": 5,
+      "totalDelivered": 152,
+      "totalFailed": 3,
+      "totalDeadLetter": 1
+    },
+    "queue": [
+      {
+        "id": "webhook_queue_1",
+        "webhookId": "webhook_123",
+        "event": "resource.created",
+        "scheduledFor": "2025-11-29T12:05:00Z",
+        "retryCount": 0,
+        "maxRetries": 3,
+        "createdAt": "2025-11-29T12:00:00Z"
+      }
+    ],
+    "deadLetterQueue": [
+      {
+        "id": "dead_letter_1",
+        "webhookId": "webhook_123",
+        "event": "resource.updated",
+        "failureReason": "Connection timeout",
+        "lastAttemptAt": "2025-11-29T12:10:00Z",
+        "deliveryAttempts": 3,
+        "createdAt": "2025-11-29T12:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+### GET /api/v1/webhooks/deliveries
+
+Get webhook delivery history.
+
+#### Headers
+
+```
+Authorization: Bearer {jwt_token}
+```
+
+#### Query Parameters
+
+- `webhookId` (optional): Filter by webhook ID
+- `status` (optional): Filter by delivery status (success, failed, pending)
+- `limit` (optional): Number of deliveries to return (default: 50, max: 100)
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "delivery_123",
+      "webhookId": "webhook_123",
+      "event": "resource.created",
+      "url": "https://myapp.com/webhook/resources",
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": 245,
+      "attemptCount": 1,
+      "createdAt": "2025-11-29T12:00:00Z",
+      "completedAt": "2025-11-29T12:00:01Z"
+    }
+  ]
+}
+```
+
+### POST /api/v1/webhooks/dead-letter/{id}/retry
+
+Retry a webhook from the dead letter queue (moderator/admin access required).
+
+#### Headers
+
+```
+Authorization: Bearer {jwt_token}
+```
+
+#### Response
+
+**Success (200):**
+
+```json
+{
+  "success": true,
+  "message": "Webhook queued for retry",
+  "deliveryId": "delivery_456"
+}
+```
+
+**Error (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Dead letter webhook not found: dead_letter_1",
+    "category": "not_found",
+    "timestamp": "2026-01-10T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/v1/webhooks/dead-letter/dead_letter_1/retry"
   }
 }
 ```
@@ -1194,4 +1721,116 @@ Manually trigger health check for a specific resource.
 
 ---
 
-_Last Updated: 2025-11-29_
+## Standardized Error Responses
+
+All API endpoints use a standardized error response format for consistent client error handling.
+
+### Error Response Structure
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "category": "error_category",
+    "details": { "additional": "context" },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/example"
+  }
+}
+```
+
+### Common Error Codes
+
+| Code                     | HTTP Status | Category           | Description                 |
+| ------------------------ | ----------- | ------------------ | --------------------------- |
+| `BAD_REQUEST`            | 400         | `validation`       | Invalid request data        |
+| `UNAUTHORIZED`           | 401         | `authentication`   | Authentication required     |
+| `FORBIDDEN`              | 403         | `authorization`    | Access forbidden            |
+| `NOT_FOUND`              | 404         | `not_found`        | Resource not found          |
+| `CONFLICT`               | 409         | `validation`       | Conflict with existing data |
+| `VALIDATION_ERROR`       | 400         | `validation`       | Field validation failed     |
+| `RATE_LIMIT_EXCEEDED`    | 429         | `rate_limit`       | Too many requests           |
+| `INTERNAL_SERVER_ERROR`  | 500         | `internal`         | Server error                |
+| `SERVICE_UNAVAILABLE`    | 503         | `external_service` | Service unavailable         |
+| `EXTERNAL_SERVICE_ERROR` | 502         | `external_service` | Third-party service error   |
+
+### Error Response Examples
+
+#### Bad Request (400)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "BAD_REQUEST",
+    "message": "Invalid request data",
+    "category": "validation",
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/resources"
+  }
+}
+```
+
+#### Not Found (404)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Resource not found: res_123",
+    "category": "not_found",
+    "details": {
+      "resource": "Resource",
+      "identifier": "res_123"
+    },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/resources/res_123"
+  }
+}
+```
+
+#### Rate Limit Exceeded (429)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Rate limit exceeded. Please try again later.",
+    "category": "rate_limit",
+    "details": {
+      "retryAfter": 45
+    },
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/analytics/events"
+  }
+}
+```
+
+#### Internal Server Error (500)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INTERNAL_SERVER_ERROR",
+    "message": "An internal server error occurred",
+    "category": "internal",
+    "details": "Detailed error message (development only)",
+    "timestamp": "2026-01-09T12:00:00.000Z",
+    "requestId": "req_1234567890_abc123",
+    "path": "/api/example"
+  }
+}
+```
+
+---
+
+_Last Updated: 2026-01-10_

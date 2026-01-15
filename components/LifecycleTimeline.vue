@@ -1,8 +1,13 @@
 <template>
   <div class="lifecycle-timeline">
-    <h3 class="timeline-title">Resource Lifecycle</h3>
+    <h3 class="timeline-title">
+      Resource Lifecycle
+    </h3>
 
-    <div v-if="statusHistory && statusHistory.length > 0" class="timeline">
+    <div
+      v-if="statusHistory && statusHistory.length > 0"
+      class="timeline"
+    >
       <div
         v-for="(change, index) in statusHistory"
         :key="change.id"
@@ -18,29 +23,38 @@
           <div
             v-if="index !== statusHistory.length - 1"
             class="timeline-connector"
-          ></div>
+          />
         </div>
         <div class="timeline-content">
           <div class="change-info">
-            <span class="status-change"
-              >{{ change.fromStatus }} → {{ change.toStatus }}</span
-            >
+            <span class="status-change">{{ change.fromStatus }} → {{ change.toStatus }}</span>
             <span class="change-date">{{ formatDate(change.changedAt) }}</span>
           </div>
           <div class="change-details">
-            <div v-if="change.reason" class="reason">
+            <div
+              v-if="change.reason"
+              class="reason"
+            >
               Reason: {{ change.reason }}
             </div>
-            <div v-if="change.notes" class="notes">
+            <div
+              v-if="change.notes"
+              class="notes"
+            >
               Notes: {{ change.notes }}
             </div>
-            <div class="changed-by">Changed by: {{ change.changedBy }}</div>
+            <div class="changed-by">
+              Changed by: {{ change.changedBy }}
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div v-else class="no-history">
+    <div
+      v-else
+      class="no-history"
+    >
       No status history available for this resource.
     </div>
 
@@ -49,19 +63,29 @@
       class="update-history"
     >
       <h4>Update History</h4>
-      <div v-for="update in updateHistory" :key="update.id" class="update-item">
+      <div
+        v-for="update in updateHistory"
+        :key="update.id"
+        class="update-item"
+      >
         <div class="update-header">
           <span class="version">v{{ update.version }}</span>
           <span class="update-date">{{ formatDate(update.updatedAt) }}</span>
         </div>
-        <div v-if="update.changelog" class="changelog">
+        <div
+          v-if="update.changelog"
+          class="changelog"
+        >
           {{ update.changelog }}
         </div>
         <ul
           v-if="update.changes && update.changes.length > 0"
           class="changes-list"
         >
-          <li v-for="(change, idx) in update.changes" :key="idx">
+          <li
+            v-for="(change, idx) in update.changes"
+            :key="idx"
+          >
             {{ change }}
           </li>
         </ul>

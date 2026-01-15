@@ -68,9 +68,8 @@ export default defineEventHandler(async event => {
     const resources: Resource[] = resourcesModule.default || resourcesModule
 
     // Import the suggestions composable
-    const { useSearchSuggestions } = await import(
-      '~/composables/useSearchSuggestions'
-    )
+    const { useSearchSuggestions } =
+      await import('~/composables/useSearchSuggestions')
 
     // Create suggestions engine
     const { getSearchSuggestions } = useSearchSuggestions(resources)
@@ -101,11 +100,11 @@ export default defineEventHandler(async event => {
     // Set success response status
     setResponseStatus(event, 200)
     return response
-  } catch (error: any) {
-    // Log error using our error logging service
+  } catch (error) {
+    const err = error instanceof Error ? error : undefined
     logError(
       `Error in search suggestions API: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      error as Error,
+      err,
       'api-search-suggestions',
       {
         query: getQuery(event),
@@ -113,12 +112,14 @@ export default defineEventHandler(async event => {
       }
     )
 
-    // Set error response status
     setResponseStatus(event, 500)
     return {
       success: false,
       message: 'An error occurred while generating search suggestions',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error:
+        process.env.NODE_ENV === 'development' && error instanceof Error
+          ? error.message
+          : undefined,
     }
   }
 })

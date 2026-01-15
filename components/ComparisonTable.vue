@@ -1,6 +1,12 @@
 <template>
-  <div v-if="resources && resources.length >= 2" class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+  <div
+    v-if="resources && resources.length >= 2"
+    class="overflow-x-auto"
+  >
+    <table
+      class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+      :aria-label="`Comparison of ${resources.length} resources`"
+    >
       <thead class="bg-gray-50 dark:bg-gray-800">
         <tr>
           <th
@@ -16,12 +22,15 @@
             class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
           >
             <div class="flex flex-col items-center">
-              <div class="font-bold text-sm">{{ resource.title }}</div>
+              <div class="font-bold text-sm">
+                {{ resource.title }}
+              </div>
               <div class="text-xs text-gray-400 dark:text-gray-500">
                 {{ resource.category }}
               </div>
               <button
-                class="mt-1 text-red-500 hover:text-red-700 text-xs flex items-center"
+                class="mt-1 text-red-500 hover:text-red-700 text-xs flex items-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:rounded"
+                :aria-label="`Remove ${resource.title} from comparison`"
                 @click="removeResource(resource.id)"
               >
                 <svg
@@ -29,6 +38,7 @@
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path
                     stroke-linecap="round"
@@ -72,7 +82,10 @@
       </tbody>
     </table>
   </div>
-  <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
+  <div
+    v-else
+    class="text-center py-8 text-gray-500 dark:text-gray-400"
+  >
     <svg
       class="mx-auto h-12 w-12 text-gray-400"
       fill="none"
@@ -86,7 +99,9 @@
         d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
       />
     </svg>
-    <h3 class="mt-2 text-sm font-medium">No resources to compare</h3>
+    <h3 class="mt-2 text-sm font-medium">
+      No resources to compare
+    </h3>
     <p class="mt-1 text-sm">
       Add at least 2 resources to see the comparison table.
     </p>
@@ -114,15 +129,18 @@ const getResourceValue = (resource: Resource, field: string) => {
   // Handle nested properties
   if (field.includes('.')) {
     const parts = field.split('.')
-    let value: any = resource
+    let value: unknown = resource
     for (const part of parts) {
-      value = value[part]
+      value = (value as Record<string, unknown>)[part]
       if (value === undefined) break
     }
-    return value
+    return value as string | number | boolean
   }
 
   // Handle direct properties
-  return (resource as any)[field]
+  return (resource as Record<string, unknown>)[field] as
+    | string
+    | number
+    | boolean
 }
 </script>

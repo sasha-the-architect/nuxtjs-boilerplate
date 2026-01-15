@@ -2,7 +2,9 @@
   <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-4xl mx-auto px-4">
       <div class="bg-white rounded-lg shadow-md p-6">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">Developer Portal</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">
+          Developer Portal
+        </h1>
 
         <section class="mb-8">
           <h2 class="text-xl font-semibold text-gray-700 mb-4">
@@ -15,7 +17,9 @@
           </p>
 
           <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
-            <h3 class="font-medium text-blue-800 mb-2">Base URL</h3>
+            <h3 class="font-medium text-blue-800 mb-2">
+              Base URL
+            </h3>
             <p class="font-mono text-sm bg-white p-2 rounded">
               https://yourdomain.com/api
             </p>
@@ -32,10 +36,11 @@
           </p>
 
           <div class="bg-gray-100 rounded-md p-4 mb-4">
-            <h3 class="font-medium text-gray-800 mb-2">Header Format</h3>
+            <h3 class="font-medium text-gray-800 mb-2">
+              Header Format
+            </h3>
             <pre class="font-mono text-sm bg-white p-3 rounded overflow-x-auto">
-X-API-Key: your-api-key-here</pre
-            >
+X-API-Key: your-api-key-here</pre>
           </div>
 
           <button
@@ -47,36 +52,42 @@ X-API-Key: your-api-key-here</pre
         </section>
 
         <section class="mb-8">
-          <h2 class="text-xl font-semibold text-gray-700 mb-4">API Examples</h2>
+          <h2 class="text-xl font-semibold text-gray-700 mb-4">
+            API Examples
+          </h2>
 
           <div class="mb-6">
-            <h3 class="font-medium text-gray-800 mb-2">Get Resources</h3>
+            <h3 class="font-medium text-gray-800 mb-2">
+              Get Resources
+            </h3>
             <div class="bg-gray-100 rounded-md p-4">
               <pre
                 class="font-mono text-sm bg-white p-3 rounded overflow-x-auto"
               >
 curl -X GET \
   -H "X-API-Key: your-api-key-here" \
-  "https://yourdomain.com/api/v1/resources?limit=10&category=tools"</pre
-              >
+  "https://yourdomain.com/api/v1/resources?limit=10&category=tools"</pre>
             </div>
           </div>
 
           <div class="mb-6">
-            <h3 class="font-medium text-gray-800 mb-2">Search Resources</h3>
+            <h3 class="font-medium text-gray-800 mb-2">
+              Search Resources
+            </h3>
             <div class="bg-gray-100 rounded-md p-4">
               <pre
                 class="font-mono text-sm bg-white p-3 rounded overflow-x-auto"
               >
 curl -X GET \
   -H "X-API-Key: your-api-key-here" \
-  "https://yourdomain.com/api/v1/search?q=hosting&pricing=Free"</pre
-              >
+  "https://yourdomain.com/api/v1/search?q=hosting&pricing=Free"</pre>
             </div>
           </div>
 
           <div class="mb-6">
-            <h3 class="font-medium text-gray-800 mb-2">Submit a Resource</h3>
+            <h3 class="font-medium text-gray-800 mb-2">
+              Submit a Resource
+            </h3>
             <div class="bg-gray-100 rounded-md p-4">
               <pre
                 class="font-mono text-sm bg-white p-3 rounded overflow-x-auto"
@@ -90,8 +101,7 @@ curl -X POST \
     "url": "https://example.com",
     "category": "Tools"
   }' \
-  "https://yourdomain.com/api/submissions"</pre
-              >
+  "https://yourdomain.com/api/submissions"</pre>
             </div>
           </div>
         </section>
@@ -119,7 +129,9 @@ curl -X POST \
           <div
             class="mt-4 bg-yellow-50 border border-yellow-200 rounded-md p-4"
           >
-            <h3 class="font-medium text-yellow-800 mb-2">Rate Limit Headers</h3>
+            <h3 class="font-medium text-yellow-800 mb-2">
+              Rate Limit Headers
+            </h3>
             <p class="text-sm text-gray-700">
               Rate limit responses include headers:
               <code class="font-mono">X-RateLimit-Limit</code>,
@@ -139,19 +151,22 @@ curl -X POST \
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="border border-gray-200 rounded-md p-4">
-              <h3 class="font-medium text-gray-800 mb-2">Success Response</h3>
+              <h3 class="font-medium text-gray-800 mb-2">
+                Success Response
+              </h3>
               <pre
                 class="font-mono text-xs bg-white p-2 rounded overflow-x-auto"
               >
 {
   "success": true,
   "data": { ... }
-}</pre
-              >
+}</pre>
             </div>
 
             <div class="border border-gray-200 rounded-md p-4">
-              <h3 class="font-medium text-gray-800 mb-2">Error Response</h3>
+              <h3 class="font-medium text-gray-800 mb-2">
+                Error Response
+              </h3>
               <pre
                 class="font-mono text-xs bg-white p-2 rounded overflow-x-auto"
               >
@@ -159,8 +174,7 @@ curl -X POST \
   "success": false,
   "message": "Error message",
   "error": "Detailed error"
-}</pre
-              >
+}</pre>
             </div>
           </div>
         </section>

@@ -735,24 +735,24 @@ describe('Validation Schemas', () => {
   describe('analyticsEventSchema', () => {
     it('should validate valid analytics event', () => {
       const result = analyticsEventSchema.safeParse({
-        eventType: 'resource_view',
+        type: 'resource_view',
       })
       expect(result.success).toBe(true)
     })
 
     it('should accept optional resourceId', () => {
       const result = analyticsEventSchema.safeParse({
-        eventType: 'resource_view',
+        type: 'resource_view',
         resourceId: 'resource-123',
       })
       expect(result.success).toBe(true)
     })
 
-    it('should accept optional metadata', () => {
+    it('should accept optional properties', () => {
       const result = analyticsEventSchema.safeParse({
-        eventType: 'resource_view',
+        type: 'resource_view',
         resourceId: 'resource-123',
-        metadata: {
+        properties: {
           source: 'search',
           position: 1,
         },
@@ -760,17 +760,17 @@ describe('Validation Schemas', () => {
       expect(result.success).toBe(true)
     })
 
-    it('should reject missing eventType', () => {
+    it('should reject missing type', () => {
       const result = analyticsEventSchema.safeParse({
-        eventType: '',
+        type: '',
       })
       expect(result.success).toBe(false)
     })
 
-    it('should accept complex metadata', () => {
+    it('should accept complex properties', () => {
       const result = analyticsEventSchema.safeParse({
-        eventType: 'search',
-        metadata: {
+        type: 'search',
+        properties: {
           query: 'vue framework',
           filters: ['category:Framework'],
           resultCount: 10,
@@ -791,10 +791,10 @@ describe('Validation Schemas', () => {
       expect(result.success).toBe(true)
     })
 
-    it('should handle null values in optional metadata', () => {
+    it('should handle null values in optional properties', () => {
       const result = analyticsEventSchema.safeParse({
-        eventType: 'test',
-        metadata: {
+        type: 'search',
+        properties: {
           field1: 'value',
           field2: null as any,
         },

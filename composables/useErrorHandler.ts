@@ -86,7 +86,7 @@ export const useErrorHandler = () => {
       severity?: ErrorSeverity
       component?: string
       fallbackValue?: T
-      onError?: any
+      onError?: (error: Error) => void
     } = {}
   ): Promise<T | null> => {
     const { severity = 'error', component, fallbackValue, onError } = options
@@ -101,7 +101,7 @@ export const useErrorHandler = () => {
     }
   }
 
-  const getGlobalErrors = computed(() => [...globalErrors.value])
+  const getGlobalErrors = computed(() => globalErrors.value.slice())
 
   const clearGlobalErrors = () => {
     globalErrors.value = []

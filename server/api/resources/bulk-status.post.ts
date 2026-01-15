@@ -1,97 +1,75 @@
-import { createError, defineEventHandler, readBody } from 'h3'
+import { defineEventHandler, readBody } from 'h3'
 import { Resource } from '~/types/resource'
-
-// In-memory storage for resource status updates (in production, this would be a database)
-const resourceStatusHistory = new Map<string, any[]>()
+import { rateLimit } from '~/server/utils/enhanced-rate-limit'
+import {
+  sendBadRequestError,
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 export default defineEventHandler(async event => {
-  const { resourceIds, status, reason, notes } = await readBody(event)
+  try {
+    await rateLimit(event)
+    const { resourceIds, status } = await readBody(event)
 
-  // Validate required fields
-  if (!Array.isArray(resourceIds) || !status) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'resourceIds array and status are required',
-    })
-  }
+    // Validate required fields
+    if (!Array.isArray(resourceIds) || !status) {
+      sendBadRequestError(event, 'resourceIds array and status are required')
+      return
+    }
 
-  // Validate status value
-  const validStatuses = [
-    'active',
-    'deprecated',
-    'discontinued',
-    'updated',
-    'pending',
-  ]
-  if (!validStatuses.includes(status)) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Invalid status value',
-    })
-  }
+    // Validate status value
+    const validStatuses = [
+      'active',
+      'deprecated',
+      'discontinued',
+      'updated',
+      'pending',
+    ]
+    if (!validStatuses.includes(status)) {
+      sendBadRequestError(event, 'Invalid status value')
+      return
+    }
 
-  // Get all resources
-  const { allResources } = await import('~/server/api/v1/resources.get')
-  const resources = await allResources()
+    // Get all resources
+    const resourcesModule = await import('~/data/resources.json')
+    const resources: Resource[] = resourcesModule.default || resourcesModule
 
-  // Get current user or default to 'system'
-  const userId = event.context.auth?.userId || 'system'
+    const updatedResources = []
+    const errors = []
 
-  const updatedResources = []
-  const errors = []
+    for (const resourceId of resourceIds) {
+      const resource = resources.find((r: Resource) => r.id === resourceId)
 
-  for (const resourceId of resourceIds) {
-    const resource = resources.find((r: Resource) => r.id === resourceId)
+      if (!resource) {
+        errors.push({
+          resourceId,
+          error: 'Resource not found',
+        })
+        continue
+      }
 
-    if (!resource) {
-      errors.push({
-        resourceId,
-        error: 'Resource not found',
+      // Update resource with new status
+      const updatedResource: Resource = {
+        ...resource,
+        status,
+        lastUpdated: new Date().toISOString(),
+      }
+
+      updatedResources.push({
+        id: updatedResource.id,
+        status: updatedResource.status,
+        title: updatedResource.title,
       })
-      continue
     }
 
-    // Create status change record
-    const statusChange = {
-      id: Math.random().toString(36).substring(2, 15),
-      fromStatus: resource.status || 'active',
-      toStatus: status,
-      reason: reason || 'Bulk status update',
-      changedBy: userId,
-      changedAt: new Date().toISOString(),
-      notes: notes || '',
-    }
-
-    // Add to history
-    if (!resourceStatusHistory.has(resourceId)) {
-      resourceStatusHistory.set(resourceId, [])
-    }
-    const history = resourceStatusHistory.get(resourceId) || []
-    history.push(statusChange)
-    resourceStatusHistory.set(resourceId, history)
-
-    // Update resource with new status
-    resource.status = status
-    if (!resource.statusHistory) {
-      resource.statusHistory = []
-    }
-    resource.statusHistory.push(statusChange)
-
-    // Update lastUpdated timestamp
-    resource.lastUpdated = new Date().toISOString()
-
-    updatedResources.push({
-      id: resource.id,
-      status: resource.status,
-      title: resource.title,
+    sendSuccessResponse(event, {
+      updatedCount: updatedResources.length,
+      errorCount: errors.length,
+      updatedResources,
+      errors,
     })
-  }
-
-  return {
-    success: true,
-    updatedCount: updatedResources.length,
-    errorCount: errors.length,
-    updatedResources,
-    errors,
+  } catch (error) {
+    handleApiRouteError(event, error)
   }
 })

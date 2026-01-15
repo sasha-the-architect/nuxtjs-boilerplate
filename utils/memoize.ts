@@ -2,15 +2,59 @@ const generateCacheKey = (text: string, searchQuery: string): string => {
   return `${text}:${searchQuery}`
 }
 
-export const memoize = <T extends (...args: any[]) => any>(
+// Store all caches for clearing
+const allCaches: Set<Map<string, unknown>> = new Set()
+
+// Helper to generate cache key for arguments
+const generateArgsKey = (args: unknown[]): string => {
+  if (args.length === 1) {
+    const arg = args[0]
+    if (arg === null || arg === undefined) {
+      return 'null'
+    }
+    if (typeof arg === 'object') {
+      // For objects, use reference to avoid caching by structure
+      // This is a unique identifier per object instance
+      return `obj:${Math.random().toString(36).substr(2, 9)}`
+    }
+    if (typeof arg === 'function') {
+      return 'func'
+    }
+    return String(arg)
+  }
+
+  // For multiple arguments, create a composite key
+  return args
+    .map(arg => {
+      if (arg === null || arg === undefined) {
+        return 'null'
+      }
+      if (typeof arg === 'object') {
+        // Use unique identifier for each object instance
+        return `obj:${Math.random().toString(36).substr(2, 9)}`
+      }
+      if (typeof arg === 'function') {
+        return 'func'
+      }
+      return String(arg)
+    })
+    .join('|')
+}
+
+export const memoize = <T extends (...args: unknown[]) => ReturnType<T>>(
   fn: T,
-  keyGenerator: (..._args: Parameters<T>) => string = (...args) =>
-    JSON.stringify(args)
+  keyGenerator?: (...args: Parameters<T>) => string
 ): T => {
   const cache = new Map<string, ReturnType<T>>()
+  allCaches.add(cache)
+
+  // Use custom key generator if provided, otherwise use default
+  const defaultKeyGenerator = (...args: Parameters<T>): string => {
+    return keyGenerator ? keyGenerator(...args) : generateArgsKey(args)
+  }
 
   return ((...args: Parameters<T>) => {
-    const key = keyGenerator(...args)
+    const key = defaultKeyGenerator(...args)
 
     if (cache.has(key)) {
       return cache.get(key)!
@@ -26,6 +70,7 @@ export const memoizeHighlight = (
   highlightFn: (text: string, searchQuery: string) => string
 ): ((text: string, searchQuery: string) => string) => {
   const cache = new Map<string, string>()
+  allCaches.add(cache)
 
   return (_text: string, _searchQuery: string) => {
     const key = generateCacheKey(_text, _searchQuery)
@@ -41,6 +86,6 @@ export const memoizeHighlight = (
 }
 
 export const clearMemoCache = (): void => {
-  const cache = new Map<string, string>()
-  cache.clear()
+  allCaches.forEach(cache => cache.clear())
+  allCaches.clear()
 }

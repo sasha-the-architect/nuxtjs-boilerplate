@@ -8,13 +8,14 @@ const fuseCache = new WeakMap<readonly Resource[], Fuse<Resource>>()
 const createFuseInstance = (resources: readonly Resource[]): Fuse<Resource> => {
   return new Fuse([...resources], {
     keys: [
-      { name: 'title', weight: 0.4 },
+      { name: 'title', weight: 0.5 },
       { name: 'description', weight: 0.3 },
-      { name: 'benefits', weight: 0.2 },
-      { name: 'tags', weight: 0.1 },
+      { name: 'benefits', weight: 0.15 },
+      { name: 'tags', weight: 0.05 },
     ],
     threshold: 0.3,
     includeScore: true,
+    distance: 100,
   })
 }
 
