@@ -5,8 +5,16 @@
 import { ref } from 'vue'
 import type { Vote, UserProfile } from '~/types/community'
 import { generateUniqueId } from '~/utils/id'
+import type {
+  UpdateVoteCountCallback,
+  UpdateUserContributionsCallback,
+} from '~/types/community'
 
-export const useVoting = (initialVotes: Vote[] = []) => {
+export const useVoting = (
+  initialVotes: Vote[] = [],
+  updateVoteCount?: UpdateVoteCountCallback,
+  updateUserContributions?: UpdateUserContributionsCallback
+) => {
   const votes = ref<Vote[]>([...initialVotes])
   const voteMap = ref<Map<string, Vote>>(new Map())
 
