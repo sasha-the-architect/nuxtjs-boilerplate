@@ -3,6 +3,7 @@
  * Handles flagging, content removal, and moderation actions with O(1) lookups
  */
 import { ref, computed } from 'vue'
+import { generateUniqueId } from '~/utils/id'
 import type {
   Flag,
   UserProfile,
