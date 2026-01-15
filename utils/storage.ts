@@ -60,18 +60,39 @@ export const createStorageWithDateSerialization = <T>(
   key: string,
   defaultValue: T
 ) => {
-  const dateSerializer = (value: T): string => {
-    return JSON.stringify(value, (_, v) => {
-      if (v instanceof Date) {
-        return { __date__: true, value: v.toISOString() }
+  const replaceDates = (obj: unknown): unknown => {
+    if (obj === null || obj === undefined) return obj
+    if (obj instanceof Date) {
+      return { __date__: true, value: obj.toISOString() }
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(replaceDates)
+    }
+    if (typeof obj === 'object') {
+      const result: Record<string, unknown> = {}
+      for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          result[key] = replaceDates((obj as Record<string, unknown>)[key])
+        }
       }
-      return v
-    })
+      return result
+    }
+    return obj
+  }
+
+  const dateSerializer = (value: T): string => {
+    return JSON.stringify(replaceDates(value))
   }
 
   const dateDeserializer = (value: string): T => {
-    return JSON.parse(value, (_, v) => {
-      if (v && typeof v === 'object' && v.__date__ === true) {
+    return JSON.parse(value, (key, v) => {
+      if (
+        v &&
+        typeof v === 'object' &&
+        v !== null &&
+        '__date__' in v &&
+        v.__date__ === true
+      ) {
         return new Date(v.value)
       }
       return v
