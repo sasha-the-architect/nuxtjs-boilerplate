@@ -199,7 +199,7 @@ async function fetchUrlWithTimeout(
       responseTime,
       timestamp: new Date().toISOString(),
     }
-  } catch (error) {
+  } catch {
     try {
       const getResponse = await Promise.race([
         fetch(url, {

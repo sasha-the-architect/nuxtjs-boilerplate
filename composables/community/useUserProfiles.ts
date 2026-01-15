@@ -21,17 +21,13 @@ export const useUserProfiles = (initialUsers: UserProfile[] = []) => {
 
   const currentUser = ref<UserProfile | null>(null)
 
-  const generateId = () => {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5)
-  }
-
   const setCurrentUser = (user: UserProfile | null) => {
     currentUser.value = user
   }
 
   const createProfile = (userData: CreateUserData): UserProfile => {
     const profile: UserProfile = {
-      id: generateId(),
+      id: generateUniqueId(),
       name: userData.name,
       email: userData.email,
       username: userData.username,

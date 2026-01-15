@@ -3,31 +3,16 @@
  * Handles upvote/downvote on comments, resources, etc. with O(1) lookups
  */
 import { ref } from 'vue'
-import type {
-  Vote,
-  UserProfile,
-  UpdateVoteCountCallback,
-  UpdateUserContributionsCallback,
-} from '~/types/community'
+import type { Vote, UserProfile } from '~/types/community'
+import { generateUniqueId } from '~/utils/id'
 
-export const useVoting = (
-  initialVotes: Vote[] = [],
-  updateVoteCount?: UpdateVoteCountCallback,
-  updateUserContributions?: UpdateUserContributionsCallback
-) => {
-  // Reactive state
+export const useVoting = (initialVotes: Vote[] = []) => {
   const votes = ref<Vote[]>([...initialVotes])
   const voteMap = ref<Map<string, Vote>>(new Map())
 
-  // Initialize index with compound key: userId_targetType_targetId
   initialVotes.forEach(vote => {
-    const key = `${vote.userId}_${vote.targetType}_${vote.targetId}`
-    voteMap.value.set(key, vote)
+    voteMap.value.set(vote.id, vote)
   })
-
-  const generateId = () => {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5)
-  }
 
   const vote = (
     targetType: string,
@@ -93,7 +78,7 @@ export const useVoting = (
     } else {
       // Add new vote
       const newVote: Vote = {
-        id: generateId(),
+        id: generateUniqueId(),
         targetType,
         targetId,
         userId: currentUser.id,

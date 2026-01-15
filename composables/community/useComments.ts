@@ -9,6 +9,7 @@ import type {
   ReplyData,
   UserProfile,
 } from '~/types/community'
+import { generateUniqueId } from '~/utils/id'
 
 export const useComments = (initialComments: Comment[] = []) => {
   // Reactive state
@@ -20,10 +21,6 @@ export const useComments = (initialComments: Comment[] = []) => {
     commentMap.value.set(comment.id, comment)
   })
 
-  const generateId = () => {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5)
-  }
-
   const addComment = (
     commentData: CommentData,
     currentUser: UserProfile
@@ -33,7 +30,7 @@ export const useComments = (initialComments: Comment[] = []) => {
     }
 
     const comment: Comment = {
-      id: generateId(),
+      id: generateUniqueId(),
       resourceId: commentData.resourceId,
       content: commentData.content,
       userId: currentUser.id,
@@ -67,7 +64,7 @@ export const useComments = (initialComments: Comment[] = []) => {
     if (!parentComment) return null
 
     const reply: Comment = {
-      id: generateId(),
+      id: generateUniqueId(),
       resourceId: parentComment.resourceId,
       content: replyData.content,
       userId: currentUser.id,

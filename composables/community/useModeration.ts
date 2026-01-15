@@ -22,10 +22,6 @@ export const useModeration = (
     flagMap.value.set(flag.id, flag)
   })
 
-  const generateId = () => {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5)
-  }
-
   const flagContent = (
     targetType: string,
     targetId: string,
@@ -38,7 +34,7 @@ export const useModeration = (
     }
 
     const flag: Flag = {
-      id: generateId(),
+      id: generateUniqueId(),
       targetType,
       targetId,
       userId: currentUser.id,
