@@ -12,12 +12,12 @@ export interface Bookmark {
 }
 
 const BOOKMARKS_STORAGE_KEY = 'resource_bookmarks'
-const storage = createStorageWithDateSerialization<Bookmark[]>(
-  BOOKMARKS_STORAGE_KEY,
-  []
-)
 
 export const useBookmarks = () => {
+  const storage = createStorageWithDateSerialization<Bookmark[]>(
+    BOOKMARKS_STORAGE_KEY,
+    []
+  )
   const bookmarks = ref<Bookmark[]>([])
 
   const initBookmarks = () => {
