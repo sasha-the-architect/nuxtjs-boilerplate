@@ -5,10 +5,7 @@
       <ResourceBreadcrumbs :title="resource?.title || ''" />
 
       <!-- Loading State -->
-      <div
-        v-if="loading"
-        class="bg-white shadow rounded-lg p-6 animate-pulse"
-      >
+      <div v-if="loading" class="bg-white shadow rounded-lg p-6 animate-pulse">
         <div class="h-8 bg-gray-200 rounded w-3/4 mb-4" />
         <div class="h-4 bg-gray-200 rounded w-1/2 mb-6" />
         <div class="h-32 bg-gray-200 rounded mb-6" />
@@ -22,10 +19,7 @@
       </div>
 
       <!-- Error State -->
-      <div
-        v-else-if="error || !resource"
-        class="text-center py-12"
-      >
+      <div v-else-if="error || !resource" class="text-center py-12">
         <div class="mb-6">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -54,10 +48,7 @@
       </div>
 
       <!-- Resource Detail Content -->
-      <div
-        v-else
-        class="bg-white shadow rounded-lg overflow-hidden"
-      >
+      <div v-else class="bg-white shadow rounded-lg overflow-hidden">
         <ResourceHeader
           :title="resource.title"
           :category="resource.category"
@@ -106,20 +97,13 @@
 
               <!-- Health Monitor -->
               <div class="mb-8">
-                <h3 class="text-lg font-medium text-gray-900 mb-3">
-                  Health
-                </h3>
-                <HealthMonitor
-                  :resource-id="resource.id"
-                  :url="resource.url"
-                />
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Health</h3>
+                <HealthMonitor :resource-id="resource.id" :url="resource.url" />
               </div>
 
               <!-- Tags -->
               <div class="mb-8">
-                <h3 class="text-lg font-medium text-gray-900 mb-3">
-                  Tags
-                </h3>
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Tags</h3>
                 <div class="flex flex-wrap gap-2">
                   <span
                     v-for="tag in resource.tags"
@@ -165,17 +149,14 @@
       <!-- Alternative Suggestions Section -->
       <div class="mt-12">
         <ClientOnly>
-          <LazyAlternativeSuggestions
-            v-if="resource"
-            :resource="resource"
-          />
+          <LazyAlternativeSuggestions v-if="resource" :resource="resource" />
         </ClientOnly>
       </div>
 
       <ClientOnly>
         <LazyResourceComments
-          :comments="sampleComments"
-          :comment-count="3"
+          :comments="[]"
+          :comment-count="0"
           @submit="handleCommentSubmit"
         />
       </ClientOnly>
@@ -207,7 +188,6 @@ const {
   resource,
   relatedResources,
   analyticsData,
-  sampleComments,
   shareUrls,
   copyToClipboard,
   handleImageError,

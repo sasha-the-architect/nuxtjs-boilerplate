@@ -1,6 +1,20 @@
+/**
+ * Composable for resource detail page
+ * Orchestrates resource loading, analytics, SEO, and UI interactions
+ *
+ * Architecture Principles:
+ * - Single Responsibility: Coordinates multiple single-responsibility utilities
+ * - Separation of Concerns: Delegates to specialized utilities
+ * - Orchestrator Pattern: Manages data flow between utilities
+ */
 import { computed, ref, onMounted } from 'vue'
-import { useRoute, useRuntimeConfig, useNuxtApp } from '#app'
-import { useSeoMeta, useHead } from '#imports'
+import {
+  useRoute,
+  useRuntimeConfig,
+  useNuxtApp,
+  useSeoMeta,
+  useHead,
+} from '#app'
 import logger from '~/utils/logger'
 import type { Resource } from '~/types/resource'
 import type { Comment } from '~/types/community'
@@ -8,6 +22,8 @@ import { useResources } from '~/composables/useResources'
 import { useRecommendationEngine } from '~/composables/useRecommendationEngine'
 import { generateResourceShareUrls } from '~/utils/shareUtils'
 import { trackResourceView } from '~/utils/analytics'
+import { generateSeoData } from '~/utils/seo'
+import { copyToClipboard } from '~/utils/clipboard'
 
 export const useResourceDetailPage = () => {
   const route = useRoute()
@@ -15,7 +31,6 @@ export const useResourceDetailPage = () => {
   const { resources, loading: resourcesLoading } = useResources()
   const { $analytics } = useNuxtApp()
 
-  // State
   const loading = ref(true)
   const error = ref<string | null>(null)
   const resource = ref<Resource | null>(null)
@@ -27,47 +42,14 @@ export const useResourceDetailPage = () => {
     lastViewed: '',
   })
 
-  // Sample comments data
-  const sampleComments = ref<Comment[]>([
-    {
-      id: '1',
-      resourceId: '',
-      content:
-        "I've been using this for a few months now and it's been really helpful for my development workflow.",
-      userId: 'user-1',
-      userName: 'Jane Doe',
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      votes: 12,
-      replies: [],
-      isEdited: false,
-      status: 'active',
-    },
-    {
-      id: '2',
-      resourceId: '',
-      content:
-        "The free tier limitations are a bit restrictive, but overall it's a great service.",
-      userId: 'user-2',
-      userName: 'John Smith',
-      timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      votes: 5,
-      replies: [],
-      isEdited: false,
-      status: 'active',
-    },
-  ])
-
-  // Get resource ID from route params
   const resourceId = computed(() => {
     return typeof route.params.id === 'string' ? route.params.id : ''
   })
 
-  // Get current URL for sharing
   const currentUrl = computed(() => {
     return `${runtimeConfig.public.canonicalUrl}/resources/${resourceId.value}`
   })
 
-  // Generate share URLs with UTM parameters
   const shareUrls = computed(() => {
     if (!resource.value) return {}
     return generateResourceShareUrls(
@@ -77,7 +59,6 @@ export const useResourceDetailPage = () => {
     )
   })
 
-  // Enhanced related resources based on tags and category
   const getEnhancedRelatedResources = (currentResource: Resource | null) => {
     if (!currentResource) return []
 
@@ -88,7 +69,6 @@ export const useResourceDetailPage = () => {
     )
   }
 
-  // Fetch resource history (status and update history)
   const fetchResourceHistory = async (id: string) => {
     try {
       const { $apiClient } = useNuxtApp()
@@ -106,7 +86,6 @@ export const useResourceDetailPage = () => {
     }
   }
 
-  // Fetch analytics data for the resource
   const fetchResourceAnalytics = async (id: string) => {
     try {
       const { $apiClient } = useNuxtApp()
@@ -130,7 +109,6 @@ export const useResourceDetailPage = () => {
     }
   }
 
-  // Track resource view
   const trackView = async () => {
     if (!resource.value) return
 
@@ -158,118 +136,42 @@ export const useResourceDetailPage = () => {
     }
   }
 
-  // Copy URL to clipboard
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(currentUrl.value)
-    } catch {
-      try {
-        const textArea = document.createElement('textarea')
-        textArea.value = currentUrl.value
-        textArea.setAttribute('readonly', '')
-        textArea.style.cssText = `
-          position: absolute;
-          left: -9999px;
-          top: -9999px;
-          opacity: 0;
-          pointer-events: none;
-        `
-        document.body.appendChild(textArea)
-        textArea.select()
-        textArea.setSelectionRange(0, 99999)
-        const successful = document.execCommand('copy')
-        document.body.removeChild(textArea)
-
-        if (!successful) {
-          throw new Error('execCommand copy failed')
-        }
-      } catch (fallbackErr) {
-        console.error('Failed to copy to clipboard:', fallbackErr)
-      }
+  const handleCopyToClipboard = async () => {
+    const result = await copyToClipboard(currentUrl.value)
+    if (!result.success && result.error) {
+      logger.error('Failed to copy to clipboard:', result.error)
     }
   }
 
-  // Handle image error
   const handleImageError = (event: Event) => {
     const target = event.target as HTMLImageElement
     target.src = '/placeholder-image.jpg'
   }
 
-  // Handle comment submit
   const handleCommentSubmit = (comment: string) => {
     logger.info('New comment:', comment)
   }
 
-  // Set SEO meta tags and JSON-LD structured data
   const setSeoMetadata = () => {
-    const { title, description } = resource.value || {}
-    if (!title || !description) return
+    if (!resource.value) return
 
-    useSeoMeta({
-      title: `${title} - Free Resources for Developers`,
-      ogTitle: `${title} - Free Resources for Developers`,
-      description: `${description} - Discover this and other amazing free resources on Free Stuff on the Internet.`,
-      ogDescription: `${description} - Discover this and other amazing free resources on Free Stuff on the Internet.`,
-      ogUrl: currentUrl.value,
-      ogType: 'website',
-      twitterCard: 'summary_large_image',
-      articlePublishedTime: resource.value.dateAdded,
-      articleModifiedTime: resource.value.dateAdded,
-    })
+    const { seoMeta, structuredData } = generateSeoData(
+      resource.value,
+      currentUrl.value
+    )
 
-    const structuredData = {
-      '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      name: resource.value.title,
-      description: resource.value.description,
-      url: resource.value.url,
-      applicationCategory: resource.value.category,
-      isBasedOn: resource.value.url,
-      datePublished: resource.value.dateAdded,
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'USD',
-        availability: 'https://schema.org/InStock',
-      },
-      aggregateRating: resource.value.rating
-        ? {
-            '@type': 'AggregateRating',
-            ratingValue: resource.value.rating,
-            bestRating: 5,
-            worstRating: 1,
-            ratingCount: resource.value.viewCount || 10,
-          }
-        : undefined,
-      keywords: resource.value.tags.join(', '),
-      thumbnailUrl: resource.value.icon,
-      operatingSystem: resource.value.platforms
-        ? resource.value.platforms.join(', ')
-        : undefined,
-    }
-
-    Object.keys(structuredData).forEach((key: string) => {
-      if ((structuredData as Record<string, unknown>)[key] === undefined) {
-        delete (structuredData as Record<string, unknown>)[key]
-      }
-    })
-
-    const safeJsonLd = JSON.stringify(structuredData)
-      .replace(/</g, '\\u003c')
-      .replace(/>/g, '\\u003e')
-      .replace(/\//g, '\\u002f')
+    useSeoMeta(seoMeta)
 
     useHead({
       script: [
         {
           type: 'application/ld+json',
-          innerHTML: safeJsonLd,
+          innerHTML: structuredData,
         },
       ],
     })
   }
 
-  // Load resource data
   const loadResource = async () => {
     try {
       if (!resourceId.value) {
@@ -303,7 +205,6 @@ export const useResourceDetailPage = () => {
     }
   }
 
-  // Initialize on mount
   onMounted(() => {
     if (resourcesLoading.value) {
       const checkResources = () => {
@@ -320,22 +221,16 @@ export const useResourceDetailPage = () => {
   })
 
   return {
-    // State
     loading,
     error,
     resource,
     relatedResources,
     analyticsData,
     resourceStats,
-    sampleComments,
-
-    // Computed
     resourceId,
     currentUrl,
     shareUrls,
-
-    // Methods
-    copyToClipboard,
+    copyToClipboard: handleCopyToClipboard,
     handleImageError,
     handleCommentSubmit,
     loadResource,
