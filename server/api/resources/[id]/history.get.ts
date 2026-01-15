@@ -1,30 +1,31 @@
 import { Resource } from '~/types/resource'
 import { getRouterParam } from '#imports'
-
-// In-memory storage for resource status updates (in production, this would be a database)
-const resourceStatusHistory = new Map<string, any[]>()
+import {
+  sendNotFoundError,
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 export default defineEventHandler(async event => {
-  const resourceId = getRouterParam(event, 'id')
+  try {
+    const resourceId = getRouterParam(event, 'id')
 
-  // Get all resources to find the specific resource
-  const { allResources } = await import('~/server/api/v1/resources.get')
-  const resources = await allResources()
-  const resource = resources.find((r: Resource) => r.id === resourceId)
+    // Get all resources to find specific resource
+    const resourcesModule = await import('~/data/resources.json')
+    const resources: Resource[] = resourcesModule.default || resourcesModule
+    const resource = resources.find((r: Resource) => r.id === resourceId)
 
-  if (!resource) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Resource not found',
+    if (!resource) {
+      sendNotFoundError(event, 'Resource', resourceId)
+      return
+    }
+
+    sendSuccessResponse(event, {
+      id: resource.id,
+      title: resource.title,
+      status: resource.status || 'active',
     })
-  }
-
-  // Return resource with status history and update history
-  return {
-    id: resource.id,
-    title: resource.title,
-    status: resource.status || 'active',
-    statusHistory: resource.statusHistory || [],
-    updateHistory: resource.updateHistory || [],
+  } catch (error) {
+    handleApiRouteError(event, error)
   }
 })

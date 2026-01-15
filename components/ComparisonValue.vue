@@ -1,15 +1,27 @@
 <template>
   <div class="text-center">
     <template v-if="type === 'text'">
-      <span v-if="value" class="text-sm">{{ value }}</span>
-      <span v-else class="text-gray-400 dark:text-gray-500 text-sm">-</span>
+      <span
+        v-if="value"
+        class="text-sm"
+      >{{ value }}</span>
+      <span
+        v-else
+        class="text-gray-400 dark:text-gray-500 text-sm"
+      >-</span>
     </template>
 
     <template v-else-if="type === 'number'">
-      <span v-if="value !== undefined && value !== null" class="text-sm">{{
+      <span
+        v-if="value !== undefined && value !== null"
+        class="text-sm"
+      >{{
         value
       }}</span>
-      <span v-else class="text-gray-400 dark:text-gray-500 text-sm">-</span>
+      <span
+        v-else
+        class="text-gray-400 dark:text-gray-500 text-sm"
+      >-</span>
     </template>
 
     <template v-else-if="type === 'boolean'">
@@ -25,7 +37,10 @@
       >
         No
       </span>
-      <span v-else class="text-gray-400 dark:text-gray-500 text-sm">-</span>
+      <span
+        v-else
+        class="text-gray-400 dark:text-gray-500 text-sm"
+      >-</span>
     </template>
 
     <template v-else-if="type === 'list'">
@@ -47,14 +62,17 @@
           +{{ value.length - 3 }} more
         </span>
       </div>
-      <span v-else class="text-gray-400 dark:text-gray-500 text-sm">-</span>
+      <span
+        v-else
+        class="text-gray-400 dark:text-gray-500 text-sm"
+      >-</span>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 interface Props {
-  value?: any
+  value?: string | number | boolean | string[]
   type?: 'text' | 'number' | 'boolean' | 'list'
 }
 

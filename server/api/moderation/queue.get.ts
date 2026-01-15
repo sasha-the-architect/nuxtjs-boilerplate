@@ -1,8 +1,13 @@
 import type { Submission } from '~/types/submission'
 import { getQuery } from 'h3'
+import { rateLimit } from '~/server/utils/enhanced-rate-limit'
+import {
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 // Mock data for demonstration - in a real application, this would come from a database
-let mockSubmissions: Submission[] = [
+const mockSubmissions: Submission[] = [
   {
     id: 'sub_1648729345_abc123',
     resourceData: {
@@ -38,6 +43,8 @@ let mockSubmissions: Submission[] = [
 ]
 
 export default defineEventHandler(async event => {
+  await rateLimit(event)
+
   try {
     // In a real application, this would query the database for pending submissions
     // with additional filtering and pagination options
@@ -72,21 +79,13 @@ export default defineEventHandler(async event => {
       offset + limit
     )
 
-    return {
-      success: true,
+    return sendSuccessResponse(event, {
       queue: paginatedSubmissions,
       total: filteredSubmissions.length,
       limit,
       offset,
-    }
-  } catch (error: any) {
-    console.error('Error fetching moderation queue:', error)
-
-    return {
-      success: false,
-      message: 'An error occurred while fetching the moderation queue',
-      queue: [],
-      total: 0,
-    }
+    })
+  } catch (error) {
+    return handleApiRouteError(event, error)
   }
 })

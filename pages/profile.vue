@@ -53,9 +53,7 @@
           </h3>
           <div class="space-y-3">
             <div class="flex justify-between items-center">
-              <span class="text-gray-700 dark:text-gray-300"
-                >Personalized recommendations</span
-              >
+              <span class="text-gray-700 dark:text-gray-300">Personalized recommendations</span>
               <span
                 class="px-2 py-1 rounded-full text-xs font-medium"
                 :class="
@@ -74,9 +72,7 @@
               </span>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-gray-700 dark:text-gray-300"
-                >Data collection</span
-              >
+              <span class="text-gray-700 dark:text-gray-300">Data collection</span>
               <span
                 class="px-2 py-1 rounded-full text-xs font-medium"
                 :class="
@@ -95,9 +91,7 @@
               </span>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-gray-700 dark:text-gray-300"
-                >Recommendation explanations</span
-              >
+              <span class="text-gray-700 dark:text-gray-300">Recommendation explanations</span>
               <span
                 class="px-2 py-1 rounded-full text-xs font-medium"
                 :class="

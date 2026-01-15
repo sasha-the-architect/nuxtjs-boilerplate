@@ -7,7 +7,7 @@ export interface AnalyticsEvent {
   resourceId?: string
   category?: string
   url?: string
-  properties?: Record<string, any>
+  properties?: Record<string, unknown>
 }
 
 // Track an analytics event
@@ -96,7 +96,7 @@ export async function trackResourceView(
 export async function trackSearch(
   query: string,
   resultsCount: number,
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
 ): Promise<boolean> {
   return trackEvent({
     type: 'search',
@@ -114,7 +114,7 @@ export async function trackAdvancedSearch(
   query: string,
   resultsCount: number,
   operatorsUsed: string[],
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
 ): Promise<boolean> {
   return trackEvent({
     type: 'advanced_search',
@@ -131,7 +131,7 @@ export async function trackAdvancedSearch(
 // Track search with zero results
 export async function trackZeroResultSearch(
   query: string,
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
 ): Promise<boolean> {
   return trackEvent({
     type: 'zero_result_search',

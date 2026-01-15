@@ -1,6 +1,6 @@
 import { defineEventHandler, getQuery } from 'h3'
-import type { Webhook } from '~/types/webhook'
 import { webhookStorage } from '~/server/utils/webhookStorage'
+import { sendSuccessResponse } from '~/server/utils/api-response'
 
 export default defineEventHandler(async event => {
   // Get query parameters for filtering
@@ -19,18 +19,18 @@ export default defineEventHandler(async event => {
   // Filter by event type
   if (eventFilter) {
     filteredWebhooks = filteredWebhooks.filter(w =>
-      w.events.includes(eventFilter as any)
+      w.events.includes(eventFilter)
     )
   }
 
   // Return webhooks without secrets for security
   const webhooksWithoutSecrets = filteredWebhooks.map(
-    ({ secret: _, ...webhook }) => webhook
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    ({ secret: _secretValue, ...webhook }) => webhook
   )
 
-  return {
-    success: true,
+  return sendSuccessResponse(event, {
     data: webhooksWithoutSecrets,
     count: filteredWebhooks.length,
-  }
+  })
 })

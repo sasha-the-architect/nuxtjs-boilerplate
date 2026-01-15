@@ -1,8 +1,11 @@
 <template>
   <div class="submission-review-page">
-    <NuxtLink to="/moderation/queue" class="back-link"
-      >← Back to Queue</NuxtLink
+    <NuxtLink
+      to="/moderation/queue"
+      class="back-link"
     >
+      ← Back to Queue
+    </NuxtLink>
     <SubmissionReview :submission-id="submissionId" />
   </div>
 </template>

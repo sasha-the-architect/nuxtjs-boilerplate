@@ -1,26 +1,29 @@
-import { createError, defineEventHandler, readBody } from 'h3'
+import { defineEventHandler, readBody } from 'h3'
 import type { Submission } from '~/types/submission'
+import { rateLimit } from '~/server/utils/enhanced-rate-limit'
+import {
+  sendSuccessResponse,
+  sendBadRequestError,
+  sendNotFoundError,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 // Mock data for demonstration - in a real application, this would come from a database
-let mockSubmissions: Submission[] = []
+const mockSubmissions: Submission[] = []
 
 export default defineEventHandler(async event => {
+  await rateLimit(event)
+
   try {
     const body = await readBody(event)
 
     // Validate required fields
     if (!body.submissionId) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Submission ID is required',
-      })
+      return sendBadRequestError(event, 'Submission ID is required')
     }
 
     if (!body.reviewedBy) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Reviewer ID is required',
-      })
+      return sendBadRequestError(event, 'Reviewer ID is required')
     }
 
     // Validate rejection reason
@@ -29,25 +32,19 @@ export default defineEventHandler(async event => {
       typeof body.rejectionReason !== 'string' ||
       body.rejectionReason.trim().length === 0
     ) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Rejection reason is required',
-      })
+      return sendBadRequestError(event, 'Rejection reason is required')
     }
 
-    // Find the submission
+    // Find submission
     const submissionIndex = mockSubmissions.findIndex(
       sub => sub.id === body.submissionId
     )
 
     if (submissionIndex === -1) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Submission not found',
-      })
+      return sendNotFoundError(event, 'Submission', body.submissionId)
     }
 
-    // Update the submission status
+    // Update submission status
     const submission = mockSubmissions[submissionIndex]
     submission.status = 'rejected'
     submission.reviewedBy = body.reviewedBy
@@ -57,27 +54,14 @@ export default defineEventHandler(async event => {
 
     // In a real application, we would notify the submitter about rejection
     // For now, we'll just log it
-    console.log(
+    console.info(
       `Notification: Submission ${submission.id} rejected for user ${submission.submittedBy}`
     )
 
-    return {
-      success: true,
+    return sendSuccessResponse(event, {
       message: 'Submission rejected successfully',
-    }
-  } catch (error: any) {
-    console.error('Error rejecting submission:', error)
-
-    if (error.statusCode) {
-      return {
-        success: false,
-        message: error.statusMessage,
-      }
-    }
-
-    return {
-      success: false,
-      message: 'An error occurred while rejecting the submission',
-    }
+    })
+  } catch (error) {
+    return handleApiRouteError(event, error)
   }
 })

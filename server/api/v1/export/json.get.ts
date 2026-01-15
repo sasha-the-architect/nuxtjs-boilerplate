@@ -22,8 +22,7 @@ export default defineEventHandler(async event => {
     )
 
     return resources
-  } catch (error: any) {
-    // Log error using our error logging service
+  } catch (error) {
     logError(
       `Error exporting resources as JSON: ${error instanceof Error ? error.message : 'Unknown error'}`,
       error as Error,
@@ -33,7 +32,10 @@ export default defineEventHandler(async event => {
     return {
       success: false,
       message: 'An error occurred while exporting resources',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error:
+        process.env.NODE_ENV === 'development' && error instanceof Error
+          ? error.message
+          : undefined,
     }
   }
 })

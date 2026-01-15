@@ -1,5 +1,9 @@
 <template>
-  <div v-if="showNotice" class="deprecation-notice" :class="noticeClass">
+  <div
+    v-if="showNotice"
+    class="deprecation-notice"
+    :class="noticeClass"
+  >
     <div class="notice-icon">
       <span v-if="status === 'deprecated'">⚠️</span>
       <span v-else-if="status === 'discontinued'">🚫</span>
@@ -8,7 +12,10 @@
     <div class="notice-content">
       <h4>{{ noticeTitle }}</h4>
       <p>{{ noticeMessage }}</p>
-      <div v-if="migrationPath || alternatives" class="notice-actions">
+      <div
+        v-if="migrationPath || alternatives"
+        class="notice-actions"
+      >
         <a
           v-if="migrationPath"
           :href="migrationPath"
@@ -30,6 +37,8 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
 interface Props {
   status?:
     | 'active'

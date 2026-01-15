@@ -2,7 +2,12 @@ import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
 import { cacheManager, cacheSetWithTags } from '~/server/utils/enhanced-cache'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
-import { createError, defineEventHandler, getRouterParam } from 'h3'
+import {
+  sendBadRequestError,
+  sendNotFoundError,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
+import { defineEventHandler, getRouterParam } from 'h3'
 
 export default defineEventHandler(async event => {
   try {
@@ -12,10 +17,8 @@ export default defineEventHandler(async event => {
     const resourceId = getRouterParam(event, 'id')
 
     if (!resourceId) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Resource ID is required',
-      })
+      sendBadRequestError(event, 'Resource ID is required')
+      return
     }
 
     // Generate cache key
@@ -37,13 +40,11 @@ export default defineEventHandler(async event => {
     const resource = resources.find(r => r.id === resourceId)
 
     if (!resource) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Resource not found',
-      })
+      sendNotFoundError(event, 'Resource', resourceId)
+      return
     }
 
-    // Get alternative resources based on the alternatives field and similarity
+    // Get alternative resources based on alternatives field and similarity
     let alternatives: Resource[] = []
 
     if (resource.alternatives && Array.isArray(resource.alternatives)) {
@@ -77,7 +78,7 @@ export default defineEventHandler(async event => {
       },
     }
 
-    // Cache the result
+    // Cache result
     await cacheSetWithTags(cacheKey, response, 300, [
       'alternatives',
       'api-v1',
@@ -89,7 +90,7 @@ export default defineEventHandler(async event => {
     event.node.res?.setHeader('X-Cache-Key', cacheKey)
 
     return response
-  } catch (error: any) {
+  } catch (error) {
     // Log error using our error logging service
     logError(
       `Error fetching alternatives for resource ${getRouterParam(event, 'id')}: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -97,13 +98,10 @@ export default defineEventHandler(async event => {
       'api-v1-alternatives',
       {
         resourceId: getRouterParam(event, 'id'),
-        errorType: error?.constructor?.name,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
       }
     )
 
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to fetch alternatives',
-    })
+    return handleApiRouteError(event, error)
   }
 })

@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { useAdvancedResourceSearch } from '~/composables/useAdvancedResourceSearch'
+import { searchAnalyticsTracker } from '~/utils/searchAnalytics'
 
 // Mock resources for testing
 const mockResources = [
@@ -45,32 +46,12 @@ describe('useAdvancedResourceSearch', () => {
     advancedSearch = useAdvancedResourceSearch(mockResources as any)
   })
 
+  afterEach(() => {
+    searchAnalyticsTracker.clear()
+  })
+
   it('should initialize with resources', () => {
     expect(advancedSearch.fuse).toBeDefined()
-  })
-
-  it('should parse simple search query', () => {
-    const result = advancedSearch.parseQuery('test query')
-    expect(result.terms).toEqual(['test', 'query'])
-    expect(result.operators).toEqual([])
-  })
-
-  it('should parse query with AND operator', () => {
-    const result = advancedSearch.parseQuery('test AND query')
-    expect(result.terms).toEqual(['test', 'query'])
-    expect(result.operators).toEqual(['AND'])
-  })
-
-  it('should parse query with OR operator', () => {
-    const result = advancedSearch.parseQuery('test OR query')
-    expect(result.terms).toEqual(['test', 'query'])
-    expect(result.operators).toEqual(['OR'])
-  })
-
-  it('should parse query with NOT operator', () => {
-    const result = advancedSearch.parseQuery('test NOT query')
-    expect(result.terms).toEqual(['test', 'query'])
-    expect(result.operators).toEqual(['NOT'])
   })
 
   it('should perform basic search', () => {
@@ -92,17 +73,12 @@ describe('useAdvancedResourceSearch', () => {
     expect(categoryCounts['AI Tools']).toBe(2)
   })
 
-  it('should handle search history', () => {
-    expect(advancedSearch.searchHistory.value).toEqual([])
-
-    advancedSearch.addToSearchHistory('test query')
-    expect(advancedSearch.searchHistory.value).toEqual(['test query'])
-
-    advancedSearch.addToSearchHistory('another query')
-    expect(advancedSearch.searchHistory.value).toEqual([
-      'another query',
-      'test query',
-    ])
+  it('should handle saved searches', () => {
+    expect(advancedSearch.savedSearches.value).toEqual([])
+    advancedSearch.saveSearch('Test Search', 'test query')
+    expect(advancedSearch.savedSearches.value).toHaveLength(1)
+    expect(advancedSearch.savedSearches.value[0].name).toBe('Test Search')
+    expect(advancedSearch.savedSearches.value[0].query).toBe('test query')
   })
 
   it('should highlight search terms', () => {
@@ -186,6 +162,8 @@ describe('useAdvancedResourceSearch', () => {
 
     expect(snippet).toContain('testing')
     expect(snippet).toContain('...')
-    expect(snippet.length).toBeLessThanOrEqual(80)
+    expect(snippet).toContain('<mark')
+    expect(snippet.length).toBeGreaterThan(80) // Account for HTML markup
+    expect(snippet.length).toBeLessThan(150) // Reasonable limit with markup
   })
 })

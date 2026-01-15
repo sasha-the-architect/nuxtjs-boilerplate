@@ -84,8 +84,7 @@ export default defineEventHandler(async event => {
     setResponseHeader(event, 'Content-Type', 'application/xml')
 
     return sitemap
-  } catch (error: any) {
-    // Log error using our error logging service
+  } catch (error) {
     logError(
       `Error generating sitemap: ${error instanceof Error ? error.message : 'Unknown error'}`,
       error as Error,

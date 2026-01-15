@@ -2,15 +2,15 @@ import { Resource } from '~/types/resource'
 import { getRouterParam } from '#imports'
 
 // In-memory storage for resource status updates (in production, this would be a database)
-const resourceStatusHistory = new Map<string, any[]>()
+const resourceStatusHistory = new Map<string, unknown[]>()
 
 export default defineEventHandler(async event => {
-  const resourceId = getRouterParam(event, 'id')
+  const resourceId = getRouterParam(event, 'id') ?? ''
   const { status, reason, notes } = await readBody(event)
 
-  // Get all resources to find the specific resource
-  const { allResources } = await import('~/server/api/v1/resources.get')
-  const resources = await allResources()
+  // Get resources from data file
+  const resourcesModule = await import('~/data/resources.json')
+  const resources: Resource[] = resourcesModule.default || []
   const resource = resources.find((r: Resource) => r.id === resourceId)
 
   if (!resource) {
@@ -36,45 +36,39 @@ export default defineEventHandler(async event => {
   }
 
   // Get current user or default to 'system'
-  const userId = event.context.auth?.userId || 'system'
+  const userId = event.context.auth?.userId ?? 'system'
 
   // Create status change record
   const statusChange = {
     id: Math.random().toString(36).substring(2, 15),
-    fromStatus: resource.status || 'active',
+    fromStatus: (resource.status ?? 'active') as string,
     toStatus: status,
-    reason: reason || 'Status updated manually',
-    changedBy: userId,
+    reason: (reason ?? 'Status updated manually') as string,
+    changedBy: userId as string,
     changedAt: new Date().toISOString(),
-    notes: notes || '',
+    notes: (notes ?? '') as string,
   }
 
   // Add to history
   if (!resourceStatusHistory.has(resourceId)) {
     resourceStatusHistory.set(resourceId, [])
   }
-  const history = resourceStatusHistory.get(resourceId) || []
-  history.push(statusChange)
-  resourceStatusHistory.set(resourceId, history)
+  const existingHistory = resourceStatusHistory.get(resourceId) ?? []
+  existingHistory.push(statusChange)
+  resourceStatusHistory.set(resourceId, existingHistory)
 
   // Update resource with new status
   resource.status = status
-  if (!resource.statusHistory) {
-    resource.statusHistory = []
-  }
-  resource.statusHistory.push(statusChange)
-
-  // Update lastUpdated timestamp
   resource.lastUpdated = new Date().toISOString()
 
-  // In a real application, this would update the resource in the database
+  // In a real application, this would update resource in database
   // For now, we'll return the updated resource information
   return {
     success: true,
     resource: {
       id: resource.id,
       status: resource.status,
-      statusHistory: resource.statusHistory,
+      statusHistory: existingHistory,
     },
     statusChange,
   }

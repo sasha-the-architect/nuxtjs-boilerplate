@@ -10,7 +10,7 @@ export default defineNuxtModule({
     name: 'openapi',
     configKey: 'openapi',
   },
-  setup(_options, nuxt) {
+  setup() {
     // Add the OpenAPI spec route
     addServerHandler({
       route: '/api-docs/spec.json',

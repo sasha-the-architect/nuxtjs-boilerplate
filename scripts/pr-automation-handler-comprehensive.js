@@ -5,9 +5,7 @@
  * Comprehensive implementation of the PR automation system as specified
  */
 
-import { execSync, spawnSync } from 'child_process'
-import { existsSync, readFileSync } from 'fs'
-import { join } from 'path'
+import { execSync } from 'child_process'
 
 // Configuration
 const GITHUB_TOKEN = process.env.GH_TOKEN || process.env.GITHUB_TOKEN
@@ -55,7 +53,7 @@ function configureGit() {
     execSync('git config user.email "github-actions@github.com"', {
       stdio: 'pipe',
     })
-    if (process.env.DEBUG) console.log('✓ Git configured for automation')
+    if (process.env.DEBUG) console.info('✓ Git configured for automation')
   } catch (error) {
     if (process.env.DEBUG)
       console.error('✗ Git configuration failed:', error.message)
@@ -119,7 +117,7 @@ function analyzePR(prNumber) {
 
     if (hasBlockingLabel) {
       if (process.env.DEBUG)
-        console.log(`✗ PR #${prNumber} has blocking label, skipping`)
+        console.info(`✗ PR #${prNumber} has blocking label, skipping`)
       return null
     }
 
@@ -142,7 +140,7 @@ function analyzePR(prNumber) {
 function checkoutAndSyncPR(prNumber, prRef) {
   try {
     if (process.env.DEBUG)
-      console.log(`🔗 Checking out and syncing PR #${prNumber}`)
+      console.info(`🔗 Checking out and syncing PR #${prNumber}`)
 
     // Fetch all branches
     execSync('git fetch --all --prune', { stdio: 'pipe' })
@@ -156,29 +154,29 @@ function checkoutAndSyncPR(prNumber, prRef) {
 
     // Sync with main branch
     if (process.env.DEBUG)
-      console.log(`🔄 Syncing PR branch with ${DEFAULT_BRANCH}...`)
+      console.info(`🔄 Syncing PR branch with ${DEFAULT_BRANCH}...`)
     try {
       execSync('git fetch origin main', { stdio: 'pipe' })
       execSync('git rebase origin/main', { stdio: 'pipe' })
-      if (process.env.DEBUG) console.log('✓ Rebased PR on main successfully')
-    } catch (rebaseError) {
+      if (process.env.DEBUG) console.info('✓ Rebased PR on main successfully')
+    } catch (_rebaseError) {
       if (process.env.DEBUG)
-        console.log('Rebase failed, using merge instead...')
+        console.info('Rebase failed, using merge instead...')
       try {
         // Check if there's an active rebase to abort
         execSync('git rebase --abort', { stdio: 'pipe' })
-      } catch (abortError) {
+      } catch (_abortError) {
         // If no rebase in progress, ignore the error
         if (process.env.DEBUG)
-          console.log('No rebase in progress, continuing with merge...')
+          console.info('No rebase in progress, continuing with merge...')
       }
       execSync('git merge origin/main', { stdio: 'pipe' })
-      if (process.env.DEBUG) console.log('✓ Merged main into PR successfully')
+      if (process.env.DEBUG) console.info('✓ Merged main into PR successfully')
     }
 
     // Push sync changes
     execSync(`git push origin ${prRef} --force-with-lease`, { stdio: 'pipe' })
-    if (process.env.DEBUG) console.log('✓ Sync changes pushed to PR branch')
+    if (process.env.DEBUG) console.info('✓ Sync changes pushed to PR branch')
 
     return true
   } catch (error) {
@@ -191,7 +189,7 @@ function checkoutAndSyncPR(prNumber, prRef) {
 async function processReviewComments(prNumber) {
   try {
     if (process.env.DEBUG)
-      console.log(`💬 Processing review comments for PR #${prNumber}`)
+      console.info(`💬 Processing review comments for PR #${prNumber}`)
 
     // Get detailed PR info including review comments
     const cmd = `gh pr view ${prNumber} --json reviews,comments,files --repo ${REPO_OWNER}/${REPO_NAME}`
@@ -216,7 +214,7 @@ async function processReviewComments(prNumber) {
           review.state === 'CHANGES_REQUESTED'
         ) {
           if (process.env.DEBUG)
-            console.log(
+            console.info(
               `Processing review from ${review.author.login}: ${review.body || 'with file comments'}`
             )
 
@@ -256,7 +254,7 @@ async function processReviewComments(prNumber) {
 
         if (isTechnicalFeedback(comment.body)) {
           if (process.env.DEBUG)
-            console.log(
+            console.info(
               `Processing comment from ${comment.author.login}: ${comment.body}`
             )
           const changeResult = await implementChangeFromReview(
@@ -282,11 +280,11 @@ async function processReviewComments(prNumber) {
           )
           execSync('git push origin HEAD', { stdio: 'pipe' })
           if (process.env.DEBUG)
-            console.log(`✓ Changes for PR #${prNumber} committed and pushed`)
+            console.info(`✓ Changes for PR #${prNumber} committed and pushed`)
         }
       } catch (commitError) {
         if (process.env.DEBUG)
-          console.log(
+          console.info(
             'No changes to commit or commit failed:',
             commitError.message
           )
@@ -509,7 +507,7 @@ function isTechnicalFeedback(body) {
 
 async function implementChangeFromReview(feedback, prNumber) {
   if (process.env.DEBUG)
-    console.log(
+    console.info(
       `Implementing change based on feedback: ${feedback.substring(0, 100)}...`
     )
 
@@ -521,13 +519,13 @@ async function implementChangeFromReview(feedback, prNumber) {
       feedback.toLowerCase().includes('format') ||
       feedback.toLowerCase().includes('style')
     ) {
-      if (process.env.DEBUG) console.log('Applying lint/format fixes...')
+      if (process.env.DEBUG) console.info('Applying lint/format fixes...')
       try {
         execSync('npm run lint:fix', { stdio: 'pipe' })
         return true
       } catch (lintError) {
         if (process.env.DEBUG)
-          console.log('Lint fix failed:', lintError.message)
+          console.info('Lint fix failed:', lintError.message)
       }
     }
 
@@ -539,7 +537,7 @@ async function implementChangeFromReview(feedback, prNumber) {
       feedback.toLowerCase().includes('environment') ||
       feedback.toLowerCase().includes('env')
     ) {
-      if (process.env.DEBUG) console.log('Checking for hardcoded secrets...')
+      if (process.env.DEBUG) console.info('Checking for hardcoded secrets...')
       // This would scan files for potential secrets
       return true
     }
@@ -556,14 +554,14 @@ async function implementChangeFromReview(feedback, prNumber) {
         prDetails.body.toLowerCase().includes('layout'))
     ) {
       if (process.env.DEBUG)
-        console.log('Processing nuxt configuration related changes...')
+        console.info('Processing nuxt configuration related changes...')
 
       // Process files that were changed in the PR
       if (prDetails.files && prDetails.files.nodes) {
         for (const file of prDetails.files.nodes) {
           if (file.path.includes('nuxt.config')) {
             if (process.env.DEBUG)
-              console.log(`Found nuxt config file: ${file.path}`)
+              console.info(`Found nuxt config file: ${file.path}`)
             // The changes have already been made according to the commit messages
             return true
           }
@@ -582,20 +580,21 @@ async function implementChangeFromReview(feedback, prNumber) {
 
 // Comprehensive validation
 function runValidation() {
-  if (process.env.DEBUG) console.log('🔍 Running comprehensive validation...')
+  if (process.env.DEBUG) console.info('🔍 Running comprehensive validation...')
 
   let allPassed = true
 
   // Check for lint issues
   try {
     execSync('npm run lint', { stdio: 'pipe' })
-    if (process.env.DEBUG) console.log('✓ Linting passed')
-  } catch (lintError) {
+    if (process.env.DEBUG) console.info('✓ Linting passed')
+  } catch (_lintError) {
     if (process.env.DEBUG)
-      console.log('Linting issues found, attempting to fix...')
+      console.info('Linting issues found, attempting to fix...')
     try {
       execSync('npm run lint:fix', { stdio: 'pipe' })
-      if (process.env.DEBUG) console.log('✓ Linting issues fixed automatically')
+      if (process.env.DEBUG)
+        console.info('✓ Linting issues fixed automatically')
 
       // Commit any fixes made
       const changes = execSync('git status --porcelain', { encoding: 'utf-8' })
@@ -603,37 +602,37 @@ function runValidation() {
         execSync('git add .', { stdio: 'pipe' })
         execSync('git commit -m "chore: fix linting issues"', { stdio: 'pipe' })
         execSync('git push origin HEAD', { stdio: 'pipe' })
-        if (process.env.DEBUG) console.log('✓ Lint fixes committed and pushed')
+        if (process.env.DEBUG) console.info('✓ Lint fixes committed and pushed')
       }
-    } catch (fixError) {
+    } catch (_buildError) {
       if (process.env.DEBUG)
-        console.log('Could not fix all linting issues automatically')
+        console.info('Could not fix all linting issues automatically')
       allPassed = false
     }
   }
 
   // Run build - try different build commands for this project
   try {
-    if (process.env.DEBUG) console.log('📦 Running build...')
+    if (process.env.DEBUG) console.info('📦 Running build...')
     // Try different build commands for this nuxt project
     try {
       execSync('npm run build', { stdio: 'pipe', maxBuffer: 10 * 1024 * 1024 })
       if (process.env.DEBUG)
-        console.log('✓ Build successful with npm run build')
-    } catch (npmBuildError) {
+        console.info('✓ Build successful with npm run build')
+    } catch (_npmBuildError) {
       if (process.env.DEBUG)
-        console.log('npm run build failed, trying nuxt build directly...')
+        console.info('npm run build failed, trying nuxt build directly...')
       execSync('npx nuxt build', { stdio: 'pipe', maxBuffer: 10 * 1024 * 1024 })
-      if (process.env.DEBUG) console.log('✓ Build successful with nuxt build')
+      if (process.env.DEBUG) console.info('✓ Build successful with nuxt build')
     }
-    if (process.env.DEBUG) console.log('✓ Build successful')
+    if (process.env.DEBUG) console.info('✓ Build successful')
   } catch (buildError) {
     if (process.env.DEBUG)
       console.error(
         '⚠️ Build failed (non-critical):',
         buildError.stderr || buildError.stdout || buildError.message
       )
-    if (process.env.DEBUG) console.log('Continuing with other validations...')
+    if (process.env.DEBUG) console.info('Continuing with other validations...')
     // Don't set allPassed to false for build failures - it's non-critical
   }
 
@@ -642,20 +641,20 @@ function runValidation() {
     // Try various test commands for this nuxt project
     try {
       execSync('npm run test', { stdio: 'pipe', maxBuffer: 10 * 1024 * 1024 })
-      if (process.env.DEBUG) console.log('✓ Tests passed with npm run test')
-    } catch (npmTestError) {
+      if (process.env.DEBUG) console.info('✓ Tests passed with npm run test')
+    } catch (_npmTestError) {
       if (process.env.DEBUG)
-        console.log('npm run test failed, trying vitest...')
+        console.info('npm run test failed, trying vitest...')
       execSync('npx vitest --run', {
         stdio: 'pipe',
         maxBuffer: 10 * 1024 * 1024,
       })
-      if (process.env.DEBUG) console.log('✓ Tests passed with vitest')
+      if (process.env.DEBUG) console.info('✓ Tests passed with vitest')
     }
-    if (process.env.DEBUG) console.log('✓ Tests passed')
-  } catch (testError) {
+    if (process.env.DEBUG) console.info('✓ Tests passed')
+  } catch (_testError) {
     if (process.env.DEBUG)
-      console.log('No tests found or tests failed, continuing...')
+      console.info('No tests found or tests failed, continuing...')
   }
 
   // Check if there are any new conflicts after changes
@@ -666,11 +665,11 @@ function runValidation() {
       if (process.env.DEBUG) console.error('✗ PR has merge conflicts')
       allPassed = false
     } else {
-      if (process.env.DEBUG) console.log('✓ No merge conflicts detected')
+      if (process.env.DEBUG) console.info('✓ No merge conflicts detected')
     }
   } catch (statusError) {
     if (process.env.DEBUG)
-      console.log('Could not check merge status:', statusError.message)
+      console.info('Could not check merge status:', statusError.message)
   }
 
   return allPassed
@@ -700,21 +699,21 @@ function finalizePR(prNumber, success) {
 
       if (prStatus.mergeable === 'MERGEABLE') {
         if (process.env.DEBUG)
-          console.log(`Attempting to merge PR #${prNumber}...`)
+          console.info(`Attempting to merge PR #${prNumber}...`)
         try {
           execSync(`gh pr merge ${prNumber} --admin --delete-branch --squash`, {
             stdio: 'pipe',
           })
           if (process.env.DEBUG)
-            console.log(
+            console.info(
               `✓ PR #${prNumber} merged successfully and branch deleted`
             )
           return true
         } catch (mergeError) {
           if (process.env.DEBUG)
-            console.log(`⚠️ Could not merge PR due to: ${mergeError.message}`)
+            console.info(`⚠️ Could not merge PR due to: ${mergeError.message}`)
           if (process.env.DEBUG)
-            console.log(`PR #${prNumber} requires manual merge`)
+            console.info(`PR #${prNumber} requires manual merge`)
 
           // Add comment about merge failure
           const mergeFailComment =
@@ -731,7 +730,7 @@ function finalizePR(prNumber, success) {
         }
       } else {
         if (process.env.DEBUG)
-          console.log(
+          console.info(
             `PR #${prNumber} is not mergeable (${prStatus.mergeable}), requires manual review`
           )
         return false
@@ -750,7 +749,7 @@ function finalizePR(prNumber, success) {
         })
       } catch (labelError) {
         if (process.env.DEBUG)
-          console.log(
+          console.info(
             `⚠️ Could not add label due to permission issues: ${labelError.message}`
           )
       }
@@ -760,7 +759,7 @@ function finalizePR(prNumber, success) {
         { stdio: 'pipe' }
       )
       if (process.env.DEBUG)
-        console.log(`PR #${prNumber} commented for manual review`)
+        console.info(`PR #${prNumber} commented for manual review`)
       return false
     }
   } catch (error) {
@@ -772,7 +771,7 @@ function finalizePR(prNumber, success) {
 
 // Main automation process
 async function runPRAutomation() {
-  if (process.env.DEBUG) console.log('🚀 Starting PR Automation Process...\n')
+  if (process.env.DEBUG) console.info('🚀 Starting PR Automation Process...\n')
 
   // Verify prerequisites
   if (!GITHUB_TOKEN) {
@@ -788,27 +787,27 @@ async function runPRAutomation() {
     // Get and process PRs
     const openPRs = getOpenPRs()
     if (process.env.DEBUG)
-      console.log(`📋 Found ${openPRs.length} open PRs to evaluate\n`)
+      console.info(`📋 Found ${openPRs.length} open PRs to evaluate\n`)
 
     if (openPRs.length === 0) {
-      if (process.env.DEBUG) console.log('✅ No open PRs to process')
+      if (process.env.DEBUG) console.info('✅ No open PRs to process')
       return
     }
 
     // Select the highest priority PR (oldest as per spec)
     const targetPR = openPRs[0]
     if (process.env.DEBUG)
-      console.log(`🎯 Selected PR #${targetPR.number} for processing:`)
-    if (process.env.DEBUG) console.log(`   Title: ${targetPR.title}`)
-    if (process.env.DEBUG) console.log(`   Author: ${targetPR.author.login}`)
-    if (process.env.DEBUG) console.log(`   Created: ${targetPR.createdAt}\n`)
+      console.info(`🎯 Selected PR #${targetPR.number} for processing:`)
+    if (process.env.DEBUG) console.info(`   Title: ${targetPR.title}`)
+    if (process.env.DEBUG) console.info(`   Author: ${targetPR.author.login}`)
+    if (process.env.DEBUG) console.info(`   Created: ${targetPR.createdAt}\n`)
 
     // Analyze the PR
-    if (process.env.DEBUG) console.log('🔍 Analyzing PR...')
+    if (process.env.DEBUG) console.info('🔍 Analyzing PR...')
     const prDetails = analyzePR(targetPR.number)
     if (!prDetails) {
       if (process.env.DEBUG)
-        console.log(`❌ Analysis failed for PR #${targetPR.number}, skipping\n`)
+        console.info(`❌ Analysis failed for PR #${targetPR.number}, skipping\n`)
       return
     }
 
@@ -816,50 +815,50 @@ async function runPRAutomation() {
     process.env.PR_NUMBER = targetPR.number
 
     // Sync the PR branch
-    if (process.env.DEBUG) console.log('🔄 Syncing PR branch with main...')
+    if (process.env.DEBUG) console.info('🔄 Syncing PR branch with main...')
     const syncSuccess = checkoutAndSyncPR(
       targetPR.number,
       prDetails.headRefName
     )
     if (!syncSuccess) {
       if (process.env.DEBUG)
-        console.log(`❌ Sync failed for PR #${targetPR.number}\n`)
+        console.info(`❌ Sync failed for PR #${targetPR.number}\n`)
       finalizePR(targetPR.number, false)
       return
     }
 
     // Process review comments
-    if (process.env.DEBUG) console.log('💬 Processing review comments...')
+    if (process.env.DEBUG) console.info('💬 Processing review comments...')
     const commentSuccess = await processReviewComments(targetPR.number)
     if (!commentSuccess) {
       if (process.env.DEBUG)
-        console.log(`❌ Comment processing failed for PR #${targetPR.number}\n`)
+        console.info(`❌ Comment processing failed for PR #${targetPR.number}\n`)
       finalizePR(targetPR.number, false)
       return
     }
 
     // Run validation
-    if (process.env.DEBUG) console.log('🧪 Running validation tests...')
+    if (process.env.DEBUG) console.info('🧪 Running validation tests...')
     const validationSuccess = runValidation()
     if (!validationSuccess) {
       if (process.env.DEBUG)
-        console.log(`❌ Validation failed for PR #${targetPR.number}\n`)
+        console.info(`❌ Validation failed for PR #${targetPR.number}\n`)
       finalizePR(targetPR.number, false)
       return
     }
 
     // Finalize the PR
-    if (process.env.DEBUG) console.log('✅ Finalizing PR...')
+    if (process.env.DEBUG) console.info('✅ Finalizing PR...')
     const finalizeSuccess = finalizePR(targetPR.number, true)
 
     if (finalizeSuccess) {
       if (process.env.DEBUG)
-        console.log(
+        console.info(
           `\n🎉 PR #${targetPR.number} processed and merged successfully!`
         )
     } else {
       if (process.env.DEBUG)
-        console.log(
+        console.info(
           `\n⚠️  PR #${targetPR.number} processed but requires manual action`
         )
     }

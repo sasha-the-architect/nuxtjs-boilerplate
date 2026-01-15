@@ -1,38 +1,44 @@
 import { useAlternatives } from '~/composables/useAlternatives'
 import { useResourceData } from '~/composables/useResourceData'
+import {
+  sendBadRequestError,
+  sendNotFoundError,
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 export default defineEventHandler(async event => {
-  const { resources } = useResourceData()
-  const { getAllAlternatives } = useAlternatives()
+  try {
+    const { resources } = useResourceData()
+    const { getAllAlternatives } = useAlternatives()
 
-  // Get the resource ID from the route parameters
-  const resourceId = event.context.params?.id
-  if (!resourceId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Resource ID is required',
-    })
-  }
+    // Get the resource ID from route parameters
+    const resourceId = event.context.params?.id
 
-  // Find the target resource
-  const targetResource = resources.value?.find(r => r.id === resourceId)
-  if (!targetResource) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Resource not found',
-    })
-  }
+    if (!resourceId) {
+      return sendBadRequestError(event, 'Resource ID is required')
+    }
 
-  // Get alternatives for the resource
-  const alternatives = getAllAlternatives(targetResource)
+    // Find the target resource
+    const targetResource = resources.value?.find(r => r.id === resourceId)
+    if (!targetResource) {
+      return sendNotFoundError(event, 'Resource', resourceId)
+    }
 
-  // Return the alternatives
-  return {
-    resourceId,
-    alternatives: alternatives.map(alt => ({
-      ...alt.resource,
-      similarityScore: alt.similarityScore,
-      reason: alt.reason,
-    })),
+    // Get alternatives for the resource
+    const alternatives = getAllAlternatives(targetResource)
+
+    const responseData = {
+      resourceId,
+      alternatives: alternatives.map(alt => ({
+        ...alt.resource,
+        score: alt.score,
+        reason: alt.reason,
+      })),
+    }
+
+    return sendSuccessResponse(event, responseData)
+  } catch (error) {
+    return handleApiRouteError(event, error)
   }
 })

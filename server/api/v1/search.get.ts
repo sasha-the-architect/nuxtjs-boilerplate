@@ -1,19 +1,17 @@
-import { defineEventHandler, getQuery, setResponseStatus } from 'h3'
+import { defineEventHandler, getQuery } from 'h3'
 import type { Resource } from '~/types/resource'
 import { logError } from '~/utils/errorLogger'
-import {
-  cacheManager,
-  cacheSetWithTags,
-  invalidateCacheByTag,
-} from '~/server/utils/enhanced-cache'
-import {
-  rateLimit,
-  getRateLimiterForPath,
-} from '~/server/utils/enhanced-rate-limit'
+import { cacheManager, cacheSetWithTags } from '~/server/utils/enhanced-cache'
+import { rateLimit } from '~/server/utils/enhanced-rate-limit'
 import {
   filterResourcesByHierarchicalTags,
   convertResourcesToHierarchicalTags,
 } from '~/utils/tags'
+import {
+  sendSuccessResponse,
+  sendBadRequestError,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 /**
  * GET /api/v1/search
@@ -59,13 +57,10 @@ export default defineEventHandler(async event => {
       if (!isNaN(parsedLimit) && parsedLimit > 0) {
         limit = Math.min(parsedLimit, 100) // max 100
       } else {
-        // Invalid limit provided, return error
-        setResponseStatus(event, 400)
-        return {
-          success: false,
-          message: 'Invalid limit parameter. Must be a positive integer.',
-          error: 'Bad Request',
-        }
+        return sendBadRequestError(
+          event,
+          'Invalid limit parameter. Must be a positive integer.'
+        )
       }
     }
 
@@ -76,13 +71,10 @@ export default defineEventHandler(async event => {
       if (!isNaN(parsedOffset) && parsedOffset >= 0) {
         offset = parsedOffset
       } else {
-        // Invalid offset provided, return error
-        setResponseStatus(event, 400)
-        return {
-          success: false,
-          message: 'Invalid offset parameter. Must be a non-negative integer.',
-          error: 'Bad Request',
-        }
+        return sendBadRequestError(
+          event,
+          'Invalid offset parameter. Must be a non-negative integer.'
+        )
       }
     }
 
@@ -94,79 +86,103 @@ export default defineEventHandler(async event => {
     const tagsParam = query.tags as string | undefined
     const hierarchicalTagsParam = query.hierarchicalTags as string | undefined
 
-    // Apply filters
-    if (category) {
-      resources = resources.filter(
-        resource => resource.category.toLowerCase() === category.toLowerCase()
-      )
-    }
+    // Pre-process filter values for single-pass filtering
+    const categoryLower = category?.toLowerCase()
+    const pricingLower = pricing?.toLowerCase()
+    const difficultyLower = difficulty?.toLowerCase()
 
-    if (pricing) {
-      resources = resources.filter(
-        resource =>
-          resource.pricingModel.toLowerCase() === pricing.toLowerCase()
-      )
-    }
-
-    if (difficulty) {
-      resources = resources.filter(
-        resource =>
-          resource.difficulty.toLowerCase() === difficulty.toLowerCase()
-      )
-    }
-
+    let tagsSet: Set<string> | undefined
     if (tagsParam) {
-      // Validate tags parameter - ensure it's a string before splitting
-      if (typeof tagsParam === 'string') {
-        const tags = tagsParam.split(',').map(tag => tag.trim().toLowerCase())
-        resources = resources.filter(resource =>
-          resource.tags.some(tag => tags.includes(tag.toLowerCase()))
+      if (typeof tagsParam !== 'string') {
+        return sendBadRequestError(
+          event,
+          'Invalid tags parameter. Must be a comma-separated string.'
         )
-      } else {
-        // Invalid tags parameter format
-        setResponseStatus(event, 400)
-        return {
-          success: false,
-          message: 'Invalid tags parameter. Must be a comma-separated string.',
-          error: 'Bad Request',
-        }
       }
+      tagsSet = new Set(
+        tagsParam.split(',').map(tag => tag.trim().toLowerCase())
+      )
+    }
+
+    let hierarchicalTagIds: string[] | undefined
+    if (hierarchicalTagsParam) {
+      if (typeof hierarchicalTagsParam !== 'string') {
+        return sendBadRequestError(
+          event,
+          'Invalid hierarchicalTags parameter. Must be a comma-separated string.'
+        )
+      }
+      hierarchicalTagIds = hierarchicalTagsParam
+        .split(',')
+        .map(tagId => tagId.trim())
+    }
+
+    let searchTerm: string | undefined
+    if (searchQuery) {
+      if (typeof searchQuery !== 'string') {
+        return sendBadRequestError(
+          event,
+          'Invalid search query parameter. Must be a string.'
+        )
+      }
+      searchTerm = searchQuery.toLowerCase()
+    }
+
+    // Combine category, pricing, difficulty, and flat tags into single-pass filter
+    // This reduces from 4 iterations to 1 iteration
+    const basicFiltersActive =
+      categoryLower || pricingLower || difficultyLower || tagsSet !== undefined
+
+    if (basicFiltersActive) {
+      resources = resources.filter(resource => {
+        // Category filter
+        if (
+          categoryLower &&
+          resource.category.toLowerCase() !== categoryLower
+        ) {
+          return false
+        }
+
+        // Pricing filter
+        if (
+          pricingLower &&
+          resource.pricingModel.toLowerCase() !== pricingLower
+        ) {
+          return false
+        }
+
+        // Difficulty filter
+        if (
+          difficultyLower &&
+          resource.difficulty.toLowerCase() !== difficultyLower
+        ) {
+          return false
+        }
+
+        // Tags filter - use Set for O(1) lookup
+        if (tagsSet !== undefined) {
+          const hasMatchingTag = resource.tags.some(tag =>
+            tagsSet!.has(tag.toLowerCase())
+          )
+          if (!hasMatchingTag) {
+            return false
+          }
+        }
+
+        return true
+      })
     }
 
     // Apply hierarchical tags filter if provided
-    if (hierarchicalTagsParam) {
-      if (typeof hierarchicalTagsParam === 'string') {
-        const hierarchicalTagIds = hierarchicalTagsParam
-          .split(',')
-          .map(tagId => tagId.trim())
-        resources = filterResourcesByHierarchicalTags(
-          resources,
-          hierarchicalTagIds
-        )
-      } else {
-        // Invalid hierarchical tags parameter format
-        setResponseStatus(event, 400)
-        return {
-          success: false,
-          message:
-            'Invalid hierarchicalTags parameter. Must be a comma-separated string.',
-          error: 'Bad Request',
-        }
-      }
+    if (hierarchicalTagIds !== undefined) {
+      resources = filterResourcesByHierarchicalTags(
+        resources,
+        hierarchicalTagIds
+      )
     }
 
-    // Apply search if query exists
-    if (searchQuery) {
-      if (typeof searchQuery !== 'string') {
-        // Invalid search query format
-        setResponseStatus(event, 400)
-        return {
-          success: false,
-          message: 'Invalid search query parameter. Must be a string.',
-          error: 'Bad Request',
-        }
-      }
-      const searchTerm = searchQuery.toLowerCase()
+    // Apply search query filter if provided (last to minimize string matching)
+    if (searchTerm !== undefined) {
       resources = resources.filter(
         resource =>
           resource.title.toLowerCase().includes(searchTerm) ||
@@ -211,10 +227,9 @@ export default defineEventHandler(async event => {
     event.node.res?.setHeader('X-Cache', 'MISS')
     event.node.res?.setHeader('X-Cache-Key', cacheKey)
 
-    // Set success response status
-    setResponseStatus(event, 200)
-    return response
-  } catch (error: any) {
+    // Set success response
+    return sendSuccessResponse(event, response)
+  } catch (error) {
     // Log error using our error logging service
     logError(
       `Error searching resources: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -226,12 +241,6 @@ export default defineEventHandler(async event => {
       }
     )
 
-    // Set error response status
-    setResponseStatus(event, 500)
-    return {
-      success: false,
-      message: 'An error occurred while searching resources',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-    }
+    return handleApiRouteError(event, error)
   }
 })

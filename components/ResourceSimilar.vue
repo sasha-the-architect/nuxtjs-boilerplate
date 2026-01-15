@@ -1,7 +1,12 @@
 <template>
-  <div v-if="resources && resources.length > 0" class="mt-12">
+  <div
+    v-if="resources && resources.length > 0"
+    class="mt-12"
+  >
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold text-gray-900">Related Resources</h2>
+      <h2 class="text-2xl font-bold text-gray-900">
+        Related Resources
+      </h2>
       <NuxtLink
         to="/"
         class="text-sm text-blue-600 hover:text-blue-800 font-medium"
@@ -10,7 +15,7 @@
       </NuxtLink>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <ResourceCard
+      <LazyResourceCard
         v-for="resource in resources"
         :key="resource.id"
         :title="resource.title"
@@ -25,7 +30,6 @@
 
 <script setup lang="ts">
 import type { Resource } from '~/composables/useResources'
-import ResourceCard from '~/components/ResourceCard.vue'
 
 interface Props {
   resources: Resource[]

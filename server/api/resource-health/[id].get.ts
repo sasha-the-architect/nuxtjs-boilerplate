@@ -32,26 +32,32 @@ export default defineEventHandler(async event => {
       success: true,
       data: healthStatus,
     }
-  } catch (error: any) {
-    // Handle specific error types
-    if (error.statusCode) {
+  } catch (error) {
+    const err = error as {
+      statusCode?: number
+      statusMessage?: string
+      message?: string
+    }
+    if (err.statusCode) {
       return {
         success: false,
-        message: error.statusMessage,
+        message: err.statusMessage,
         error:
-          error.statusCode >= 500 && process.env.NODE_ENV === 'production'
+          err.statusCode >= 500 && process.env.NODE_ENV === 'production'
             ? undefined
-            : error.message,
+            : err.message,
       }
     }
 
-    // Log error for debugging (in production, use proper error tracking)
     console.error('Error fetching resource health by ID:', error)
 
     return {
       success: false,
       message: 'An error occurred while fetching resource health data',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error:
+        process.env.NODE_ENV === 'development' && error instanceof Error
+          ? error.message
+          : undefined,
     }
   }
 })

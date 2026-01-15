@@ -127,7 +127,10 @@
     />
 
     <!-- Empty State -->
-    <div v-else class="text-center py-12">
+    <div
+      v-else
+      class="text-center py-12"
+    >
       <svg
         class="mx-auto h-12 w-12 text-gray-400"
         fill="none"

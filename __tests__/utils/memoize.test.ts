@@ -94,8 +94,9 @@ describe('Memoization Utilities', () => {
 
     it('should handle functions with return type void', () => {
       let callCount = 0
-      const fn = (_value: number) => {
+      const fn = (value: number) => {
         callCount++
+        return value
       }
 
       const memoizedFn = memoize(fn)
@@ -196,23 +197,26 @@ describe('Memoization Utilities', () => {
       let callCount = 0
       const highlightFn = (text: string, query: string) => {
         callCount++
-        return text
+        return text + query
       }
 
       const memoizedHighlight = memoizeHighlight(highlightFn)
 
-      memoizedHighlight('hello world', 'world')
-      memoizedHighlight('hello world', 'hello')
-      memoizedHighlight('hello world', 'world')
+      const result1 = memoizedHighlight('hello world', 'world')
+      const result2 = memoizedHighlight('hello world', 'hello')
+      const result3 = memoizedHighlight('hello world', 'world')
 
       expect(callCount).toBe(2)
+      expect(result1).toBe('hello worldworld')
+      expect(result2).toBe('hello worldhello')
+      expect(result3).toBe('hello worldworld')
     })
 
     it('should handle empty query', () => {
       let callCount = 0
       const highlightFn = (text: string, query: string) => {
         callCount++
-        return text
+        return text + query
       }
 
       const memoizedHighlight = memoizeHighlight(highlightFn)
@@ -247,9 +251,9 @@ describe('Memoization Utilities', () => {
 
       const memoizedHighlight = memoizeHighlight(highlightFn)
 
-      const result = memoizedHighlight('Test Text', 'test')
+      const result = memoizedHighlight('Test test text', 'test')
 
-      expect(result).toBe('**Test** **Text**')
+      expect(result).toBe('**Test** **test** text')
     })
   })
 

@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
+import { useNuxtApp } from '#app'
 import logger from '~/utils/logger'
-import type { Resource } from '~/types/resource'
 
 export interface ResourceAnalytics {
   resourceId: string
@@ -21,11 +21,12 @@ export const useResourceAnalytics = () => {
       loading.value = true
       error.value = null
 
-      // In a real implementation, this would call the analytics API
-      // For now, we'll simulate the data
-      const response = await $fetch(`/api/analytics/resource/${resourceId}`)
+      const { $apiClient } = useNuxtApp()
+      const response = await $apiClient.get<ResourceAnalytics>(
+        `/api/analytics/resource/${resourceId}`
+      )
 
-      if (response && response.data) {
+      if (response.success && response.data) {
         analytics.value[resourceId] = response.data
       } else {
         // Fallback to default values if no analytics data

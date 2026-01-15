@@ -1,7 +1,7 @@
 import { Resource } from '~/types/resource'
 import { getResourceHealthStats } from '~/server/utils/resourceHealth'
 
-export default defineEventHandler(async event => {
+export default defineEventHandler(async () => {
   // Get all resources
   const { allResources } = await import('~/server/api/v1/resources.get')
   const resources = await allResources()

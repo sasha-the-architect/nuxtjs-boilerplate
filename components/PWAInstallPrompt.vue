@@ -1,6 +1,9 @@
 <template>
   <div
     v-if="pwa.showInstallPrompt"
+    role="alertdialog"
+    aria-labelledby="pwa-install-title"
+    aria-describedby="pwa-install-description"
     class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white shadow-lg rounded-lg p-4 border border-gray-200 z-50 max-w-sm w-full mx-4"
   >
     <div class="flex items-center justify-between">
@@ -12,6 +15,7 @@
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
+            aria-hidden="true"
           >
             <path
               stroke-linecap="round"
@@ -22,19 +26,31 @@
           </svg>
         </div>
         <div>
-          <h3 class="font-medium text-gray-900">Install App</h3>
-          <p class="text-sm text-gray-500">Add to your home screen</p>
+          <h3
+            id="pwa-install-title"
+            class="font-medium text-gray-900"
+          >
+            Install App
+          </h3>
+          <p
+            id="pwa-install-description"
+            class="text-sm text-gray-500"
+          >
+            Add to your home screen
+          </p>
         </div>
       </div>
       <div class="flex space-x-2">
         <button
-          class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+          class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          aria-label="Cancel app installation"
           @click="cancelInstall"
         >
           Not now
         </button>
         <button
           class="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          aria-label="Install app to home screen"
           @click="installPWA"
         >
           Install

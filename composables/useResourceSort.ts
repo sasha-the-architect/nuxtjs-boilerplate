@@ -2,28 +2,33 @@ import { computed, type ComputedRef } from 'vue'
 import type { Resource, SortOption } from '~/types/resource'
 import { useFilterUtils } from './useFilterUtils'
 
+type ExtendedSortOption = SortOption | 'relevance'
+
 // Composable for handling resource sorting
 export const useResourceSort = (
   resources: ComputedRef<Resource[]>,
-  sortOption: ComputedRef<SortOption>
+  sortOption: ComputedRef<ExtendedSortOption>
 ) => {
   const { parseDate } = useFilterUtils()
 
-  const sortedResources = computed(() => {
-    if (!resources.value || !resources.value.length) {
-      return []
+  const sortResources = (
+    resourcesToSort: Resource[],
+    currentSortOption: ExtendedSortOption
+  ): Resource[] => {
+    const result = [...resourcesToSort]
+
+    if (currentSortOption === 'relevance') {
+      return result
     }
 
-    const result = [...resources.value]
-
     result.sort((a, b) => {
-      switch (sortOption.value) {
+      switch (currentSortOption) {
         case 'alphabetical-asc':
           return a.title.localeCompare(b.title)
         case 'alphabetical-desc':
           return b.title.localeCompare(a.title)
         case 'popularity-desc':
-          return b.popularity - a.popularity
+          return (b.popularity || 0) - (a.popularity || 0)
         case 'date-added-desc':
           return parseDate(b.dateAdded) - parseDate(a.dateAdded)
         default:
@@ -32,9 +37,17 @@ export const useResourceSort = (
     })
 
     return result
+  }
+
+  const sortedResources = computed(() => {
+    if (!resources.value || !resources.value.length) {
+      return []
+    }
+    return sortResources(resources.value, sortOption.value)
   })
 
   return {
     sortedResources,
+    sortResources,
   }
 }

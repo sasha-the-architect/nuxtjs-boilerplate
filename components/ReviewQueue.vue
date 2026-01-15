@@ -3,28 +3,50 @@
     <div class="queue-header">
       <h2>Moderation Queue</h2>
       <div class="queue-filters">
-        <select v-model="statusFilter" class="filter-select">
-          <option value="">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
+        <select
+          v-model="statusFilter"
+          class="filter-select"
+        >
+          <option value="">
+            All Statuses
+          </option>
+          <option value="pending">
+            Pending
+          </option>
+          <option value="approved">
+            Approved
+          </option>
+          <option value="rejected">
+            Rejected
+          </option>
         </select>
         <input
           v-model="categoryFilter"
           type="text"
           placeholder="Filter by category..."
           class="filter-input"
-        />
+        >
       </div>
     </div>
 
-    <div v-if="loading" class="loading">Loading submissions...</div>
+    <div
+      v-if="loading"
+      class="loading"
+    >
+      Loading submissions...
+    </div>
 
-    <div v-else-if="error" class="error">
+    <div
+      v-else-if="error"
+      class="error"
+    >
       {{ error }}
     </div>
 
-    <div v-else class="queue-list">
+    <div
+      v-else
+      class="queue-list"
+    >
       <div
         v-for="submission in filteredSubmissions"
         :key="submission.id"
@@ -38,17 +60,13 @@
         </div>
 
         <div class="submission-details">
-          <p class="description">{{ submission.resourceData?.description }}</p>
+          <p class="description">
+            {{ submission.resourceData?.description }}
+          </p>
           <div class="meta-info">
-            <span class="category"
-              >Category: {{ submission.resourceData?.category }}</span
-            >
-            <span class="submitted-by"
-              >Submitted by: {{ submission.submittedBy }}</span
-            >
-            <span class="submitted-at"
-              >Submitted: {{ formatDate(submission.submittedAt) }}</span
-            >
+            <span class="category">Category: {{ submission.resourceData?.category }}</span>
+            <span class="submitted-by">Submitted by: {{ submission.submittedBy }}</span>
+            <span class="submitted-at">Submitted: {{ formatDate(submission.submittedAt) }}</span>
           </div>
 
           <div class="tags">
@@ -83,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { logError } from '~/utils/errorLogger'
+import { useReviewQueue } from '~/composables/useReviewQueue'
 import type { Submission } from '~/types/submission'
 
 interface Props {
@@ -94,75 +112,14 @@ const props = withDefaults(defineProps<Props>(), {
   initialSubmissions: () => [],
 })
 
-const statusFilter = ref('')
-const categoryFilter = ref('')
-const loading = ref(true)
-const error = ref('')
-const submissions = ref<Submission[]>(props.initialSubmissions)
-
-// Fetch submissions from API
-const fetchSubmissions = async () => {
-  try {
-    loading.value = true
-    error.value = ''
-
-    const response = await $fetch('/api/moderation/queue', {
-      params: {
-        status: statusFilter.value,
-        category: categoryFilter.value,
-      },
-    })
-
-    if (response.success) {
-      submissions.value = response.queue || []
-    } else {
-      error.value = response.message || 'Failed to load submissions'
-    }
-  } catch (err) {
-    error.value = 'An error occurred while fetching submissions'
-    logError(
-      'Error fetching submissions in ReviewQueue:',
-      err as Error,
-      'ReviewQueue'
-    )
-  } finally {
-    loading.value = false
-  }
-}
-
-// Computed filtered submissions based on filters
-const filteredSubmissions = computed(() => {
-  let result = [...submissions.value]
-
-  if (statusFilter.value) {
-    result = result.filter(sub => sub.status === statusFilter.value)
-  }
-
-  if (categoryFilter.value) {
-    result = result.filter(sub =>
-      sub.resourceData?.category
-        ?.toLowerCase()
-        .includes(categoryFilter.value.toLowerCase())
-    )
-  }
-
-  return result
-})
-
-// Watch filters and fetch updated data
-watch([statusFilter, categoryFilter], () => {
-  fetchSubmissions()
-})
-
-// Initialize data
-onMounted(() => {
-  fetchSubmissions()
-})
-
-// Helper function to format date
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString()
-}
+const {
+  loading,
+  error,
+  statusFilter,
+  categoryFilter,
+  filteredSubmissions,
+  formatDate,
+} = useReviewQueue(props.initialSubmissions)
 </script>
 
 <style scoped>

@@ -2,8 +2,10 @@
 // API endpoint to get user preferences (mock implementation)
 
 import { getQuery } from 'h3'
+import { rateLimit } from '~/server/utils/enhanced-rate-limit'
 
 export default defineEventHandler(async event => {
+  await rateLimit(event)
   try {
     // In a real implementation, this would fetch from a database based on authenticated user
     // For now, we'll return mock preferences or preferences from localStorage equivalent
@@ -38,11 +40,12 @@ export default defineEventHandler(async event => {
       success: true,
       preferences: mockPreferences,
     }
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as { statusCode?: number; statusMessage?: string }
     console.error('Error getting user preferences:', error)
     throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to get user preferences',
+      statusCode: err.statusCode || 500,
+      statusMessage: err.statusMessage || 'Failed to get user preferences',
     })
   }
 })

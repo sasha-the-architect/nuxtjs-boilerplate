@@ -1,10 +1,5 @@
-import { ref, computed, readonly } from 'vue'
-import type {
-  Resource,
-  AlternativeSuggestion,
-  AlternativeRelationship,
-} from '~/types/resource'
 import { useResourceData } from '~/composables/useResourceData'
+import type { Resource, AlternativeSuggestion } from '~/types/resource'
 
 // Types for alternative suggestions
 
@@ -21,7 +16,7 @@ export const useAlternatives = () => {
       return { score: 0, reason: 'same resource' }
 
     let score = 0
-    let reasons: string[] = []
+    const reasons: string[] = []
 
     // Category similarity (high weight for alternatives)
     if (resourceA.category === resourceB.category) {

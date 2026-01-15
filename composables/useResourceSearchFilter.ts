@@ -19,7 +19,7 @@ export const useResourceSearchFilter = (
       return filterByAllCriteria(searchResults, filterOptions.value)
     }
 
-    return filterByAllCriteria([...resources], filterOptions.value)
+    return filterByAllCriteria(resources, filterOptions.value)
   })
 
   return {

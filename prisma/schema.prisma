@@ -14,9 +14,10 @@ model AnalyticsEvent {
   category   String?
   url        String?
   userAgent  String?
-  ip         String
+  ip         String?
   timestamp  Int
   properties String?
+  deletedAt  Int?
 
   @@index([timestamp])
   @@index([resourceId])
@@ -25,4 +26,22 @@ model AnalyticsEvent {
   @@index([timestamp, type])
   @@index([timestamp, resourceId])
   @@index([resourceId, type])
+  @@index([ip, timestamp])
+  @@index([category, timestamp])
+  @@index([deletedAt])
+  @@index([resourceId, type, timestamp, deletedAt])
+  @@index([timestamp, deletedAt])
+  @@index([ip, timestamp, deletedAt])
 }
+
+// Valid event type values (enforced at application layer via Zod):
+// - resource_view: User viewed a resource
+// - search: User performed a search
+// - filter_change: User changed filters
+// - bookmark: User bookmarked a resource
+// - comparison: User viewed a comparison
+// - submission: User submitted a resource
+//
+// Note: SQLite does not support ENUM types or CHECK constraints,
+// so event type validation is enforced at the application boundary
+// using Zod schemas in server/utils/validation-schemas.ts

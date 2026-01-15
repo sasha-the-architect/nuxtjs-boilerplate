@@ -4,7 +4,7 @@ import vuePlugin from 'eslint-plugin-vue'
 import globals from 'globals'
 import vueParser from 'vue-eslint-parser'
 import tsParser from '@typescript-eslint/parser'
-import configPrettier from 'eslint-config-prettier'
+import tseslint from '@typescript-eslint/eslint-plugin'
 import * as tsParserCore from '@typescript-eslint/parser'
 
 // Get the vue recommended config
@@ -13,6 +13,7 @@ const vueRecommendedConfig = vuePlugin.configs['flat/recommended']
 export default [
   js.configs.recommended,
   ...vueRecommendedConfig,
+  ...tseslint.configs['flat/recommended'],
   // Base configuration for TypeScript files
   {
     files: ['**/*.ts', '**/*.tsx'],
@@ -26,6 +27,20 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.node,
+        $fetch: 'readonly',
+        useFetch: 'readonly',
+        useAsyncData: 'readonly',
+        navigateTo: 'readonly',
+        useHead: 'readonly',
+        useSeoMeta: 'readonly',
+        useRoute: 'readonly',
+        computed: 'readonly',
+        ref: 'readonly',
+        reactive: 'readonly',
+        watch: 'readonly',
+        onMounted: 'readonly',
+        onUnmounted: 'readonly',
+        nextTick: 'readonly',
       },
     },
   },
@@ -86,8 +101,15 @@ export default [
     },
     rules: {
       'no-console': process?.env?.NODE_ENV === 'production' ? 'error' : 'warn', // Prevent console statements in production
+      'vue/multi-word-component-names': 'off', // Allow single-word component names for pages and layouts
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ], // Allow unused vars with underscore prefix
+      '@typescript-eslint/ban-ts-comment': 'warn', // Allow @ts-ignore in tests
     },
   },
+  // Configuration for test files
   // Configuration for test files
   {
     files: [
@@ -95,8 +117,9 @@ export default [
       '**/*.test.ts',
       'test-setup.ts',
       'test-*.js',
-      '**/*.test.js',
+      'test-*.cjs',
       'validate-*.js',
+      '**/*.test.js',
     ],
     languageOptions: {
       ecmaVersion: 2024,
@@ -120,7 +143,14 @@ export default [
     },
     rules: {
       'vue/one-component-per-file': 'off', // Allow multiple components in test files
-      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }], // Allow only specific console methods, prefer using logger
+      'no-console': ['warn', { allow: ['warn', 'error', 'info', 'log'] }], // Allow console.log in tests
+      '@typescript-eslint/no-explicit-any': 'off', // Allow any types in test files for mock data
+      '@typescript-eslint/no-require-imports': 'off', // Allow require() in test/validation scripts
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ], // Allow unused vars with underscore prefix
+      '@typescript-eslint/ban-ts-comment': 'warn', // Allow @ts-ignore in tests
     },
   },
   // Configuration for script files
@@ -134,7 +164,17 @@ export default [
       },
     },
     rules: {
+      '@typescript-eslint/no-unused-vars': 'off', // Turn off TypeScript rule for JS files
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }], // Allow only specific console methods, prefer using logger
+      'no-unused-vars': [
+        'error',
+        {
+          args: 'all',
+          argsIgnorePattern: '^_',
+          vars: 'all',
+          varsIgnorePattern: '^_',
+        },
+      ], // Allow unused vars with underscore prefix
     },
   },
   // Configuration for utility files
@@ -155,6 +195,10 @@ export default [
     },
     rules: {
       'no-console': ['warn', { allow: ['warn', 'error'] }], // Allow only specific console methods, prefer using logger
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ], // Allow unused vars with underscore prefix
     },
   },
   // Special configuration for error logger
@@ -176,6 +220,42 @@ export default [
     },
     rules: {
       'no-console': process?.env?.NODE_ENV === 'production' ? 'error' : 'warn', // Allow console in development for error logger
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ], // Allow unused vars with underscore prefix
+    },
+  },
+  // Configuration for Nuxt server API files
+  {
+    files: ['server/api/**/*.ts'],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: 'module',
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2024,
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.node,
+        defineEventHandler: 'readonly',
+        createError: 'readonly',
+        setResponseStatus: 'readonly',
+        setResponseHeaders: 'readonly',
+        setResponseHeader: 'readonly',
+        readBody: 'readonly',
+        readMultipartFormData: 'readonly',
+        getRequestHeader: 'readonly',
+        getRouterParam: 'readonly',
+        getQuery: 'readonly',
+        getCookie: 'readonly',
+        setCookie: 'readonly',
+        deleteCookie: 'readonly',
+      },
+    },
+    rules: {
+      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
     },
   },
   // Configuration for Nuxt config file
@@ -206,11 +286,36 @@ export default [
       globals: {
         ...globals.node,
         process: 'readonly',
+        defineNuxtConfig: 'readonly',
       },
     },
   },
-  // Apply prettier config to disable conflicting rules
-  configPrettier,
+  // Configuration for Nuxt config files
+  {
+    files: ['nuxt.config.ts', 'nuxt.config.analyze.ts'],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+        process: 'readonly',
+        defineNuxtConfig: 'readonly',
+      },
+    },
+  },
+  // Configuration for Nuxt plugins
+  {
+    files: ['plugins/**/*.ts'],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+        process: 'readonly',
+        defineNuxtPlugin: 'readonly',
+      },
+    },
+  },
   // Global ignores
   {
     ignores: [
@@ -222,6 +327,7 @@ export default [
       'public/**',
       'nuxt.d.ts',
       'app.config.ts',
+      'scripts/**',
     ],
   },
 ]

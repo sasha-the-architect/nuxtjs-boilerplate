@@ -15,32 +15,44 @@
 
       <!-- Search Bar -->
       <div class="mt-8 max-w-2xl mx-auto">
-        <SearchBar v-model="searchQuery" @search="handleSearch" />
+        <SearchBar
+          v-model="searchQuery"
+          @search="handleSearch"
+        />
       </div>
 
       <!-- Loading State with Skeletons -->
-      <div v-if="loading" class="mt-16">
+      <div
+        v-if="loading"
+        class="mt-16"
+      >
         <div class="flex flex-wrap gap-2 mb-8 justify-center">
           <div
             v-for="i in 5"
             :key="i"
             class="px-3 py-1 text-sm rounded-full border bg-gray-200 animate-pulse"
             style="width: 80px; height: 28px"
-          ></div>
+          />
         </div>
 
         <div class="flex justify-between items-center mb-6">
-          <div class="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+          <div class="h-8 w-48 bg-gray-200 rounded animate-pulse" />
         </div>
 
         <!-- Resources Grid with Skeletons -->
         <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <ResourceCardSkeleton v-for="i in 6" :key="`skeleton-${i}`" />
+          <ResourceCardSkeleton
+            v-for="i in 6"
+            :key="`skeleton-${i}`"
+          />
         </div>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="mt-16">
+      <div
+        v-else-if="error"
+        class="mt-16"
+      >
         <ErrorMessage
           :message="errorMessage || error"
           variant="error"
@@ -49,7 +61,10 @@
       </div>
 
       <!-- Resources Grid -->
-      <div v-else class="mt-16">
+      <div
+        v-else
+        class="mt-16"
+      >
         <!-- ARIA live region for search results -->
         <div
           id="search-results-status"
@@ -120,7 +135,7 @@
 
             <!-- Resources Grid -->
             <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              <ResourceCard
+              <LazyResourceCard
                 v-for="resource in filteredResources"
                 :id="resource.id"
                 :key="resource.id"
@@ -159,12 +174,15 @@
           </div>
 
           <!-- Trending Resources Section -->
-          <div v-if="filteredResources.length > 0 && !loading" class="mt-16">
+          <div
+            v-if="filteredResources.length > 0 && !loading"
+            class="mt-16"
+          >
             <h2 class="text-2xl font-bold text-gray-900 mb-6">
               Trending Resources
             </h2>
             <div class="grid grid-cols-1 gap-6">
-              <ResourceCard
+              <LazyResourceCard
                 v-for="resource in trendingResources"
                 :key="resource.id"
                 :title="resource.title"
@@ -184,8 +202,13 @@
         </div>
 
         <!-- Recommendations Section -->
-        <div v-if="filteredResources.length > 0 && !loading" class="mt-16">
-          <RecommendationsSection />
+        <div
+          v-if="filteredResources.length > 0 && !loading"
+          class="mt-16"
+        >
+          <ClientOnly>
+            <LazyRecommendationsSection />
+          </ClientOnly>
         </div>
       </div>
     </div>
@@ -193,13 +216,13 @@
 </template>
 
 <script setup lang="ts">
-import { useResources, type SortOption } from '~/composables/useResources'
+import { useResources } from '~/composables/useResources'
 import { useUrlSync } from '~/composables/useUrlSync'
-import ResourceCard from '~/components/ResourceCard.vue'
+import { useHomePage } from '~/composables/useHomePage'
+import { getButtonLabel } from '~/utils/resourceHelper'
 import SearchBar from '~/components/SearchBar.vue'
 import ResourceSort from '~/components/ResourceSort.vue'
 import ResourceFilters from '~/components/ResourceFilters.vue'
-import RecommendationsSection from '~/components/RecommendationsSection.vue'
 
 definePageMeta({
   layout: 'default',
@@ -248,19 +271,10 @@ const {
   retryResources,
 } = useResources()
 
-// Compute trending resources (top 5 by popularity)
-const trendingResources = computed(() => {
-  if (!resources.value || resources.value.length === 0) return []
+const { trendingResources } = useHomePage(resources.value)
 
-  return [...resources.value]
-    .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
-    .slice(0, 5)
-})
-
-// Set up URL synchronization
 useUrlSync(filterOptions, sortOption)
 
-// Reactive references for filters
 const searchQuery = computed({
   get: () => filterOptions.value.searchQuery || '',
   set: value => updateSearchQuery(value),
@@ -268,52 +282,12 @@ const searchQuery = computed({
 
 const selectedCategories = computed(() => filterOptions.value.categories || [])
 
-// Handle search
 const handleSearch = (query: string) => {
   updateSearchQuery(query)
 }
 
-// Reset all filters
 const resetAllFilters = () => {
   resetFilters()
   searchQuery.value = ''
-}
-
-// Helper function to get button label based on category
-const getButtonLabel = (category: string) => {
-  switch (category.toLowerCase()) {
-    case 'ai tools':
-      return 'Explore AI Tools'
-    case 'vps':
-      return 'Get VPS'
-    case 'web hosting':
-      return 'Find Hosting'
-    case 'databases':
-      return 'Explore Databases'
-    case 'cdn':
-      return 'Get CDN'
-    default:
-      return 'Get Free Access'
-  }
-}
-
-// Function to get related resources based on category
-const getRelatedResources = (currentResource: any, allResources: any[]) => {
-  if (!currentResource?.category) return []
-
-  return allResources
-    .filter(
-      (resource: any) =>
-        resource.category === currentResource.category &&
-        resource.id !== currentResource.id
-    )
-    .slice(0, 3) // Limit to 3 related resources
-}
-
-// Function to get trending resources (top 5 by popularity)
-const getTrendingResources = (allResources: any[]) => {
-  return [...allResources]
-    .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
-    .slice(0, 5)
 }
 </script>

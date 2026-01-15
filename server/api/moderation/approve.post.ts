@@ -1,3 +1,4 @@
+// API endpoint for approving submissions
 import type { Submission } from '~/types/submission'
 import { readBody } from 'h3'
 import {
@@ -5,99 +6,80 @@ import {
   calculateQualityScore,
 } from '~/server/utils/quality-checks'
 import { logError, logInfo } from '~/utils/errorLogger'
+import { rateLimit } from '~/server/utils/enhanced-rate-limit'
+import {
+  sendSuccessResponse,
+  sendBadRequestError,
+  sendNotFoundError,
+} from '~/server/utils/api-response'
 
-// Mock data for demonstration - in a real application, this would come from a database
-let mockSubmissions: Submission[] = []
-let mockResources: any[] = []
+const mockSubmissions: Submission[] = []
+const mockResources: unknown[] = []
 
 export default defineEventHandler(async event => {
+  await rateLimit(event)
+
   try {
     const body = await readBody(event)
 
-    // Validate required fields
-    if (!body.submissionId) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Submission ID is required',
-      })
-    }
-
     if (!body.reviewedBy) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Reviewer ID is required',
-      })
+      return sendBadRequestError(event, 'Reviewer ID is required')
     }
 
-    // Find the submission
     const submissionIndex = mockSubmissions.findIndex(
       sub => sub.id === body.submissionId
     )
 
     if (submissionIndex === -1) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Submission not found',
-      })
+      return sendNotFoundError(event, 'Submission', body.submissionId)
     }
 
-    // Update the submission status
     const submission = mockSubmissions[submissionIndex]
+    if (!submission) {
+      return sendNotFoundError(event, 'Submission', body.submissionId)
+    }
+
     submission.status = 'approved'
     submission.reviewedBy = body.reviewedBy
     submission.reviewedAt = new Date().toISOString()
     submission.notes = body.notes || ''
 
-    // Run quality checks and calculate score
     const qualityChecks = runQualityChecks(submission.resourceData)
     const qualityScore = calculateQualityScore(qualityChecks)
 
-    // Create the resource from the submission data
     const newResource = {
       ...submission.resourceData,
-      id: `res_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `res_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       status: 'approved',
       submittedBy: submission.submittedBy,
       reviewedBy: submission.reviewedBy,
       reviewedAt: submission.reviewedAt,
       qualityScore,
-      flags: [], // Initialize empty flags array
+      flags: [],
       dateAdded: new Date().toISOString(),
-      popularity: 0, // New resources start with 0 popularity
+      popularity: 0,
       viewCount: 0,
-    }
+    } as Record<string, unknown>
 
-    // Add to resources (in a real app, this would be stored in a database)
-    mockResources.push(newResource)
+    ;(mockResources as unknown[]).push(newResource)
 
-    // In a real application, we would notify the submitter about approval
-    // For now, we'll just log it
     logInfo(
       `Notification: Submission ${submission.id} approved for user ${submission.submittedBy}`,
       undefined,
       'moderation/approve.post'
     )
 
-    return {
-      success: true,
+    return sendSuccessResponse(event, {
       message: 'Submission approved successfully',
       resource: newResource,
       qualityChecks,
       qualityScore,
-    }
-  } catch (error: any) {
-    logError('Error approving submission:', error, 'moderation/approve.post')
-
-    if (error.statusCode) {
-      return {
-        success: false,
-        message: error.statusMessage,
-      }
-    }
-
-    return {
-      success: false,
-      message: 'An error occurred while approving the submission',
-    }
+    })
+  } catch (error) {
+    logError(
+      'Error approving submission:',
+      error instanceof Error ? error : undefined,
+      'moderation/approve.post'
+    )
   }
 })

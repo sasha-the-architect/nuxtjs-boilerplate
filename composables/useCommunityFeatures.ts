@@ -1,349 +1,188 @@
 /**
- * Composable for community features
- * Implements basic community functionality including user profiles, comments, voting, and moderation
+ * Composable for community features (Orchestrator)
+ * Coordinates user profiles, comments, voting, and moderation systems
+ *
+ * Architecture:
+ * - This composable acts as an orchestrator, composing smaller, focused composables
+ * - Delegates to domain-specific composables: useUserProfiles, useComments, useVoting, useModeration
+ * - Maintains backward compatibility with existing API
+ *
+ * Performance optimizations:
+ * - O(1) lookups using Map-based indexing
+ * - Reactive state with Vue 3 Composition API
+ * - Eliminated N+1 linear searches
+ * - Type-safe: Uses unified community types, no 'as any' casts
  */
-import type { User, Comment, Vote, Flag } from '~/types/resource'
+import type {
+  UserProfile,
+  Comment,
+  CommentData,
+  ReplyData,
+  Vote,
+  Flag,
+  CreateUserData,
+  UpdateUserData,
+} from '~/types/community'
+import { useUserProfiles } from './community/useUserProfiles'
+import { useComments } from './community/useComments'
+import { useVoting } from './community/useVoting'
+import { useModeration } from './community/useModeration'
 
 export const useCommunityFeatures = (
-  initialUsers: User[] = [],
+  initialUsers: UserProfile[] = [],
   initialComments: Comment[] = [],
-  initialVotes: Vote[] = []
+  initialVotes: Vote[] = [],
+  initialFlags: Flag[] = []
 ) => {
-  // User data
-  const users = initialUsers
-  // Comments data
-  const comments = initialComments
-  // Votes data
-  const votes = initialVotes
-  // Flags data
-  const flags: Flag[] = []
+  // Initialize focused composables with callbacks for cross-module communication
 
-  // Current user (for demo purposes)
-  let currentUser: User | null = null
+  const commentsComposable = useComments(initialComments)
+
+  const userProfilesComposable = useUserProfiles(initialUsers)
+
+  const votingComposable = useVoting(
+    initialVotes,
+    // Callback to update comment vote counts
+    (
+      targetType: string,
+      targetId: string,
+      voteType: 'up' | 'down',
+      change: number
+    ) => {
+      if (targetType === 'comment') {
+        commentsComposable.updateCommentVotes(targetId, change)
+      }
+    },
+    // Callback to update user contribution counts
+    (userId: string, change: number) => {
+      userProfilesComposable.incrementContributions(userId, 'votes', change)
+    }
+  )
+
+  const moderationComposable = useModeration(
+    initialFlags,
+    // Callback to remove comments by moderator
+    (commentId: string) => {
+      return commentsComposable.removeCommentByModerator(commentId)
+    }
+  )
 
   // Set current user
-  const setCurrentUser = (user: User) => {
-    currentUser = user
+  const setCurrentUser = (user: UserProfile) => {
+    userProfilesComposable.setCurrentUser(user)
   }
 
   // User profile management
-  const createProfile = (userData: Partial<User>) => {
-    const profile = {
-      id: generateId(),
-      ...userData,
-      joinDate: new Date().toISOString(),
-      reputation: 0,
-      contributions: {
-        comments: 0,
-        resources: 0,
-        votes: 0,
-      },
-      privacy: {
-        showEmail: false,
-        showActivity: true,
-      },
-    }
-    users.push(profile)
-    return profile
+  const createProfile = (userData: CreateUserData) => {
+    return userProfilesComposable.createProfile(userData)
   }
 
-  const updateProfile = (userId: string, updates: Partial<User>) => {
-    // Use a for loop instead of findIndex to avoid compatibility issues
-    for (let i = 0; i < users.length; i++) {
-      if (users[i].id === userId) {
-        users[i] = { ...users[i], ...updates }
-        return users[i]
-      }
-    }
-    return null
+  const updateProfile = (userId: string, updates: UpdateUserData) => {
+    return userProfilesComposable.updateProfile(userId, updates)
+  }
+
+  const getUserProfile = (userId: string) => {
+    return userProfilesComposable.getUserProfile(userId)
   }
 
   // Comment system
-  const addComment = commentData => {
-    if (!currentUser) {
+  const addComment = (commentData: CommentData) => {
+    const user = userProfilesComposable.currentUser.value
+    if (!user) {
       throw new Error('User must be logged in to comment')
     }
 
-    const comment = {
-      id: generateId(),
-      ...commentData,
-      userId: currentUser.id,
-      userName: currentUser.name || currentUser.username,
-      timestamp: new Date().toISOString(),
-      votes: 0,
-      replies: [],
-      isEdited: false,
-      status: 'active', // active, flagged, removed
-    }
-    comments.push(comment)
+    const comment = commentsComposable.addComment(commentData, user)
 
     // Update user contributions
-    for (let i = 0; i < users.length; i++) {
-      if (users[i].id === currentUser.id) {
-        users[i].contributions.comments += 1
-        break
-      }
-    }
+    userProfilesComposable.incrementContributions(user.id, 'comments', 1)
 
     return comment
   }
 
-  const addReply = (commentId, replyData) => {
-    if (!currentUser) {
+  const addReply = (commentId: string, replyData: ReplyData) => {
+    const user = userProfilesComposable.currentUser.value
+    if (!user) {
       throw new Error('User must be logged in to reply')
     }
 
-    // Find parent comment using for loop
-    let parentComment = null
-    for (let i = 0; i < comments.length; i++) {
-      if (comments[i].id === commentId) {
-        parentComment = comments[i]
-        break
-      }
-    }
-
-    if (!parentComment) return null
-
-    const reply = {
-      id: generateId(),
-      ...replyData,
-      userId: currentUser.id,
-      userName: currentUser.name || currentUser.username,
-      timestamp: new Date().toISOString(),
-      votes: 0,
-      isEdited: false,
-      status: 'active',
-    }
-
-    parentComment.replies.push(reply)
-    return reply
+    return commentsComposable.addReply(commentId, replyData, user)
   }
 
-  const editComment = (commentId, newContent) => {
-    // Find comment using for loop
-    for (let i = 0; i < comments.length; i++) {
-      if (
-        comments[i].id === commentId &&
-        comments[i].userId === currentUser?.id
-      ) {
-        comments[i].content = newContent
-        comments[i].isEdited = true
-        comments[i].editedAt = new Date().toISOString()
-        return comments[i]
-      }
+  const editComment = (commentId: string, newContent: string) => {
+    const user = userProfilesComposable.currentUser.value
+    if (!user) {
+      throw new Error('User must be logged in')
     }
-    return null
+    return commentsComposable.editComment(commentId, newContent, user)
   }
 
-  const deleteComment = commentId => {
-    for (let i = 0; i < comments.length; i++) {
-      if (
-        comments[i].id === commentId &&
-        comments[i].userId === currentUser?.id
-      ) {
-        // Instead of completely deleting, mark as removed for moderation trail
-        comments[i].status = 'removed'
-        comments[i].content = '[Comment removed by user]'
-        return true
-      }
+  const deleteComment = (commentId: string) => {
+    const user = userProfilesComposable.currentUser.value
+    if (!user) {
+      throw new Error('User must be logged in')
     }
-    return false
+    return commentsComposable.deleteComment(commentId, user)
+  }
+
+  const getCommentsForResource = (resourceId: string) => {
+    return commentsComposable.getCommentsForResource(resourceId)
   }
 
   // Voting system
-  const vote = (targetType, targetId, voteType) => {
-    if (!currentUser) {
+  const vote = (
+    targetType: string,
+    targetId: string,
+    voteType: 'up' | 'down'
+  ) => {
+    const user = userProfilesComposable.currentUser.value
+    if (!user) {
       throw new Error('User must be logged in to vote')
     }
-
-    // Check if user has already voted on this item using for loop
-    let existingVoteIndex = -1
-    for (let i = 0; i < votes.length; i++) {
-      if (
-        votes[i].targetType === targetType &&
-        votes[i].targetId === targetId &&
-        votes[i].userId === currentUser.id
-      ) {
-        existingVoteIndex = i
-        break
-      }
-    }
-
-    if (existingVoteIndex !== -1) {
-      // Update existing vote
-      const existingVote = votes[existingVoteIndex]
-      if (existingVote.voteType === voteType) {
-        // Remove vote if same type is cast again (toggle off)
-        votes.splice(existingVoteIndex, 1)
-
-        // Update target item vote count
-        updateTargetVoteCount(targetType, targetId, existingVote.voteType, -1)
-
-        // Update user contributions
-        updateUserContributions(currentUser.id, -1)
-
-        return { success: true, removed: true }
-      } else {
-        // Change vote type
-        const oldVoteType = existingVote.voteType
-        votes[existingVoteIndex].voteType = voteType
-        votes[existingVoteIndex].timestamp = new Date().toISOString()
-
-        // Update target item vote count (remove old, add new)
-        updateTargetVoteCount(targetType, targetId, oldVoteType, -1)
-        updateTargetVoteCount(targetType, targetId, voteType, 1)
-
-        return { success: true, changed: true }
-      }
-    } else {
-      // Add new vote
-      const newVote = {
-        id: generateId(),
-        targetType,
-        targetId,
-        userId: currentUser.id,
-        voteType, // 'up' or 'down'
-        timestamp: new Date().toISOString(),
-      }
-      votes.push(newVote)
-
-      // Update target item vote count
-      updateTargetVoteCount(targetType, targetId, voteType, 1)
-
-      // Update user contributions
-      updateUserContributions(currentUser.id, 1)
-
-      return { success: true, added: true }
-    }
-  }
-
-  // Helper function to update vote counts on target items
-  const updateTargetVoteCount = (targetType, targetId, voteType, change) => {
-    // This is a simplified implementation - in reality, this would update the actual resource or comment
-    if (targetType === 'comment') {
-      for (let i = 0; i < comments.length; i++) {
-        if (comments[i].id === targetId) {
-          comments[i].votes += change * (voteType === 'up' ? 1 : -1)
-          break
-        }
-      }
-    }
-    // Could extend for other target types like resources
-  }
-
-  // Helper function to update user contributions
-  const updateUserContributions = (userId, change) => {
-    for (let i = 0; i < users.length; i++) {
-      if (users[i].id === userId) {
-        users[i].contributions.votes += change
-        break
-      }
-    }
+    return votingComposable.vote(targetType, targetId, voteType, user)
   }
 
   // Moderation system
-  const flagContent = (targetType, targetId, reason, details = '') => {
-    if (!currentUser) {
+  const flagContent = (
+    targetType: string,
+    targetId: string,
+    reason: string,
+    details: string = ''
+  ) => {
+    const user = userProfilesComposable.currentUser.value
+    if (!user) {
       throw new Error('User must be logged in to flag content')
     }
-
-    const flag = {
-      id: generateId(),
+    return moderationComposable.flagContent(
       targetType,
       targetId,
-      flaggedBy: currentUser.id,
       reason,
-      details,
-      timestamp: new Date().toISOString(),
-      status: 'pending', // pending, reviewed, resolved
-    }
-
-    flags.push(flag)
-
-    return flag
+      user,
+      details
+    )
   }
 
-  const moderateContent = (flagId, action, moderatorNote = '') => {
-    if (!currentUser || !currentUser.isModerator) {
-      throw new Error('User must be a moderator to moderate content')
+  const moderateContent = (
+    flagId: string,
+    action: string,
+    moderatorNote: string = ''
+  ) => {
+    const user = userProfilesComposable.currentUser.value
+    if (!user) {
+      throw new Error('User must be logged in to moderate content')
     }
-
-    let flag = null
-    let flagIndex = -1
-    for (let i = 0; i < flags.length; i++) {
-      if (flags[i].id === flagId) {
-        flag = flags[i]
-        flagIndex = i
-        break
-      }
-    }
-
-    if (!flag) return false
-
-    flag.status = 'reviewed'
-    flag.moderator = currentUser.id
-    flag.moderatorNote = moderatorNote
-    flag.actionTaken = action // 'approved', 'removed', 'warning', etc.
-
-    // Take action on the flagged content
-    if (flag.targetType === 'comment' && action === 'removed') {
-      for (let i = 0; i < comments.length; i++) {
-        if (comments[i].id === flag.targetId) {
-          comments[i].status = 'removed'
-          comments[i].content = '[Content removed by moderator]'
-          break
-        }
-      }
-    }
-
-    return true
+    return moderationComposable.moderateContent(
+      flagId,
+      action,
+      user,
+      moderatorNote
+    )
   }
 
-  // Helper function to generate IDs
-  const generateId = () => {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5)
-  }
-
-  // Get user profile
-  const getUserProfile = userId => {
-    for (let i = 0; i < users.length; i++) {
-      if (users[i].id === userId) {
-        return users[i]
-      }
-    }
-    return null
-  }
-
-  // Get comments for a specific resource
-  const getCommentsForResource = resourceId => {
-    const result = []
-    for (let i = 0; i < comments.length; i++) {
-      if (
-        comments[i].resourceId === resourceId &&
-        comments[i].status !== 'removed'
-      ) {
-        result.push(comments[i])
-      }
-    }
-    return result
-  }
-
-  // Get user's activity history
-  const getUserActivity = userId => {
-    const userComments = []
-    const userVotes = []
-
-    for (let i = 0; i < comments.length; i++) {
-      if (comments[i].userId === userId) {
-        userComments.push(comments[i])
-      }
-    }
-
-    for (let i = 0; i < votes.length; i++) {
-      if (votes[i].userId === userId) {
-        userVotes.push(votes[i])
-      }
-    }
+  // Activity and stats
+  const getUserActivity = (userId: string) => {
+    const userComments = commentsComposable.getUserComments(userId)
+    const userVotes = votingComposable.getUserVotes(userId)
 
     return {
       comments: userComments,
@@ -352,28 +191,13 @@ export const useCommunityFeatures = (
     }
   }
 
-  // Get top contributors based on reputation or activity
-  const getTopContributors = limitValue => {
-    if (limitValue === undefined) limitValue = 10
-    // Create a copy of users array and sort by reputation
-    const sortedUsers = []
-    for (let i = 0; i < users.length; i++) {
-      sortedUsers.push(users[i])
-    }
-
-    sortedUsers.sort((a, b) => b.reputation - a.reputation)
-
-    // Limit the results
-    const result = []
-    for (let i = 0; i < Math.min(limitValue, sortedUsers.length); i++) {
-      result.push(sortedUsers[i])
-    }
-
-    return result
+  const getTopContributors = (limit?: number) => {
+    const getContributorsFunc = userProfilesComposable.getTopContributors.value
+    return getContributorsFunc(limit || 10)
   }
 
-  // Return the composable functions
-  const result = {
+  // Return composable functions (maintaining backward compatibility)
+  return {
     // User management
     setCurrentUser,
     createProfile,
@@ -398,12 +222,10 @@ export const useCommunityFeatures = (
     getUserActivity,
     getTopContributors,
 
-    // Data access
-    users,
-    comments,
-    votes,
-    flags,
+    // Data access (for backward compatibility)
+    users: userProfilesComposable.users,
+    comments: commentsComposable.comments,
+    votes: votingComposable.votes,
+    flags: moderationComposable.flags,
   }
-
-  return result
 }

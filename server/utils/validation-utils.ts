@@ -1,13 +1,18 @@
-import type { ZodError } from 'zod'
+import type { ZodError, ZodType } from 'zod'
+import type { H3Event } from 'h3'
 import { readBody, getQuery } from 'h3'
 import { sendBadRequestError } from './api-response'
 
-export function validateRequest<T>(schema: any, data: unknown, event?: any): T {
+export function validateRequest<T>(
+  schema: ZodType<T>,
+  data: unknown,
+  event?: H3Event
+): T {
   const result = schema.safeParse(data)
 
   if (!result.success) {
     if (event) {
-      const errors = (result.error as ZodError<any>).issues.map((err: any) => ({
+      const errors = (result.error as ZodError).issues.map(err => ({
         field: err.path.join('.'),
         message: err.message,
       }))
@@ -22,8 +27,8 @@ export function validateRequest<T>(schema: any, data: unknown, event?: any): T {
 }
 
 export async function validateRequestBody<T>(
-  schema: any,
-  event: any
+  schema: ZodType<T>,
+  event: H3Event
 ): Promise<T> {
   try {
     const body = await readBody(event)
@@ -36,7 +41,7 @@ export async function validateRequestBody<T>(
   }
 }
 
-export function validateQueryParams<T>(schema: any, event: any): T {
+export function validateQueryParams<T>(schema: ZodType<T>, event: H3Event): T {
   const query = getQuery(event)
   return validateRequest(schema, query, event)
 }

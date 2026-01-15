@@ -53,19 +53,21 @@ export class SearchAnalyticsTracker {
 
     const normalizedQuery = query.toLowerCase().trim()
 
-    // Track popular searches
-    const existingPopular = this.popularSearches.find(
-      s => s.query === normalizedQuery
-    )
-    if (existingPopular) {
-      existingPopular.count++
-      existingPopular.lastUsed = new Date()
-    } else {
-      this.popularSearches.push({
-        query: normalizedQuery,
-        count: 1,
-        lastUsed: new Date(),
-      })
+    // Track popular searches (only if there are results)
+    if (results.length > 0) {
+      const existingPopular = this.popularSearches.find(
+        s => s.query === normalizedQuery
+      )
+      if (existingPopular) {
+        existingPopular.count++
+        existingPopular.lastUsed = new Date()
+      } else {
+        this.popularSearches.push({
+          query: normalizedQuery,
+          count: 1,
+          lastUsed: new Date(),
+        })
+      }
     }
 
     // Track zero-result searches

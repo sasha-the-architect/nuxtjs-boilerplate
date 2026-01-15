@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -12,19 +13,30 @@
 
       <!-- Search Bar -->
       <div class="mb-8">
-        <SearchBar v-model="searchQuery" @search="handleSearch" />
+        <SearchBar
+          v-model="searchQuery"
+          @search="handleSearch"
+        />
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="flex justify-center items-center py-12">
+      <div
+        v-if="loading"
+        class="flex justify-center items-center py-12"
+      >
         <div
           class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-800"
-        ></div>
+        />
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="text-center py-12">
-        <p class="text-red-600 text-lg">Error loading resources: {{ error }}</p>
+      <div
+        v-else-if="error"
+        class="text-center py-12"
+      >
+        <p class="text-red-600 text-lg">
+          Error loading resources: {{ error }}
+        </p>
       </div>
 
       <!-- No Results State -->
@@ -38,11 +50,13 @@
         <p class="text-gray-500 mb-6">
           Try adjusting your search or filter criteria
         </p>
-        <RelatedSearches
-          :query="searchQuery"
-          class="mb-6"
-          @search-select="handleRelatedSearch"
-        />
+        <ClientOnly>
+          <LazyRelatedSearches
+            :query="searchQuery"
+            class="mb-6"
+            @search-select="handleRelatedSearch"
+          />
+        </ClientOnly>
         <button
           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-800 hover:bg-gray-900"
           @click="resetAllFilters"
@@ -52,7 +66,10 @@
       </div>
 
       <!-- Results with Filters -->
-      <div v-else class="flex flex-col lg:flex-row gap-8">
+      <div
+        v-else
+        class="flex flex-col lg:flex-row gap-8"
+      >
         <!-- ARIA live region for search results -->
         <div
           id="search-results-status"
@@ -119,24 +136,31 @@
             @update-sort-option="setSortOption"
           />
 
-          <div class="mt-6 grid grid-cols-1 gap-6">
-            <ResourceCard
-              v-for="resource in filteredResources"
-              :id="resource.id"
-              :key="resource.id"
-              :title="resource.title"
-              :description="resource.description"
-              :benefits="resource.benefits"
-              :url="resource.url"
-              :button-label="getButtonLabel(resource.category)"
-              :highlighted-title="
-                highlightSearchTerms(resource.title, searchQuery)
-              "
-              :highlighted-description="
-                createSearchSnippet(resource.description, searchQuery)
-              "
-              :search-query="searchQuery"
-            />
+          <div class="mt-6">
+            <VirtualResourceList
+              :items="filteredResources"
+              :item-height="340"
+              :overscan="3"
+            >
+              <template #default="{ item: resource }">
+                <LazyResourceCard
+                  :id="resource.id"
+                  :key="resource.id"
+                  :title="resource.title"
+                  :description="resource.description"
+                  :benefits="resource.benefits"
+                  :url="resource.url"
+                  :button-label="getButtonLabel(resource.category)"
+                  :highlighted-title="
+                    highlightSearchTerms(resource.title, searchQuery)
+                  "
+                  :highlighted-description="
+                    createSearchSnippet(resource.description, searchQuery)
+                  "
+                  :search-query="searchQuery"
+                />
+              </template>
+            </VirtualResourceList>
           </div>
         </div>
       </div>
@@ -150,8 +174,7 @@ import { useSearchPage } from '~/composables/useSearchPage'
 import SearchBar from '~/components/SearchBar.vue'
 import ResourceFilters from '~/components/ResourceFilters.vue'
 import ResourceSort from '~/components/ResourceSort.vue'
-import ResourceCard from '~/components/ResourceCard.vue'
-import RelatedSearches from '~/components/RelatedSearches.vue'
+import VirtualResourceList from '~/components/VirtualResourceList.vue'
 import PopularSearches from '~/components/PopularSearches.vue'
 import ZeroResultSearches from '~/components/ZeroResultSearches.vue'
 
@@ -178,22 +201,11 @@ const {
   filteredResources,
   facetCounts,
   updateSearchQuery,
-  toggleCategory,
-  togglePricingModel,
-  toggleDifficultyLevel,
-  toggleTechnology,
-  toggleTag,
-  toggleBenefit,
-  setDateRange,
   setSortOption,
   resetFilters,
   handleSearch,
   savedSearches,
-  saveSearch,
   removeSavedSearch,
-  getPopularSearches,
-  getZeroResultSearches,
-  getRelatedSearches,
   createSearchSnippet,
   highlightSearchTerms,
   loading,

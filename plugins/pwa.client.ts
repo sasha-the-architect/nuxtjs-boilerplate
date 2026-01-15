@@ -1,38 +1,48 @@
 import { ref, readonly } from 'vue'
 
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[]
+  prompt: () => Promise<void>
+  userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed'
+    platform: string
+  }>
+}
+
+interface PWAInstallPrompt extends BeforeInstallPromptEvent {
+  prompt: () => Promise<void>
+  userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed'
+    platform: string
+  }>
+}
+
 export default defineNuxtPlugin(() => {
   const showInstallPrompt = ref(false)
-  const deferredPrompt: any = ref(null)
+  const deferredPrompt = ref<PWAInstallPrompt | null>(null)
 
-  // Listen for the beforeinstallprompt event
   if (process.client) {
     window.addEventListener('beforeinstallprompt', e => {
-      // Prevent the mini-infobar from appearing on mobile
       e.preventDefault()
-      // Stash the event so it can be triggered later
-      deferredPrompt.value = e
-      // Update UI to notify the user they can install the PWA
+      deferredPrompt.value = e as PWAInstallPrompt
       showInstallPrompt.value = true
     })
 
-    // Listen for the appinstalled event
     window.addEventListener('appinstalled', () => {
       showInstallPrompt.value = false
       deferredPrompt.value = null
     })
   }
 
-  // Function to trigger PWA installation
   const installPWA = () => {
     if (deferredPrompt.value) {
-      // Show the install prompt
       deferredPrompt.value.prompt()
-      // Wait for the user to respond to the prompt
-      deferredPrompt.value.userChoice.then((choiceResult: any) => {
+      deferredPrompt.value.userChoice.then(choiceResult => {
+        // Handle user choice silently - prompt was shown and user responded
         if (choiceResult.outcome === 'accepted') {
-          // User accepted the install prompt
+          // PWA was installed
         } else {
-          // User dismissed the install prompt
+          // PWA installation was dismissed
         }
         deferredPrompt.value = null
         showInstallPrompt.value = false
@@ -40,7 +50,6 @@ export default defineNuxtPlugin(() => {
     }
   }
 
-  // Expose the PWA functions
   return {
     provide: {
       pwa: {

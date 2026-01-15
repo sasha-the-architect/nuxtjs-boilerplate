@@ -58,4 +58,4 @@ All API endpoints use a standardized error response format for consistent client
 
 ---
 
-_Last Updated: 2025-01-07_
+_Last Updated: 2026-01-09_

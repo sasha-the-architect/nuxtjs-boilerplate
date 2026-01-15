@@ -1,5 +1,12 @@
 import { vi, beforeEach } from 'vitest'
 
+// Make browser APIs and timers globally available for tests
+const g = global as any
+g.setTimeout = global.setTimeout
+g.clearTimeout = global.clearTimeout
+g.setInterval = global.setInterval
+g.clearInterval = global.clearInterval
+
 vi.mock('#app', async () => {
   return {
     useNuxtApp: vi.fn(),
@@ -18,6 +25,26 @@ vi.mock('#app', async () => {
   }
 })
 
+vi.mock('#imports', async () => {
+  return {
+    useNuxtApp: vi.fn(),
+    useRuntimeConfig: vi.fn(),
+    useState: vi.fn(),
+    useRequestHeaders: vi.fn(),
+    useCookie: vi.fn(),
+    useAsyncData: vi.fn(),
+    useFetch: vi.fn(),
+    navigateTo: vi.fn(),
+    definePageMeta: vi.fn(),
+    useHead: vi.fn(),
+    useError: vi.fn(),
+    showError: vi.fn(),
+    clearError: vi.fn(),
+    useRouter: vi.fn(),
+    useRoute: vi.fn(),
+  }
+})
+
 vi.mock('#app/composables/router', () => {
   return {
     useRouter: vi.fn(),
@@ -25,39 +52,76 @@ vi.mock('#app/composables/router', () => {
   }
 })
 
-vi.mock('vue', async importOriginal => {
-  const actual = await importOriginal()
+vi.mock('#app/composables/router', () => {
   return {
-    ...actual,
-    getCurrentInstance: vi.fn(),
+    useRouter: vi.fn(),
+    useRoute: vi.fn(),
+  }
+})
+
+vi.mock('#app/composables/router', () => {
+  return {
+    useRouter: vi.fn(),
+    useRoute: vi.fn(),
   }
 })
 
 // Setup global localStorage and sessionStorage mocks
 beforeEach(() => {
   vi.clearAllMocks()
+  // Also clear the actual storage
+  const g = global as any
+  if (g.window?.localStorage?.clear) {
+    g.window.localStorage.clear()
+  }
+  if (g.window?.sessionStorage?.clear) {
+    g.window.sessionStorage.clear()
+  }
 })
 
 // Set up mocks for browser APIs that tests expect
 if (typeof global !== 'undefined') {
-  const localStorageMock = {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
-    length: 0,
-    key: vi.fn(),
-  }
+  const localStorageMock = (() => {
+    const store: Record<string, string> = {}
+    return {
+      getItem: vi.fn((key: string) => store[key] || null),
+      setItem: vi.fn((key: string, value: string) => {
+        store[key] = value
+      }),
+      removeItem: vi.fn((key: string) => {
+        delete store[key]
+      }),
+      clear: vi.fn(() => {
+        for (const key in store) {
+          delete store[key]
+        }
+      }),
+      length: 0,
+      key: vi.fn(),
+    }
+  })()
 
-  const sessionStorageMock = {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
-    length: 0,
-    key: vi.fn(),
-  }
+  const sessionStorageMock = (() => {
+    const store: Record<string, string> = {}
+    return {
+      getItem: vi.fn((key: string) => store[key] || null),
+      setItem: vi.fn((key: string, value: string) => {
+        store[key] = value
+      }),
+      removeItem: vi.fn((key: string) => {
+        delete store[key]
+      }),
+      clear: vi.fn(() => {
+        for (const key in store) {
+          delete store[key]
+        }
+      }),
+      length: 0,
+      key: vi.fn(),
+    }
+  })()
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore - Type assertion needed for testing environment
   const g = global as any
 

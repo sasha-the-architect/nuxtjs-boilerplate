@@ -1,6 +1,3 @@
-// composables/useUserPreferences.ts
-// Composable for managing user preferences and profiles
-
 import { ref, computed, readonly } from 'vue'
 import logger from '~/utils/logger'
 import type {
@@ -8,26 +5,25 @@ import type {
   UserProfile,
   UserInteraction,
 } from '~/types/user'
+import { createStorage } from '~/utils/storage'
 
 export const useUserPreferences = () => {
-  // In a real implementation, this would fetch from an API or localStorage
-  // For now, we'll use a mock implementation
+  const USER_PROFILE_KEY = 'userProfile'
+  const storage = createStorage<UserProfile | null>(USER_PROFILE_KEY, null)
+
   const userProfile = ref<UserProfile | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  // Initialize user profile
   const initProfile = async (userId?: string) => {
     try {
       loading.value = true
       error.value = null
 
-      // Check if we have a profile in localStorage
-      const storedProfile = localStorage.getItem('userProfile')
+      const storedProfile = storage.get()
       if (storedProfile) {
-        userProfile.value = JSON.parse(storedProfile)
+        userProfile.value = storedProfile
       } else {
-        // Create default profile
         userProfile.value = {
           id: userId || `user_${Date.now()}`,
           preferences: {
@@ -50,7 +46,7 @@ export const useUserPreferences = () => {
           createdAt: new Date().toISOString(),
           lastActive: new Date().toISOString(),
         }
-        localStorage.setItem('userProfile', JSON.stringify(userProfile.value))
+        storage.set(userProfile.value)
       }
     } catch (err) {
       error.value = 'Failed to initialize user profile'
@@ -60,7 +56,6 @@ export const useUserPreferences = () => {
     }
   }
 
-  // Update user preferences
   const updatePreferences = async (preferences: Partial<UserPreferences>) => {
     if (!userProfile.value) return false
 
@@ -71,8 +66,7 @@ export const useUserPreferences = () => {
       }
       userProfile.value.lastActive = new Date().toISOString()
 
-      // Update in localStorage
-      localStorage.setItem('userProfile', JSON.stringify(userProfile.value))
+      storage.set(userProfile.value)
 
       return true
     } catch (err) {
@@ -82,7 +76,6 @@ export const useUserPreferences = () => {
     }
   }
 
-  // Track user interaction
   const trackInteraction = async (
     interaction: Omit<UserInteraction, 'timestamp'>
   ) => {
@@ -97,8 +90,7 @@ export const useUserPreferences = () => {
       userProfile.value.interactions.push(newInteraction)
       userProfile.value.lastActive = new Date().toISOString()
 
-      // Update in localStorage
-      localStorage.setItem('userProfile', JSON.stringify(userProfile.value))
+      storage.set(userProfile.value)
 
       return true
     } catch (err) {
@@ -108,12 +100,10 @@ export const useUserPreferences = () => {
     }
   }
 
-  // Get user preferences
   const getUserPreferences = computed(() => {
     return userProfile.value?.preferences || null
   })
 
-  // Get user interests for recommendation engine
   const getUserInterests = computed(() => {
     if (!userProfile.value) return []
     return [
@@ -123,12 +113,10 @@ export const useUserPreferences = () => {
     ]
   })
 
-  // Get user interactions
   const getUserInteractions = computed(() => {
     return userProfile.value?.interactions || []
   })
 
-  // Get viewed resource IDs
   const getViewedResources = computed(() => {
     if (!userProfile.value) return []
     return userProfile.value.interactions
@@ -136,7 +124,6 @@ export const useUserPreferences = () => {
       .map(i => i.resourceId)
   })
 
-  // Get bookmarked resource IDs
   const getBookmarkedResources = computed(() => {
     if (!userProfile.value) return []
     return userProfile.value.interactions
@@ -144,7 +131,6 @@ export const useUserPreferences = () => {
       .map(i => i.resourceId)
   })
 
-  // Get user's skill level
   const getUserSkillLevel = computed(() => {
     return userProfile.value?.preferences.skillLevel || 'intermediate'
   })

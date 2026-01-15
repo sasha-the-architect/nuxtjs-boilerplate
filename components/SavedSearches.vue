@@ -1,6 +1,11 @@
 <template>
-  <div v-if="savedSearches.length > 0" class="mb-6">
-    <h4 class="text-sm font-medium text-gray-900 mb-3">Saved Searches</h4>
+  <div
+    v-if="savedSearches.length > 0"
+    class="mb-6"
+  >
+    <h4 class="text-sm font-medium text-gray-900 mb-3">
+      Saved Searches
+    </h4>
     <div class="space-y-2">
       <div
         v-for="search in savedSearches"
@@ -36,7 +41,7 @@
               stroke-linejoin="round"
               stroke-width="2"
               d="M6 18L18 6M6 6l12 12"
-            ></path>
+            />
           </svg>
         </button>
       </div>
@@ -60,7 +65,8 @@ interface Emits {
   (event: 'remove-saved-search', query: string): void
 }
 
-const props = withDefaults(defineProps<Props>(), {
+ 
+withDefaults(defineProps<Props>(), {
   savedSearches: () => [],
 })
 const emit = defineEmits<Emits>()

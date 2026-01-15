@@ -1,24 +1,20 @@
 import { ref, readonly } from 'vue'
 import type { SavedSearch } from '~/types/search'
+import { createStorageWithDateSerialization } from '~/utils/storage'
 
 const SAVED_SEARCHES_KEY = 'resource_saved_searches'
 const MAX_SAVED_SEARCHES = 20
 
 export const useSavedSearches = () => {
+  const storage = createStorageWithDateSerialization<SavedSearch[]>(
+    SAVED_SEARCHES_KEY,
+    []
+  )
   const savedSearches = ref<SavedSearch[]>([])
 
   const loadSavedSearches = (): SavedSearch[] => {
-    if (typeof window === 'undefined') return []
-    try {
-      const stored = localStorage.getItem(SAVED_SEARCHES_KEY)
-      const loaded = stored ? JSON.parse(stored) : []
-      savedSearches.value = loaded
-      return loaded
-    } catch (e) {
-      console.error('Error loading saved searches:', e)
-      savedSearches.value = []
-      return []
-    }
+    savedSearches.value = storage.get()
+    return savedSearches.value
   }
 
   const saveSearch = (name: string, query: string) => {
@@ -42,14 +38,14 @@ export const useSavedSearches = () => {
       savedSearches.value = savedSearches.value.slice(0, MAX_SAVED_SEARCHES)
     }
 
-    persistSavedSearches()
+    storage.set(savedSearches.value)
     emitSavedSearchEvent('saved-search-updated', { query, name })
   }
 
   const removeSavedSearch = (query: string) => {
     const removedSearch = savedSearches.value.find(s => s.query === query)
     savedSearches.value = savedSearches.value.filter(s => s.query !== query)
-    persistSavedSearches()
+    storage.set(savedSearches.value)
 
     if (removedSearch) {
       emitSavedSearchEvent('saved-search-removed', {
@@ -61,18 +57,6 @@ export const useSavedSearches = () => {
 
   const getSavedSearches = (): SavedSearch[] => {
     return [...savedSearches.value]
-  }
-
-  const persistSavedSearches = () => {
-    if (typeof window === 'undefined') return
-    try {
-      localStorage.setItem(
-        SAVED_SEARCHES_KEY,
-        JSON.stringify(savedSearches.value)
-      )
-    } catch (e) {
-      console.error('Error saving searches:', e)
-    }
   }
 
   const emitSavedSearchEvent = (

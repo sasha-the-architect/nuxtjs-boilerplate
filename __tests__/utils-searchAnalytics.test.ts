@@ -9,10 +9,11 @@ describe('SearchAnalyticsTracker', () => {
   let tracker: SearchAnalyticsTracker
 
   beforeEach(() => {
-    // Clear all mocks
+    // Clear all mocks and storage
     vi.clearAllMocks()
     localStorageMock.getItem.mockClear()
     localStorageMock.setItem.mockClear()
+    localStorageMock.clear()
 
     // Create a new instance for each test
     tracker = new SearchAnalyticsTracker()
@@ -385,7 +386,8 @@ describe('SearchAnalyticsTracker', () => {
         call => call[0] === 'popularSearches'
       )
       expect(popularSearchesCall).toBeDefined()
-      expect(popularSearchesCall![1]).toBeInstanceOf(String)
+      expect(typeof popularSearchesCall![1]).toBe('string')
+      expect(() => JSON.parse(popularSearchesCall![1])).not.toThrow()
     })
 
     it('should load data from localStorage', () => {
@@ -443,10 +445,6 @@ describe('SearchAnalyticsTracker', () => {
 
   describe('clear', () => {
     it('should clear all analytics data', () => {
-      // Get initial counts before adding data
-      const initialPopularCount = tracker.getPopularSearches().length
-      const initialZeroResultCount = tracker.getZeroResultSearches().length
-
       const mockResource: Resource = {
         id: '1',
         name: 'Test Resource',
@@ -462,13 +460,11 @@ describe('SearchAnalyticsTracker', () => {
       tracker.trackSearch('test query', [mockResource], 100)
       tracker.trackSearch('zero result query', [], 150)
 
-      // Verify data exists (accounting for any initial data)
-      expect(tracker.getPopularSearches()).toHaveLength(initialPopularCount + 1)
-      expect(tracker.getZeroResultSearches()).toHaveLength(
-        initialZeroResultCount + 1
-      )
+      // Verify data exists
+      expect(tracker.getPopularSearches()).toHaveLength(1)
+      expect(tracker.getZeroResultSearches()).toHaveLength(1)
 
-      // Clear the data
+      // Clear data
       tracker.clear()
 
       // Verify data is cleared

@@ -60,6 +60,26 @@ export function isRetryableError(
   })
 }
 
+export function calculateBackoff(
+  attempt: number,
+  baseDelayMs: number = 1000,
+  maxDelayMs: number = 30000,
+  jitterEnabled: boolean = true,
+  jitterFactor: number = 0.1
+): number {
+  let delay = baseDelayMs * Math.pow(2, attempt)
+
+  delay = Math.min(delay, maxDelayMs)
+
+  if (jitterEnabled) {
+    const jitterRange = delay * jitterFactor
+    const jitter = (Math.random() - 0.5) * jitterRange
+    delay += jitter
+  }
+
+  return Math.max(0, Math.floor(delay))
+}
+
 function calculateDelay(attempt: number, config: RetryConfig): number {
   let delay = config.baseDelayMs * Math.pow(config.backoffMultiplier, attempt)
 

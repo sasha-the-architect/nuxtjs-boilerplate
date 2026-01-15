@@ -1,6 +1,8 @@
 <template>
   <div class="mb-8">
-    <h2 class="text-xl font-semibold text-gray-900 mb-4">Free Tier Benefits</h2>
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">
+      Free Tier Benefits
+    </h2>
     <ul class="space-y-2">
       <li
         v-for="(benefit, index) in benefits"

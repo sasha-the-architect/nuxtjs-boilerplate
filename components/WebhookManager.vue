@@ -2,57 +2,117 @@
   <div class="webhook-manager">
     <div class="webhook-header">
       <h2>Webhook Management</h2>
-      <button class="btn btn-primary" @click="showCreateForm = true">
+      <button
+        class="btn btn-primary"
+        aria-label="Create new webhook"
+        @click="showCreateForm = true"
+      >
         Create Webhook
       </button>
     </div>
 
+    <div
+      id="webhook-announcement"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      class="sr-only"
+    >
+      {{ announcement }}
+    </div>
+
     <!-- Create Webhook Form -->
-    <div v-if="showCreateForm" class="webhook-form">
+    <div
+      v-if="showCreateForm"
+      class="webhook-form"
+    >
       <h3>Create New Webhook</h3>
-      <form @submit.prevent="createWebhook">
+
+      <div
+        v-if="errorMessage"
+        class="error-message"
+        role="alert"
+        aria-live="assertive"
+      >
+        {{ errorMessage }}
+      </div>
+
+      <form
+        novalidate
+        @submit.prevent="handleCreateWebhook"
+      >
         <div class="form-group">
-          <label for="url">Webhook URL</label>
+          <label for="webhook-url">Webhook URL <span aria-hidden="true">*</span>
+            <span class="sr-only">(required)</span>
+          </label>
           <input
-            id="url"
+            id="webhook-url"
             v-model="newWebhook.url"
             type="url"
             required
+            aria-required="true"
+            aria-describedby="webhook-url-description"
             placeholder="https://example.com/webhook"
             class="form-control"
-          />
+          >
+          <p
+            id="webhook-url-description"
+            class="mt-1 text-sm text-gray-500"
+          >
+            Enter the endpoint URL where webhook events will be sent
+          </p>
         </div>
 
         <div class="form-group">
-          <label>Events</label>
-          <div class="event-checkboxes">
-            <label
-              v-for="event in availableEvents"
-              :key="event"
-              class="checkbox-label"
+          <fieldset>
+            <legend class="font-medium mb-2">
+              Events
+            </legend>
+            <div
+              role="group"
+              aria-label="Select webhook events"
+              class="event-checkboxes"
             >
-              <input
-                v-model="newWebhook.events"
-                type="checkbox"
-                :value="event"
-              />
-              {{ event }}
-            </label>
-          </div>
+              <label
+                v-for="event in availableEvents"
+                :key="event"
+                class="checkbox-label"
+              >
+                <input
+                  v-model="newWebhook.events"
+                  type="checkbox"
+                  :value="event"
+                  :aria-label="`Subscribe to ${event} event`"
+                >
+                {{ event }}
+              </label>
+            </div>
+          </fieldset>
         </div>
 
         <div class="form-group">
-          <label>
-            <input v-model="newWebhook.active" type="checkbox" />
+          <label class="flex items-center gap-2">
+            <input
+              v-model="newWebhook.active"
+              type="checkbox"
+              aria-label="Enable webhook"
+            >
             Active
           </label>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Create Webhook</button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            aria-label="Create new webhook"
+          >
+            Create Webhook
+          </button>
           <button
             type="button"
             class="btn btn-secondary"
+            aria-label="Cancel webhook creation"
             @click="showCreateForm = false"
           >
             Cancel
@@ -64,14 +124,32 @@
     <!-- Webhooks List -->
     <div class="webhooks-list">
       <h3>Webhooks</h3>
-      <div v-if="webhooks.length === 0" class="empty-state">
+      <div
+        v-if="webhooks.length === 0"
+        class="empty-state"
+        role="status"
+        aria-live="polite"
+      >
         No webhooks configured
       </div>
-      <div v-else class="webhook-items">
-        <div v-for="webhook in webhooks" :key="webhook.id" class="webhook-item">
+      <div
+        v-else
+        class="webhook-items"
+      >
+        <div
+          v-for="webhook in webhooks"
+          :key="webhook.id"
+          class="webhook-item"
+          role="listitem"
+        >
           <div class="webhook-info">
-            <div class="webhook-url">{{ webhook.url }}</div>
-            <div class="webhook-events">
+            <div class="webhook-url">
+              {{ webhook.url }}
+            </div>
+            <div
+              class="webhook-events"
+              aria-label="Subscribed events"
+            >
               <span
                 v-for="event in webhook.events"
                 :key="event"
@@ -81,24 +159,37 @@
               </span>
             </div>
             <div class="webhook-status">
-              <span :class="`status ${webhook.active ? 'active' : 'inactive'}`">
+              <span
+                :class="`status ${webhook.active ? 'active' : 'inactive'}`"
+                :aria-label="`Webhook is ${webhook.active ? 'active' : 'inactive'}`"
+              >
                 {{ webhook.active ? 'Active' : 'Inactive' }}
               </span>
               <span
                 v-if="webhook.lastDeliveryStatus"
                 :class="`status ${webhook.lastDeliveryStatus}`"
+                :aria-label="`Last delivery status: ${webhook.lastDeliveryStatus}`"
               >
                 Last: {{ webhook.lastDeliveryStatus }}
               </span>
             </div>
           </div>
-          <div class="webhook-actions">
-            <button class="btn btn-sm" @click="toggleWebhook(webhook)">
+          <div
+            class="webhook-actions"
+            role="group"
+            aria-label="Webhook actions"
+          >
+            <button
+              class="btn btn-sm"
+              :aria-label="`${webhook.active ? 'Deactivate' : 'Activate'} webhook at ${webhook.url}`"
+              @click="toggleWebhook(webhook)"
+            >
               {{ webhook.active ? 'Deactivate' : 'Activate' }}
             </button>
             <button
               class="btn btn-sm btn-danger"
-              @click="deleteWebhook(webhook.id)"
+              aria-label="Delete webhook"
+              @click="handleDeleteWebhook(webhook)"
             >
               Delete
             </button>
@@ -110,94 +201,36 @@
 </template>
 
 <script setup lang="ts">
-import logger from '~/utils/logger'
 import type { Webhook } from '~/types/webhook'
+import { useWebhooksManager } from '~/composables/useWebhooksManager'
 
 const showCreateForm = ref(false)
-const webhooks = ref<Webhook[]>([])
-const loading = ref(true)
 
-const newWebhook = reactive({
-  url: '',
-  events: [] as string[],
-  active: true,
-})
+const {
+  webhooks,
+  errorMessage,
+  announcement,
+  newWebhook,
+  availableEvents,
+  fetchWebhooks,
+  createWebhook,
+  toggleWebhook,
+  deleteWebhook,
+  resetForm,
+} = useWebhooksManager()
 
-const availableEvents = [
-  'resource.created',
-  'resource.updated',
-  'resource.deleted',
-  'resource.approved',
-  'user.registered',
-  'submission.received',
-]
-
-// Fetch webhooks
-const fetchWebhooks = async () => {
-  try {
-    loading.value = true
-    const response = await $fetch('/api/v1/webhooks')
-    webhooks.value = response.data
-  } catch (error) {
-    logger.error('Error fetching webhooks:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-// Create new webhook
-const createWebhook = async () => {
-  try {
-    await $fetch('/api/v1/webhooks', {
-      method: 'POST',
-      body: newWebhook,
-    })
-
-    // Reset form
-    newWebhook.url = ''
-    newWebhook.events = []
-    newWebhook.active = true
+const handleCreateWebhook = async () => {
+  const success = await createWebhook(newWebhook)
+  if (success) {
+    resetForm()
     showCreateForm.value = false
-
-    // Refresh list
-    await fetchWebhooks()
-  } catch (error) {
-    logger.error('Error creating webhook:', error)
   }
 }
 
-// Toggle webhook active status
-const toggleWebhook = async (webhook: Webhook) => {
-  try {
-    await $fetch(`/api/v1/webhooks/${webhook.id}`, {
-      method: 'PUT',
-      body: { active: !webhook.active },
-    })
-
-    // Refresh list
-    await fetchWebhooks()
-  } catch (error) {
-    logger.error('Error toggling webhook:', error)
-  }
+const handleDeleteWebhook = async (webhook: Webhook) => {
+  await deleteWebhook(webhook)
 }
 
-// Delete webhook
-const deleteWebhook = async (id: string) => {
-  if (confirm('Are you sure you want to delete this webhook?')) {
-    try {
-      await $fetch(`/api/v1/webhooks/${id}`, {
-        method: 'DELETE',
-      })
-
-      // Refresh list
-      await fetchWebhooks()
-    } catch (error) {
-      logger.error('Error deleting webhook:', error)
-    }
-  }
-}
-
-// Load webhooks on component mount
 onMounted(() => {
   fetchWebhooks()
 })
@@ -387,5 +420,13 @@ onMounted(() => {
 
 .btn-danger:hover {
   background: #dc2626;
+}
+
+.error-message {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
 }
 </style>

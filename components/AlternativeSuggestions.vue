@@ -1,5 +1,8 @@
 <template>
-  <div v-if="alternatives.length > 0" class="mt-12">
+  <div
+    v-if="alternatives.length > 0"
+    class="mt-12"
+  >
     <h2 class="text-2xl font-bold text-gray-900 mb-6">
       Alternative Suggestions
     </h2>
@@ -8,7 +11,7 @@
     </p>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <ResourceCard
+      <LazyResourceCard
         v-for="alternative in alternatives"
         :key="alternative.resource.id"
         :title="alternative.resource.title"
@@ -25,7 +28,6 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import ResourceCard from './ResourceCard.vue'
 import { useAlternatives } from '~/composables/useAlternatives'
 import type { Resource, AlternativeSuggestion } from '~/types/resource'
 
@@ -67,7 +69,7 @@ onMounted(() => {
   initAlternatives()
 })
 
-// Watch for changes in the resource
+// Watch for changes in resource
 watch(
   () => props.resource,
   () => {

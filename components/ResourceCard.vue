@@ -6,7 +6,10 @@
     role="article"
   >
     <div class="flex items-start">
-      <div v-if="icon" class="flex-shrink-0 mr-4">
+      <div
+        v-if="icon"
+        class="flex-shrink-0 mr-4"
+      >
         <OptimizedImage
           :src="icon"
           :alt="title"
@@ -34,7 +37,7 @@
               <span
                 v-if="highlightedTitle"
                 v-html="sanitizedHighlightedTitle"
-              ></span>
+              />
               <!-- eslint-disable-line vue/no-v-html -->
               <span v-else>{{ title }}</span>
             </NuxtLink>
@@ -42,7 +45,7 @@
               <span
                 v-if="highlightedTitle"
                 v-html="sanitizedHighlightedTitle"
-              ></span>
+              />
               <!-- eslint-disable-line vue/no-v-html -->
               <span v-else>{{ title }}</span>
             </span>
@@ -54,11 +57,14 @@
             :health-score="healthScore"
           />
         </div>
-        <p id="resource-description" class="mt-1 text-gray-800 text-sm">
+        <p
+          id="resource-description"
+          class="mt-1 text-gray-800 text-sm"
+        >
           <span
             v-if="highlightedDescription"
             v-html="sanitizedHighlightedDescription"
-          ></span>
+          />
           <!-- eslint-disable-line vue/no-v-html -->
           <span v-else>{{ description }}</span>
         </p>
@@ -67,30 +73,52 @@
           role="region"
           aria-label="Free tier information"
         >
-          <p id="free-tier-label" class="font-medium text-gray-900 text-sm">
+          <p
+            id="free-tier-label"
+            class="font-medium text-gray-900 text-sm"
+          >
             Free Tier:
           </p>
-          <ul class="mt-1 space-y-1 text-xs text-gray-800" role="list">
-            <li v-for="(benefit, index) in benefits" :key="index">
+          <ul
+            class="mt-1 space-y-1 text-xs text-gray-800"
+            role="list"
+          >
+            <li
+              v-for="(benefit, index) in benefits"
+              :key="index"
+            >
               {{ benefit }}
             </li>
           </ul>
         </div>
 
         <!-- Similarity information (for alternative suggestions) -->
-        <div v-if="similarityScore && similarityScore > 0" class="mt-3">
+        <div
+          v-if="similarityScore && similarityScore > 0"
+          class="mt-3"
+        >
           <div class="flex items-center">
-            <div class="w-full bg-gray-200 rounded-full h-2">
+            <div
+              class="w-full bg-gray-200 rounded-full h-2"
+              role="progressbar"
+              :aria-valuenow="Math.round(similarityScore * 100)"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              :aria-label="`Similarity score: ${Math.round(similarityScore * 100)}%`"
+            >
               <div
                 class="bg-blue-600 h-2 rounded-full"
                 :style="{ width: `${similarityScore * 100}%` }"
-              ></div>
+              />
             </div>
             <span class="ml-2 text-xs font-medium text-gray-700">
               {{ Math.round(similarityScore * 100) }}% match
             </span>
           </div>
-          <p v-if="similarityReason" class="mt-1 text-xs text-gray-600">
+          <p
+            v-if="similarityReason"
+            class="mt-1 text-xs text-gray-600"
+          >
             {{ similarityReason }}
           </p>
         </div>
@@ -105,24 +133,35 @@
             @click="handleLinkClick"
           >
             {{ buttonLabel }}
-            <span v-if="newTab" class="ml-1 text-xs">(new tab)</span>
+            <span
+              v-if="newTab"
+              class="ml-1 text-xs"
+            >(new tab)</span>
           </a>
-          <div class="flex items-center space-x-2">
+          <div
+            class="flex items-center space-x-2"
+            role="group"
+            aria-label="Resource actions"
+          >
             <!-- Bookmark button -->
-            <BookmarkButton
-              v-if="id"
-              :resource-id="id"
-              :title="title"
-              :description="description"
-              :url="url"
-            />
+            <ClientOnly>
+              <LazyBookmarkButton
+                v-if="id"
+                :resource-id="id"
+                :title="title"
+                :description="description"
+                :url="url"
+              />
+            </ClientOnly>
             <!-- Share button -->
-            <ShareButton
-              v-if="id"
-              :title="title"
-              :description="description"
-              :url="`${runtimeConfig.public.canonicalUrl}/resources/${id}`"
-            />
+            <ClientOnly>
+              <LazyShareButton
+                v-if="id"
+                :title="title"
+                :description="description"
+                :url="`${runtimeConfig.public.canonicalUrl}/resources/${id}`"
+              />
+            </ClientOnly>
             <!-- Compare button -->
             <button
               v-if="id"
@@ -146,7 +185,7 @@
               </svg>
             </button>
             <!-- Slot for additional actions -->
-            <slot name="actions"></slot>
+            <slot name="actions" />
           </div>
         </div>
       </div>
@@ -154,7 +193,10 @@
   </article>
 
   <!-- Error state -->
-  <div v-else class="bg-white p-6 rounded-lg shadow border border-red-200">
+  <div
+    v-else
+    class="bg-white p-6 rounded-lg shadow border border-red-200"
+  >
     <div class="flex items-start">
       <div class="flex-shrink-0 mr-4">
         <svg
@@ -173,7 +215,9 @@
         </svg>
       </div>
       <div class="flex-1 min-w-0">
-        <h3 class="text-lg font-medium text-red-900">Resource Unavailable</h3>
+        <h3 class="text-lg font-medium text-red-900">
+          Resource Unavailable
+        </h3>
         <p class="mt-1 text-red-700 text-sm">
           This resource could not be displayed due to an error.
         </p>
@@ -187,8 +231,6 @@ import { computed, ref, onMounted } from 'vue'
 import { useHead, useRuntimeConfig } from '#imports'
 import { useResourceComparison } from '~/composables/useResourceComparison'
 import OptimizedImage from '~/components/OptimizedImage.vue'
-import BookmarkButton from '~/components/BookmarkButton.vue'
-import ShareButton from '~/components/ShareButton.vue'
 import ResourceStatus from '~/components/ResourceStatus.vue'
 import { trackResourceView, trackResourceClick } from '~/utils/analytics'
 import { sanitizeAndHighlight } from '~/utils/sanitize'
@@ -213,7 +255,7 @@ interface Props {
 }
 
 // Get the comparison composable
-const { addResource, selectedResources } = useResourceComparison()
+const { addResource } = useResourceComparison()
 
 const props = withDefaults(defineProps<Props>(), {
   id: undefined,
@@ -278,8 +320,8 @@ const handleLinkClick = (event: Event) => {
   }
 
   try {
-    const url = new URL(props.url)
-    // URL is valid, allow the click
+    new URL(props.url)
+    // URL is valid, allow click
   } catch (err) {
     event.preventDefault()
     hasError.value = true
@@ -310,7 +352,7 @@ const addResourceToComparison = () => {
   }
 
   // Add the resource to comparison
-  const added = addResource(resource as any)
+  const added = addResource(resource)
 
   if (added) {
     // Navigate to comparison page
@@ -323,7 +365,7 @@ const resourceSchema = computed(() => {
   // Only create schema if there's no error
   if (hasError.value) return null
 
-  const schema: Record<string, any> = {
+  const schema: Record<string, string | boolean | null> = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication', // Using SoftwareApplication as most resources are web-based tools
     name: props.title,

@@ -23,19 +23,8 @@ interface SecurityConfig {
 export const securityConfig: SecurityConfig = {
   csp: {
     defaultSrc: ["'self'"],
-    scriptSrc: [
-      "'self'",
-      // Nonce will be added dynamically per request
-      // "'nonce-{{nonce}}'" - this is a placeholder, actual nonce will be generated per request
-      "'strict-dynamic'", // Allow scripts that are loaded by trusted sources
-      'https:', // Allow HTTPS resources
-    ],
-    styleSrc: [
-      "'self'",
-      // Nonce will be added dynamically per request
-      "'unsafe-inline'", // Temporarily allow inline styles for Nuxt components
-      'https://fonts.googleapis.com', // External fonts
-    ],
+    scriptSrc: ["'self'", "'strict-dynamic'", 'https:'],
+    styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
     imgSrc: [
       "'self'",
       'data:', // Data URLs for images

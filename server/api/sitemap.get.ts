@@ -40,8 +40,7 @@ export default defineEventHandler(async event => {
 </urlset>`
 
     return sitemap
-  } catch (error: any) {
-    // In production, we might want to use a proper error tracking service instead of console
+  } catch (error) {
     if (process.dev) {
       console.error('Error generating sitemap:', error)
     }

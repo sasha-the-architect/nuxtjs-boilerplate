@@ -44,6 +44,9 @@ describe('useLoading', () => {
     // Check that loading is true during execution
     expect(loadingState.loading).toBe(true)
 
+    // Advance fake timers to resolve the setTimeout
+    vi.advanceTimersByTime(1)
+
     await promise
 
     // Check that loading is false after completion

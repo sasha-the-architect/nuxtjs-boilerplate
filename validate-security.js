@@ -19,7 +19,7 @@ const logger = {
       process.env.NODE_ENV === 'development' &&
       process.env.DEBUG === 'true'
     ) {
-      console.debug(message, data || '')
+      logger.debug(message, data || '')
     }
   },
 }
@@ -43,16 +43,14 @@ if (sanitizeUtilContent.includes("import DOMPurify from 'dompurify'")) {
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
-    // eslint-disable-next-line no-console
-    console.log('✓ DOMPurify import found in centralized utils/sanitize.ts')
+    logger.info('✓ DOMPurify import found in centralized utils/sanitize.ts')
   }
 } else {
   if (
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
-    // eslint-disable-next-line no-console
-    console.log('✗ DOMPurify import NOT found in centralized utils/sanitize.ts')
+    logger.info('✗ DOMPurify import NOT found in centralized utils/sanitize.ts')
   }
 }
 
@@ -69,16 +67,14 @@ if (
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
-    // eslint-disable-next-line no-console
-    console.log('✓ Centralized sanitization import found in ResourceCard.vue')
+    logger.info('✓ Centralized sanitization import found in ResourceCard.vue')
   }
 } else {
   if (
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
-    // eslint-disable-next-line no-console
-    console.log(
+    logger.info(
       '✗ Centralized sanitization import NOT found in ResourceCard.vue'
     )
   }
@@ -90,8 +86,7 @@ if (resourceCardContent.includes('sanitizeAndHighlight')) {
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
-    // eslint-disable-next-line no-console
-    console.log(
+    logger.info(
       '✓ Centralized sanitization function usage found in ResourceCard.vue'
     )
   }
@@ -100,8 +95,7 @@ if (resourceCardContent.includes('sanitizeAndHighlight')) {
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
-    // eslint-disable-next-line no-console
-    console.log(
+    logger.info(
       '✗ Centralized sanitization function usage NOT found in ResourceCard.vue'
     )
   }
@@ -169,8 +163,7 @@ if (
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
-    // eslint-disable-next-line no-console
-    console.log('✓ CSP header configuration found in nuxt.config.ts')
+    logger.info('✓ CSP header configuration found in nuxt.config.ts')
   }
   logger.info('✓ CSP configuration reference found in nuxt.config.ts')
 } else {
@@ -178,8 +171,7 @@ if (
     process.env.NODE_ENV !== 'production' ||
     process.env.VALIDATION_LOGS === 'true'
   ) {
-    // eslint-disable-next-line no-console
-    console.log('✗ CSP header configuration NOT found in nuxt.config.ts')
+    logger.info('✗ CSP header configuration NOT found in nuxt.config.ts')
   }
   logger.info('✗ CSP configuration reference NOT found in nuxt.config.ts')
 }

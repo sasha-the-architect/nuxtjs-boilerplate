@@ -112,7 +112,7 @@ const DEFAULT_HIERARCHICAL_TAGS: readonly HierarchicalTag[] = [
 export function convertFlatToHierarchicalTags(
   flatTags: readonly string[]
 ): HierarchicalTag[] {
-  return flatTags.map((tag, _index) => ({
+  return flatTags.map(tag => ({
     id: tag.toLowerCase().replace(/\s+/g, '-'),
     name: tag,
     slug: tag.toLowerCase().replace(/\s+/g, '-'),
@@ -278,7 +278,7 @@ export function filterResourcesByHierarchicalTags(
     }
 
     // Get all selected tags and their children/parents based on options
-    let relevantTagIds = [...selectedTagIds]
+    const relevantTagIds = [...selectedTagIds]
 
     if (includeChildren) {
       for (const tagId of selectedTagIds) {

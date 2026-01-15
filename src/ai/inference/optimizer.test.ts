@@ -55,6 +55,22 @@ describe('AI Inference Optimizer', () => {
   })
 
   it('should execute inference with optimized model', async () => {
+    // Mock model data
+    const mockModel = {
+      weights: { values: [1.2, -0.5, 3.8, -2.1] },
+      architecture: {
+        layers: [
+          { name: 'input', optional: false, essential: true },
+          { name: 'output', optional: false, essential: true },
+        ],
+      },
+    }
+
+    // Mock model loading
+    vi.spyOn(optimizer as any, 'loadModel').mockImplementation(async () => {
+      ;(optimizer as any).model = mockModel
+    })
+
     // Mock optimized model
     vi.spyOn(optimizer as any, 'optimizeModel').mockImplementation(() => {
       ;(optimizer as any).optimizedModel = {

@@ -42,7 +42,10 @@
         </div>
 
         <div class="mt-8 space-y-4">
-          <details v-if="error.message" class="text-left inline-block">
+          <details
+            v-if="error.message"
+            class="text-left inline-block"
+          >
             <summary class="text-sm text-gray-500 cursor-pointer">
               Error Details
             </summary>
@@ -74,6 +77,13 @@
 </template>
 
 <script setup lang="ts">
+const props = defineProps<{ statusCode?: number; message?: string }>()
+
+const error = computed(() => ({
+  statusCode: props.statusCode || 500,
+  message: props.message || 'An error occurred',
+}))
+
 const handleRetry = () => {
   if (process.client) {
     window.history.back()

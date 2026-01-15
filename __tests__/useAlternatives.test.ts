@@ -139,7 +139,7 @@ describe('useAlternatives composable', () => {
     expect(suggestions.length).toBeGreaterThan(0)
     suggestions.forEach(suggestion => {
       expect(suggestion.resource.category).toBe('Test Category')
-      expect(suggestion.similarityScore).toBeGreaterThanOrEqual(0)
+      expect(suggestion.score).toBeGreaterThanOrEqual(0)
     })
   })
 

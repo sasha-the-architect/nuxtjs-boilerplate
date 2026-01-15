@@ -24,11 +24,10 @@
 import { useResourceComparison } from '~/composables/useResourceComparison'
 import { useNuxtApp } from '#app'
 import logger from '~/utils/logger'
-import type { Resource } from '~/types/resource'
 import ComparisonBuilder from '~/components/ComparisonBuilder.vue'
 
 // Use the comparison composable
-const { selectedResources, removeResource, clearComparison, comparisonCount } =
+const { selectedResources, removeResource, clearComparison } =
   useResourceComparison()
 
 // Page metadata

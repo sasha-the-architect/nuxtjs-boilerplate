@@ -23,7 +23,7 @@ export const addUTMParams = (
     if (content) urlObj.searchParams.set('utm_content', content)
 
     return urlObj.toString()
-  } catch (_error) {
+  } catch {
     // If URL parsing fails, return the original URL
     return url
   }
@@ -37,16 +37,17 @@ export const generateShareUrls = (
   title: string,
   description?: string
 ) => {
-  const encodedTitle = encodeURIComponent(title)
-  const encodedDescription = encodeURIComponent(description || '')
   const encodedBaseUrl = encodeURIComponent(baseUrl)
+  const encodedTitleAndDescription = encodeURIComponent(
+    `${title} - ${description || ''}`
+  )
 
   return {
-    twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedBaseUrl}&hashtags=FreeResources,WebDevelopment`,
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedBaseUrl}&quote=${encodedTitle} - ${encodedDescription}`,
-    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedBaseUrl}&title=${encodedTitle}&summary=${encodedDescription}`,
-    reddit: `https://www.reddit.com/submit?url=${encodedBaseUrl}&title=${encodedTitle}`,
-    email: `mailto:?subject=${encodedTitle}&body=Check out this resource: ${baseUrl}%0D%0A%0D%0A${encodedDescription}`,
+    twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodedBaseUrl}&hashtags=FreeResources,WebDevelopment`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedBaseUrl}&quote=${encodedTitleAndDescription}`,
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedBaseUrl}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(description || '')}`,
+    reddit: `https://www.reddit.com/submit?url=${encodedBaseUrl}&title=${encodeURIComponent(title)}`,
+    email: `mailto:?subject=${encodeURIComponent(title)}&body=Check out this resource: ${baseUrl}%0D%0A%0D%0A${encodeURIComponent(description || '')}`,
   }
 }
 
@@ -58,17 +59,18 @@ export const generateResourceShareUrls = (
   title: string,
   description?: string
 ) => {
-  const encodedTitle = encodeURIComponent(title)
-  const encodedDescription = encodeURIComponent(description || '')
   const encodedBaseUrl = encodeURIComponent(
     addUTMParams(baseUrl, 'social', 'share', 'resource-sharing')
   )
+  const encodedTitleAndDescription = encodeURIComponent(
+    `${title} - ${description || ''}`
+  )
 
   return {
-    twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedBaseUrl}&hashtags=FreeResources,WebDevelopment`,
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedBaseUrl}&quote=${encodedTitle} - ${encodedDescription}`,
-    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedBaseUrl}&title=${encodedTitle}&summary=${encodedDescription}`,
-    reddit: `https://www.reddit.com/submit?url=${encodedBaseUrl}&title=${encodedTitle}`,
-    email: `mailto:?subject=${encodedTitle}&body=Check out this resource: ${baseUrl}%0D%0A%0D%0A${encodedDescription}`,
+    twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodedBaseUrl}&hashtags=FreeResources,WebDevelopment`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedBaseUrl}&quote=${encodedTitleAndDescription}`,
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedBaseUrl}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(description || '')}`,
+    reddit: `https://www.reddit.com/submit?url=${encodedBaseUrl}&title=${encodeURIComponent(title)}`,
+    email: `mailto:?subject=${encodeURIComponent(title)}&body=Check out this resource: ${baseUrl}%0D%0A%0D%0A${encodeURIComponent(description || '')}`,
   }
 }

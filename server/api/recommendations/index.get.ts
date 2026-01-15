@@ -4,7 +4,12 @@
 import { useResourceData } from '~/composables/useResourceData'
 import { useRecommendationEngine } from '~/composables/useRecommendationEngine'
 import type { Resource } from '~/types/resource'
-import { getQuery } from 'h3'
+import {
+  sendNotFoundError,
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
+import { defineEventHandler, getQuery } from 'h3'
 
 export interface RecommendationQuery {
   userId?: string
@@ -23,15 +28,13 @@ export default defineEventHandler(async event => {
     const { resources } = useResourceData()
     const allResources = resources.value || []
 
-    // Find the specific resource if resourceId is provided
+    // Find specific resource if resourceId is provided
     let targetResource: Resource | undefined
     if (query.resourceId) {
       targetResource = allResources.find(r => r.id === query.resourceId)
       if (!targetResource) {
-        throw createError({
-          statusCode: 404,
-          statusMessage: 'Resource not found',
-        })
+        sendNotFoundError(event, 'Resource', query.resourceId)
+        return
       }
     }
 
@@ -84,8 +87,7 @@ export default defineEventHandler(async event => {
     }
 
     // Return the recommendations
-    return {
-      success: true,
+    sendSuccessResponse(event, {
       recommendations: recommendations.map(r => ({
         id: r.resource.id,
         title: r.resource.title,
@@ -102,12 +104,8 @@ export default defineEventHandler(async event => {
       })),
       total: recommendations.length,
       userId: query.userId || null,
-    }
-  } catch (error: any) {
-    console.error('Error getting recommendations:', error)
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to get recommendations',
     })
+  } catch (error) {
+    handleApiRouteError(event, error)
   }
 })

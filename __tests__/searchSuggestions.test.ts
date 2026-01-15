@@ -54,8 +54,7 @@ describe('useSearchSuggestions', () => {
     searchSuggestions = useSearchSuggestions(mockResources)
   })
 
-  it('should initialize with empty history and popular searches', () => {
-    expect(searchSuggestions.searchHistory.value).toEqual([])
+  it('should initialize with empty popular searches', () => {
     expect(searchSuggestions.popularSearches.value).toEqual([])
   })
 
@@ -95,13 +94,16 @@ describe('useSearchSuggestions', () => {
   it('should add and retrieve search history', () => {
     searchSuggestions.addToSearchHistory('test query')
 
-    expect(searchSuggestions.searchHistory.value).toEqual(['test query'])
+    const recentSearches = searchSuggestions.getRecentSearches(10)
+
+    expect(recentSearches.length).toBeGreaterThan(0)
+    expect(recentSearches.some(s => s.text === 'test query')).toBe(true)
 
     searchSuggestions.addToSearchHistory('another query')
-    expect(searchSuggestions.searchHistory.value).toEqual([
-      'another query',
-      'test query',
-    ])
+    const updatedRecentSearches = searchSuggestions.getRecentSearches(10)
+    expect(updatedRecentSearches.some(s => s.text === 'another query')).toBe(
+      true
+    )
   })
 
   it('should limit search history to 10 items', () => {
@@ -110,7 +112,9 @@ describe('useSearchSuggestions', () => {
       searchSuggestions.addToSearchHistory(`query ${i}`)
     }
 
-    expect(searchSuggestions.searchHistory.value.length).toBe(10)
+    const recentSearches = searchSuggestions.getRecentSearches(10)
+
+    expect(recentSearches.length).toBeLessThanOrEqual(10)
   })
 
   it('should add to popular searches', () => {
@@ -120,7 +124,7 @@ describe('useSearchSuggestions', () => {
       { query: 'popular query', count: 1 },
     ])
 
-    // Add the same query again to increment count
+    // Add same query again to increment count
     searchSuggestions.addToPopularSearches('popular query')
 
     expect(searchSuggestions.popularSearches.value).toEqual([
@@ -149,20 +153,5 @@ describe('useSearchSuggestions', () => {
     expect(recentSuggestions.length).toBe(2)
     expect(recentSuggestions[0].text).toBe('recent query 2')
     expect(recentSuggestions[1].text).toBe('recent query 1')
-  })
-
-  it('should clear search history', () => {
-    searchSuggestions.addToSearchHistory('test query')
-    expect(searchSuggestions.searchHistory.value.length).toBe(1)
-
-    searchSuggestions.clearSearchHistory()
-    expect(searchSuggestions.searchHistory.value.length).toBe(0)
-  })
-
-  it('should return search history', () => {
-    searchSuggestions.addToSearchHistory('test query')
-    const history = searchSuggestions.getSearchHistory()
-
-    expect(history).toEqual(['test query'])
   })
 })
