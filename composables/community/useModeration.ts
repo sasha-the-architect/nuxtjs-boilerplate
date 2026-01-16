@@ -4,6 +4,11 @@
  */
 import { ref, computed } from 'vue'
 import { generateUniqueId } from '~/utils/id'
+import {
+  addToArrayMap,
+  updateInArrayMap,
+  initializeMapFromArray,
+} from '~/utils/collection-utils'
 import type {
   Flag,
   UserProfile,
@@ -14,14 +19,8 @@ export const useModeration = (
   initialFlags: Flag[] = [],
   removeCommentByModerator?: RemoveCommentByModeratorCallback
 ) => {
-  // Reactive state
   const flags = ref<Flag[]>([...initialFlags])
-  const flagMap = ref<Map<string, Flag>>(new Map())
-
-  // Initialize index
-  initialFlags.forEach(flag => {
-    flagMap.value.set(flag.id, flag)
-  })
+  const flagMap = ref<Map<string, Flag>>(initializeMapFromArray(initialFlags))
 
   const flagContent = (
     targetType: string,
@@ -45,10 +44,7 @@ export const useModeration = (
       status: 'pending',
     }
 
-    // O(1) map insertion
-    flagMap.value.set(flag.id, flag)
-    // O(1) array push (maintains reactive state)
-    flags.value.push(flag)
+    addToArrayMap(flags, flagMap, flag)
 
     return flag
   }
@@ -63,7 +59,6 @@ export const useModeration = (
       throw new Error('User must be a moderator to moderate content')
     }
 
-    // O(1) map lookup
     const flag = flagMap.value.get(flagId)
     if (!flag) return false
 
@@ -75,16 +70,8 @@ export const useModeration = (
       actionTaken: action,
     }
 
-    // O(1) map update
-    flagMap.value.set(flagId, updatedFlag)
+    updateInArrayMap(flags, flagMap, flagId, updatedFlag)
 
-    // Update in array (maintains reactive state)
-    const index = flags.value.findIndex(f => f.id === flagId)
-    if (index !== -1) {
-      flags.value[index] = updatedFlag
-    }
-
-    // Take action on flagged content
     if (flag.targetType === 'comment' && action === 'removed') {
       if (removeCommentByModerator) {
         removeCommentByModerator(flag.targetId)
@@ -143,7 +130,6 @@ export const useModeration = (
       throw new Error('User must be a moderator to resolve flags')
     }
 
-    // O(1) map lookup
     const flag = flagMap.value.get(flagId)
     if (!flag) return false
 
@@ -154,14 +140,7 @@ export const useModeration = (
       moderatorNote: resolutionNote || flag.moderatorNote,
     }
 
-    // O(1) map update
-    flagMap.value.set(flagId, updatedFlag)
-
-    // Update in array
-    const index = flags.value.findIndex(f => f.id === flagId)
-    if (index !== -1) {
-      flags.value[index] = updatedFlag
-    }
+    updateInArrayMap(flags, flagMap, flagId, updatedFlag)
 
     return true
   }
@@ -170,7 +149,6 @@ export const useModeration = (
     flagId: string,
     status: 'pending' | 'reviewed' | 'resolved'
   ): boolean => {
-    // O(1) map lookup
     const flag = flagMap.value.get(flagId)
     if (!flag) return false
 
@@ -179,14 +157,7 @@ export const useModeration = (
       status,
     }
 
-    // O(1) map update
-    flagMap.value.set(flagId, updatedFlag)
-
-    // Update in array
-    const index = flags.value.findIndex(f => f.id === flagId)
-    if (index !== -1) {
-      flags.value[index] = updatedFlag
-    }
+    updateInArrayMap(flags, flagMap, flagId, updatedFlag)
 
     return true
   }

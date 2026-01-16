@@ -19,7 +19,8 @@ export const useVoting = (
   const voteMap = ref<Map<string, Vote>>(new Map())
 
   initialVotes.forEach(vote => {
-    voteMap.value.set(vote.id, vote)
+    const key = `${vote.userId}_${vote.targetType}_${vote.targetId}`
+    voteMap.value.set(key, vote)
   })
 
   const vote = (
@@ -43,39 +44,31 @@ export const useVoting = (
 
     if (existingVote) {
       if (existingVote.voteType === voteType) {
-        // Remove vote if same type is cast again (toggle off)
         votes.value = votes.value.filter(v => v.id !== existingVote.id)
         voteMap.value.delete(key)
 
-        // Update target item vote count
         if (updateVoteCount) {
           updateVoteCount(targetType, targetId, voteType, -1)
         }
 
-        // Update user contributions
         if (updateUserContributions) {
           updateUserContributions(currentUser.id, -1)
         }
 
         return { success: true, removed: true }
       } else {
-        // Change vote type
         const updatedVote = {
           ...existingVote,
           voteType,
           timestamp: new Date().toISOString(),
         }
 
-        // O(1) map update
         voteMap.value.set(key, updatedVote)
-
-        // Update in array
         const index = votes.value.findIndex(v => v.id === existingVote.id)
         if (index !== -1) {
           votes.value[index] = updatedVote
         }
 
-        // Update target item vote count (remove old, add new)
         if (updateVoteCount) {
           updateVoteCount(targetType, targetId, existingVote.voteType, -1)
           updateVoteCount(targetType, targetId, voteType, 1)
@@ -84,7 +77,6 @@ export const useVoting = (
         return { success: true, changed: true }
       }
     } else {
-      // Add new vote
       const newVote: Vote = {
         id: generateUniqueId(),
         targetType,
@@ -94,17 +86,13 @@ export const useVoting = (
         timestamp: new Date().toISOString(),
       }
 
-      // O(1) map insertion
       voteMap.value.set(key, newVote)
-      // O(1) array push (maintains reactive state)
       votes.value.push(newVote)
 
-      // Update target item vote count
       if (updateVoteCount) {
         updateVoteCount(targetType, targetId, voteType, 1)
       }
 
-      // Update user contributions
       if (updateUserContributions) {
         updateUserContributions(currentUser.id, 1)
       }
@@ -144,17 +132,13 @@ export const useVoting = (
   }
 
   const removeVote = (voteId: string): boolean => {
-    // Find vote by ID
-    const voteIndex = votes.value.findIndex(v => v.id === voteId)
-    if (voteIndex === -1) return false
+    const vote = votes.value.find(v => v.id === voteId)
+    if (!vote) return false
 
-    const vote = votes.value[voteIndex]
     const key = `${vote.userId}_${vote.targetType}_${vote.targetId}`
 
-    // O(1) map deletion
     voteMap.value.delete(key)
-    // O(1) array splice (maintains reactive state)
-    votes.value.splice(voteIndex, 1)
+    votes.value = votes.value.filter(v => v.id !== voteId)
 
     return true
   }

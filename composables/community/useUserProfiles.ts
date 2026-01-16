@@ -4,6 +4,11 @@
  */
 import { ref, computed } from 'vue'
 import { generateUniqueId } from '~/utils/id'
+import {
+  addToArrayMap,
+  updateInArrayMap,
+  initializeMapFromArray,
+} from '~/utils/collection-utils'
 import type {
   UserProfile,
   CreateUserData,
@@ -11,14 +16,10 @@ import type {
 } from '~/types/community'
 
 export const useUserProfiles = (initialUsers: UserProfile[] = []) => {
-  // Reactive state
   const users = ref<UserProfile[]>([...initialUsers])
-  const userMap = ref<Map<string, UserProfile>>(new Map())
-
-  // Initialize index
-  initialUsers.forEach(user => {
-    userMap.value.set(user.id, user)
-  })
+  const userMap = ref<Map<string, UserProfile>>(
+    initializeMapFromArray(initialUsers)
+  )
 
   const currentUser = ref<UserProfile | null>(null)
 
@@ -49,10 +50,7 @@ export const useUserProfiles = (initialUsers: UserProfile[] = []) => {
       },
     }
 
-    // O(1) map insertion
-    userMap.value.set(profile.id, profile)
-    // O(1) array push (maintains reactive state)
-    users.value.push(profile)
+    addToArrayMap(users, userMap, profile)
 
     return profile
   }
@@ -61,7 +59,6 @@ export const useUserProfiles = (initialUsers: UserProfile[] = []) => {
     userId: string,
     updates: UpdateUserData
   ): UserProfile | null => {
-    // O(1) map lookup
     const user = userMap.value.get(userId)
     if (!user) return null
 
@@ -73,14 +70,7 @@ export const useUserProfiles = (initialUsers: UserProfile[] = []) => {
         : user.privacy,
     }
 
-    // O(1) map update
-    userMap.value.set(userId, updatedUser)
-
-    // Find and update in array (maintains reactive state)
-    const index = users.value.findIndex(u => u.id === userId)
-    if (index !== -1) {
-      users.value[index] = updatedUser
-    }
+    updateInArrayMap(users, userMap, userId, updatedUser)
 
     return updatedUser
   }
@@ -90,32 +80,22 @@ export const useUserProfiles = (initialUsers: UserProfile[] = []) => {
     type: 'comments' | 'resources' | 'votes',
     amount: number = 1
   ): void => {
-    // O(1) map lookup
     const user = userMap.value.get(userId)
     if (!user) return
 
     user.contributionsDetail[type] += amount
     user.contributions = (user.contributions || 0) + amount
 
-    // Update in array
-    const index = users.value.findIndex(u => u.id === userId)
-    if (index !== -1) {
-      users.value[index] = { ...user }
-    }
+    updateInArrayMap(users, userMap, userId, { ...user })
   }
 
   const updateReputation = (userId: string, amount: number): void => {
-    // O(1) map lookup
     const user = userMap.value.get(userId)
     if (!user) return
 
     user.reputation = (user.reputation || 0) + amount
 
-    // Update in array
-    const index = users.value.findIndex(u => u.id === userId)
-    if (index !== -1) {
-      users.value[index] = { ...user }
-    }
+    updateInArrayMap(users, userMap, userId, { ...user })
   }
 
   const getUserProfile = (userId: string): UserProfile | null => {
@@ -127,17 +107,12 @@ export const useUserProfiles = (initialUsers: UserProfile[] = []) => {
     userId: string,
     isModerator: boolean
   ): boolean => {
-    // O(1) map lookup
     const user = userMap.value.get(userId)
     if (!user) return false
 
     user.isModerator = isModerator
 
-    // Update in array
-    const index = users.value.findIndex(u => u.id === userId)
-    if (index !== -1) {
-      users.value[index] = { ...user }
-    }
+    updateInArrayMap(users, userMap, userId, { ...user })
 
     return true
   }
