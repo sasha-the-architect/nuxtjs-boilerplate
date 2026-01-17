@@ -1,13 +1,47 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { useBookmarks, resetBookmarksState } from '~/composables/useBookmarks'
+import { useBookmarks, resetBookmarks } from '~/composables/useBookmarks'
 import type { Bookmark } from '~/composables/useBookmarks'
+
+const localStorageMock = (() => {
+  const store: Record<string, string> = {}
+
+  return {
+    getItem: vi.fn((key: string) => store[key] || null),
+    setItem: vi.fn((key: string, value: string) => {
+      ;(store as any)[key] = value
+    }),
+    removeItem: vi.fn((key: string) => {
+      delete store[key]
+    }),
+    clear: vi.fn(() => {
+      for (const key in store) {
+        delete store[key]
+      }
+    }),
+    get length() {
+      return Object.keys(store).length
+    },
+    key: vi.fn((index: number) => {
+      return Object.keys(store)[index] || null
+    }),
+    _clearStore: () => {
+      for (const key in store) {
+        delete store[key]
+      }
+    },
+  }
+})()
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+})
 
 describe('useBookmarks', () => {
   beforeEach(() => {
-    localStorage.clear()
     vi.clearAllMocks()
+    localStorageMock._clearStore()
     vi.useFakeTimers()
-    resetBookmarksState()
+    resetBookmarks()
   })
 
   afterEach(() => {
@@ -47,13 +81,13 @@ describe('useBookmarks', () => {
     it('should return true for bookmarked resource', () => {
       const { addBookmark, isBookmarked } = useBookmarks()
       addBookmark({
-        id: '1',
+        id: 'is-bookmarked-1',
         title: 'Test',
         description: 'Test',
         url: 'https://test.com',
       })
 
-      expect(isBookmarked('1')).toBe(true)
+      expect(isBookmarked('is-bookmarked-1')).toBe(true)
     })
 
     it('should return false for non-bookmarked resource', () => {
@@ -67,14 +101,14 @@ describe('useBookmarks', () => {
       const { addBookmark, bookmarks } = useBookmarks()
 
       addBookmark({
-        id: '1',
+        id: 'add-success-1',
         title: 'Test Resource',
         description: 'Test Description',
         url: 'https://example.com',
       })
 
       expect(bookmarks.value).toHaveLength(1)
-      expect(bookmarks.value[0].id).toBe('1')
+      expect(bookmarks.value[0].id).toBe('add-success-1')
       expect(bookmarks.value[0].title).toBe('Test Resource')
       expect(bookmarks.value[0].addedAt).toBeInstanceOf(Date)
     })
@@ -84,7 +118,7 @@ describe('useBookmarks', () => {
       const beforeAdd = Date.now()
 
       addBookmark({
-        id: '1',
+        id: 'add-time-1',
         title: 'Test',
         description: 'Test',
         url: 'https://test.com',
@@ -101,7 +135,7 @@ describe('useBookmarks', () => {
       const { addBookmark } = useBookmarks()
 
       addBookmark({
-        id: '1',
+        id: 'persist-1',
         title: 'Test',
         description: 'Test',
         url: 'https://test.com',
@@ -119,7 +153,7 @@ describe('useBookmarks', () => {
 
       const { addBookmark } = useBookmarks()
       addBookmark({
-        id: '1',
+        id: 'event-1',
         title: 'Test',
         description: 'Test',
         url: 'https://test.com',
@@ -135,14 +169,14 @@ describe('useBookmarks', () => {
       const { addBookmark, bookmarks } = useBookmarks()
 
       addBookmark({
-        id: '1',
+        id: 'duplicate-1',
         title: 'Test',
         description: 'Test',
         url: 'https://test.com',
       })
 
       addBookmark({
-        id: '1',
+        id: 'duplicate-1',
         title: 'Duplicate',
         description: 'Duplicate',
         url: 'https://duplicate.com',
@@ -158,13 +192,13 @@ describe('useBookmarks', () => {
       const { addBookmark, removeBookmark, bookmarks } = useBookmarks()
 
       addBookmark({
-        id: '1',
+        id: 'remove-1',
         title: 'Test',
         description: 'Test',
         url: 'https://test.com',
       })
 
-      removeBookmark('1')
+      removeBookmark('remove-1')
 
       expect(bookmarks.value).toHaveLength(0)
     })
@@ -173,13 +207,13 @@ describe('useBookmarks', () => {
       const { addBookmark, removeBookmark } = useBookmarks()
 
       addBookmark({
-        id: '1',
+        id: 'persist-remove-1',
         title: 'Test',
         description: 'Test',
         url: 'https://test.com',
       })
 
-      removeBookmark('1')
+      removeBookmark('persist-remove-1')
 
       const stored = localStorage.getItem('resource_bookmarks')
       const parsed = JSON.parse(stored!)
@@ -192,12 +226,12 @@ describe('useBookmarks', () => {
 
       const { addBookmark, removeBookmark } = useBookmarks()
       addBookmark({
-        id: '1',
+        id: 'event-remove-1',
         title: 'Test',
         description: 'Test',
         url: 'https://test.com',
       })
-      removeBookmark('1')
+      removeBookmark('event-remove-1')
 
       expect(eventListener).toHaveBeenCalledTimes(2)
       window.removeEventListener('bookmarksUpdated', eventListener)

@@ -28,6 +28,16 @@ export const resetBookmarksState = () => {
   storage.remove()
 }
 
+export const resetBookmarks = () => {
+  if (bookmarksRef) {
+    bookmarksRef.value.length = 0
+    bookmarksRef = null
+  }
+  if (typeof window !== 'undefined') {
+    storage.remove()
+  }
+}
+
 export const useBookmarks = () => {
   const bookmarks = bookmarksRef || ref<Bookmark[]>([])
   bookmarksRef = bookmarks

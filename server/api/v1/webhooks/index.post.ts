@@ -1,6 +1,7 @@
 import type { CreateWebhookRequest, Webhook } from '~/types/webhook'
 import { randomUUID } from 'node:crypto'
 import { webhookStorage } from '~/server/utils/webhookStorage'
+import { createWebhookSchema } from '~/server/utils/validation-schemas'
 import {
   sendSuccessResponse,
   sendBadRequestError,
@@ -11,31 +12,25 @@ export default defineEventHandler(async event => {
   try {
     const body = await readBody<CreateWebhookRequest>(event)
 
-    // Validate required fields
-    if (
-      !body.url ||
-      !body.events ||
-      !Array.isArray(body.events) ||
-      body.events.length === 0
-    ) {
-      return sendBadRequestError(event, 'URL and events are required')
+    const validationResult = createWebhookSchema.safeParse(body)
+
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.issues
+        .map(e => e.message)
+        .join(', ')
+      return sendBadRequestError(event, errorMessages)
     }
 
-    // Validate URL format
-    try {
-      new URL(body.url)
-    } catch {
-      return sendBadRequestError(event, 'Invalid URL format')
-    }
+    const validatedBody = validationResult.data
 
     // Generate secret for webhook
     const secret = `whsec_${randomUUID()}`
 
     const newWebhook: Webhook = {
       id: `wh_${randomUUID()}`,
-      url: body.url,
-      events: body.events,
-      active: body.active ?? true,
+      url: validatedBody.url,
+      events: validatedBody.events,
+      active: validatedBody.active ?? true,
       secret,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

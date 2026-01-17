@@ -84,14 +84,11 @@ export const useSearchPage = () => {
 
     let result = searchedResources.value
 
-    result = result.filter(
-      resource =>
-        filterByAllCriteriaWithDateRange([resource], {
-          ...filterOptions.value,
-          benefits: filterOptions.value.benefits,
-          dateRange: filterOptions.value.dateRange,
-        }).length > 0
-    )
+    result = filterByAllCriteriaWithDateRange(result, {
+      ...filterOptions.value,
+      benefits: filterOptions.value.benefits,
+      dateRange: filterOptions.value.dateRange,
+    })
 
     return sortResources(result, sortOption.value)
   })

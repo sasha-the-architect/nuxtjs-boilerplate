@@ -3,60 +3,48 @@
 
 import { readBody, getQuery } from 'h3'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
-
-interface UpdatePreferencesBody {
-  categories?: string[]
-  technologies?: string[]
-  skillLevel?: 'beginner' | 'intermediate' | 'advanced' | 'expert'
-  interests?: string[]
-  notificationSettings?: {
-    resourceUpdates?: boolean
-    newContent?: boolean
-    weeklyDigest?: boolean
-  }
-  privacySettings?: {
-    allowPersonalization?: boolean
-    allowDataCollection?: boolean
-    allowRecommendationExplanations?: boolean
-  }
-}
+import { updateUserPreferencesSchema } from '~/server/utils/validation-schemas'
+import { sendBadRequestError } from '~/server/utils/api-response'
 
 export default defineEventHandler(async event => {
   await rateLimit(event)
 
   try {
-    const body = await readBody<UpdatePreferencesBody>(event)
+    const body = await readBody(event)
     const query = getQuery(event)
     const userId = (query.userId as string) || 'default-user'
 
-    // Validate the request body
-    if (!body) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Request body is required',
-      })
+    const validationResult = updateUserPreferencesSchema.safeParse(body)
+
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.issues
+        .map(e => e.message)
+        .join(', ')
+      return sendBadRequestError(event, errorMessages)
     }
 
-    // In a real implementation, we would update the user's preferences in a database
-    // For this mock, we'll just return the updated preferences
+    const validatedBody = validationResult.data
 
     const updatedPreferences = {
       id: userId,
-      categories: body.categories || [],
-      technologies: body.technologies || [],
-      skillLevel: body.skillLevel || 'intermediate',
-      interests: body.interests || [],
+      categories: validatedBody.categories || [],
+      technologies: validatedBody.technologies || [],
+      skillLevel: validatedBody.skillLevel || 'intermediate',
+      interests: validatedBody.interests || [],
       notificationSettings: {
-        resourceUpdates: body.notificationSettings?.resourceUpdates ?? true,
-        newContent: body.notificationSettings?.newContent ?? true,
-        weeklyDigest: body.notificationSettings?.weeklyDigest ?? true,
+        resourceUpdates:
+          validatedBody.notificationSettings?.resourceUpdates ?? true,
+        newContent: validatedBody.notificationSettings?.newContent ?? true,
+        weeklyDigest: validatedBody.notificationSettings?.weeklyDigest ?? true,
       },
       privacySettings: {
         allowPersonalization:
-          body.privacySettings?.allowPersonalization ?? true,
-        allowDataCollection: body.privacySettings?.allowDataCollection ?? true,
+          validatedBody.privacySettings?.allowPersonalization ?? true,
+        allowDataCollection:
+          validatedBody.privacySettings?.allowDataCollection ?? true,
         allowRecommendationExplanations:
-          body.privacySettings?.allowRecommendationExplanations ?? true,
+          validatedBody.privacySettings?.allowRecommendationExplanations ??
+          true,
       },
       createdAt: new Date().toISOString(),
       lastUpdated: new Date().toISOString(),

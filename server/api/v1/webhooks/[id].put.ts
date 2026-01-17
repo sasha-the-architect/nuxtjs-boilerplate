@@ -1,5 +1,6 @@
 import type { UpdateWebhookRequest } from '~/types/webhook'
 import { webhookStorage } from '~/server/utils/webhookStorage'
+import { updateWebhookSchema } from '~/server/utils/validation-schemas'
 import {
   sendBadRequestError,
   sendNotFoundError,
@@ -12,6 +13,18 @@ export default defineEventHandler(async event => {
     const id = event.context.params?.id as string
     const body = await readBody<UpdateWebhookRequest>(event)
 
+    const validationResult = updateWebhookSchema.safeParse(body)
+
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.issues
+        .map(e => e.message)
+        .join(', ')
+      sendBadRequestError(event, errorMessages)
+      return
+    }
+
+    const validatedBody = validationResult.data
+
     // Find webhook by ID
     const existingWebhook = webhookStorage.getWebhookById(id)
     if (!existingWebhook) {
@@ -19,18 +32,8 @@ export default defineEventHandler(async event => {
       return
     }
 
-    // Validate URL if provided
-    if (body.url) {
-      try {
-        new URL(body.url)
-      } catch {
-        sendBadRequestError(event, 'Invalid URL format')
-        return
-      }
-    }
-
     // Update webhook
-    const updatedWebhook = webhookStorage.updateWebhook(id, body)
+    const updatedWebhook = webhookStorage.updateWebhook(id, validatedBody)
     if (!updatedWebhook) {
       sendNotFoundError(event, 'Webhook', id)
       return
