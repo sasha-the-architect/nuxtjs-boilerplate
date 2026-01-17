@@ -4,7 +4,7 @@ import { useFilterUtils } from './useFilterUtils'
 
 // Composable for managing resource filters
 export const useResourceFilters = (resources: readonly Resource[]) => {
-  const { filterByAllCriteria, parseDate } = useFilterUtils()
+  const { filterByAllCriteria, parseDate, toggleArrayItem } = useFilterUtils()
 
   // Filter options
   const filterOptions = ref<FilterOptions>({
@@ -51,58 +51,38 @@ export const useResourceFilters = (resources: readonly Resource[]) => {
   }
 
   const toggleCategory = (category: string) => {
-    const current = [...(filterOptions.value.categories || [])]
-    const index = current.indexOf(category)
-    if (index > -1) {
-      current.splice(index, 1)
-    } else {
-      current.push(category)
-    }
-    filterOptions.value.categories = current
+    filterOptions.value.categories = toggleArrayItem(
+      filterOptions.value.categories || [],
+      category
+    )
   }
 
   const togglePricingModel = (pricingModel: string) => {
-    const current = [...(filterOptions.value.pricingModels || [])]
-    const index = current.indexOf(pricingModel)
-    if (index > -1) {
-      current.splice(index, 1)
-    } else {
-      current.push(pricingModel)
-    }
-    filterOptions.value.pricingModels = current
+    filterOptions.value.pricingModels = toggleArrayItem(
+      filterOptions.value.pricingModels || [],
+      pricingModel
+    )
   }
 
   const toggleDifficultyLevel = (difficulty: string) => {
-    const current = [...(filterOptions.value.difficultyLevels || [])]
-    const index = current.indexOf(difficulty)
-    if (index > -1) {
-      current.splice(index, 1)
-    } else {
-      current.push(difficulty)
-    }
-    filterOptions.value.difficultyLevels = current
+    filterOptions.value.difficultyLevels = toggleArrayItem(
+      filterOptions.value.difficultyLevels || [],
+      difficulty
+    )
   }
 
   const toggleTechnology = (technology: string) => {
-    const current = [...(filterOptions.value.technologies || [])]
-    const index = current.indexOf(technology)
-    if (index > -1) {
-      current.splice(index, 1)
-    } else {
-      current.push(technology)
-    }
-    filterOptions.value.technologies = current
+    filterOptions.value.technologies = toggleArrayItem(
+      filterOptions.value.technologies || [],
+      technology
+    )
   }
 
   const toggleTag = (tag: string) => {
-    const current = [...(filterOptions.value.tags || [])]
-    const index = current.indexOf(tag)
-    if (index > -1) {
-      current.splice(index, 1)
-    } else {
-      current.push(tag)
-    }
-    filterOptions.value.tags = current
+    filterOptions.value.tags = toggleArrayItem(
+      filterOptions.value.tags || [],
+      tag
+    )
   }
 
   const setSortOption = (option: SortOption) => {

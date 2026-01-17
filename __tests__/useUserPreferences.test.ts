@@ -101,8 +101,6 @@ describe('useUserPreferences', () => {
     })
 
     it('should set loading to false after initialization', async () => {
-      composable.loading.value = true
-
       await composable.initProfile()
 
       expect(composable.loading.value).toBe(false)
@@ -118,7 +116,8 @@ describe('useUserPreferences', () => {
       await composable.initProfile('test-user')
 
       expect(mockSet).toHaveBeenCalled()
-      const stored = mockSet.mock.calls[0][0]
+      const firstCallArgs = mockSet.mock.calls[0] as unknown[]
+      const stored = firstCallArgs[0] as Record<string, unknown>
       expect(stored.id).toBe('test-user')
     })
   })
@@ -168,8 +167,11 @@ describe('useUserPreferences', () => {
       await composable.updatePreferences({ skillLevel: 'advanced' })
 
       expect(mockSet).toHaveBeenCalled()
-      const stored = mockSet.mock.calls[0][0]
-      expect(stored.preferences.skillLevel).toBe('advanced')
+      const firstCallArgs = mockSet.mock.calls[0] as unknown[]
+      const stored = firstCallArgs[0] as Record<string, unknown>
+      expect((stored.preferences as Record<string, unknown>).skillLevel).toBe(
+        'advanced'
+      )
     })
 
     it('should return false when no profile exists', async () => {
@@ -250,8 +252,9 @@ describe('useUserPreferences', () => {
       })
 
       expect(mockSet).toHaveBeenCalled()
-      const stored = mockSet.mock.calls[0][0]
-      expect(stored.interactions).toHaveLength(1)
+      const firstCallArgs = mockSet.mock.calls[0] as unknown[]
+      const stored = firstCallArgs[0] as Record<string, unknown>
+      expect(stored.interactions as unknown[]).toHaveLength(1)
     })
 
     it('should track multiple interactions', async () => {

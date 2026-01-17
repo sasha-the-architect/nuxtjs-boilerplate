@@ -48,9 +48,9 @@ export const memoize = <T extends (...args: unknown[]) => ReturnType<T>>(
   const cache = new Map<string, ReturnType<T>>()
   allCaches.add(cache)
 
-  // Use custom key generator if provided, otherwise use default
   const defaultKeyGenerator = (...args: Parameters<T>): string => {
-    return keyGenerator ? keyGenerator(...args) : generateArgsKey(args)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return keyGenerator ? (keyGenerator as any)(...args) : generateArgsKey(args)
   }
 
   return ((...args: Parameters<T>) => {

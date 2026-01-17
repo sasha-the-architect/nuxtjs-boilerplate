@@ -4,7 +4,8 @@ import {
   calculateInterestMatch,
   calculateCollaborativeScore,
 } from '~/utils/recommendation-algorithms'
-import type { Resource, UserPreferences } from '~/types/resource'
+import type { Resource } from '~/types/resource'
+import type { UserPreferences } from '~/utils/recommendation-algorithms'
 
 // Create mock resource
 const createMockResource = (
@@ -25,9 +26,8 @@ const createMockResource = (
     tags,
     technology,
     benefits: [],
-    lastUpdated: Date.now(),
-    featured: false,
-    trending: false,
+    lastUpdated: new Date(Date.now()).toISOString(),
+    dateAdded: new Date(Date.now()).toISOString(),
     alternatives: [],
   }
 }

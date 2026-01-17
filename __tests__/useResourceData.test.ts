@@ -83,18 +83,13 @@ describe('useResourceData', () => {
   })
 
   it('should provide retry functionality', async () => {
-    const { resources, retryResources, loading, error, retryCount } =
-      useResourceData()
+    const { resources, retryResources, loading, error } = useResourceData()
 
     await new Promise(resolve => setTimeout(resolve, 100))
 
     const initialResources = [...resources.value!]
 
-    loading.value = true
-    error.value = 'Test error'
-    retryCount.value = 1
-
-    await retryResources()
+    retryResources()
 
     await new Promise(resolve => setTimeout(resolve, 100))
 

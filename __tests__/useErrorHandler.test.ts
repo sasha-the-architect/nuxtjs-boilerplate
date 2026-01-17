@@ -338,7 +338,7 @@ describe('useErrorHandler', () => {
       const error = new Error('Test')
       error.stack = undefined
 
-      handleError(error, { details: null })
+      handleError(error, { details: undefined })
 
       expect(errorDetails.value).toBe(null)
     })

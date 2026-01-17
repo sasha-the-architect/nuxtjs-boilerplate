@@ -19,15 +19,31 @@ vi.mock('~/server/utils/db', () => ({
 
 import prisma from '~/server/utils/db'
 
+const mockPrisma = prisma as unknown as {
+  analyticsEvent: {
+    create: ReturnType<typeof vi.fn>
+    findMany: ReturnType<typeof vi.fn>
+    count: ReturnType<typeof vi.fn>
+    groupBy: ReturnType<typeof vi.fn>
+    findFirst: ReturnType<typeof vi.fn>
+    updateMany: ReturnType<typeof vi.fn>
+    deleteMany: ReturnType<typeof vi.fn>
+  }
+  $queryRaw: ReturnType<typeof vi.fn>
+  $disconnect: ReturnType<typeof vi.fn>
+}
+
 describe('analytics-db', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockPrisma.$queryRaw.mockResolvedValue([])
+    mockPrisma.$disconnect.mockResolvedValue(undefined)
   })
 
   describe('insertAnalyticsEvent', () => {
     describe('Happy Path - Inserts event successfully', () => {
       it('should insert event with all fields', async () => {
-        vi.mocked(prisma.analyticsEvent.create).mockResolvedValue({
+        vi.mocked(mockPrisma.analyticsEvent.create).mockResolvedValue({
           id: '1',
           type: 'resource_view',
           resourceId: 'resource-123',
@@ -53,7 +69,7 @@ describe('analytics-db', () => {
         const result = await analyticsDb.insertAnalyticsEvent(event)
 
         expect(result).toEqual({ success: true })
-        expect(prisma.analyticsEvent.create).toHaveBeenCalledWith({
+        expect(mockPrisma.analyticsEvent.create).toHaveBeenCalledWith({
           data: {
             type: event.type,
             resourceId: event.resourceId,
@@ -69,7 +85,7 @@ describe('analytics-db', () => {
       })
 
       it('should insert event with minimal required fields', async () => {
-        vi.mocked(prisma.analyticsEvent.create).mockResolvedValue({
+        vi.mocked(mockPrisma.analyticsEvent.create).mockResolvedValue({
           id: '1',
           type: 'search',
           timestamp: Date.now(),
@@ -83,7 +99,7 @@ describe('analytics-db', () => {
         const result = await analyticsDb.insertAnalyticsEvent(event)
 
         expect(result).toEqual({ success: true })
-        expect(prisma.analyticsEvent.create).toHaveBeenCalledWith({
+        expect(mockPrisma.analyticsEvent.create).toHaveBeenCalledWith({
           data: {
             type: event.type,
             resourceId: null,
@@ -99,7 +115,7 @@ describe('analytics-db', () => {
       })
 
       it('should handle null ip address', async () => {
-        vi.mocked(prisma.analyticsEvent.create).mockResolvedValue({
+        vi.mocked(mockPrisma.analyticsEvent.create).mockResolvedValue({
           id: '1',
           type: 'resource_view',
           timestamp: Date.now(),
@@ -115,7 +131,7 @@ describe('analytics-db', () => {
 
         // Schema requires ip to be a string, null should fail validation
         expect(result).toEqual({ success: false, error: expect.any(String) })
-        expect(prisma.analyticsEvent.create).not.toHaveBeenCalled()
+        expect(mockPrisma.analyticsEvent.create).not.toHaveBeenCalled()
       })
     })
 
@@ -124,7 +140,7 @@ describe('analytics-db', () => {
         const consoleErrorSpy = vi
           .spyOn(console, 'error')
           .mockImplementation(() => {})
-        vi.mocked(prisma.analyticsEvent.create).mockRejectedValue(
+        vi.mocked(mockPrisma.analyticsEvent.create).mockRejectedValue(
           new Error('Database connection failed')
         )
 
@@ -151,7 +167,7 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.findMany).mockResolvedValue([
+        vi.mocked(mockPrisma.analyticsEvent.findMany).mockResolvedValue([
           {
             id: '1',
             type: 'resource_view',
@@ -185,7 +201,7 @@ describe('analytics-db', () => {
         expect(result[0].type).toBe('resource_view')
         expect(result[1].type).toBe('search')
         expect(result[1].properties).toEqual({ query: 'test' })
-        expect(prisma.analyticsEvent.findMany).toHaveBeenCalledWith({
+        expect(mockPrisma.analyticsEvent.findMany).toHaveBeenCalledWith({
           where: {
             timestamp: {
               gte: startDate.getTime(),
@@ -204,11 +220,11 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.findMany).mockResolvedValue([])
+        vi.mocked(mockPrisma.analyticsEvent.findMany).mockResolvedValue([])
 
         await analyticsDb.getAnalyticsEventsByDateRange(startDate, endDate, 500)
 
-        expect(prisma.analyticsEvent.findMany).toHaveBeenCalledWith({
+        expect(mockPrisma.analyticsEvent.findMany).toHaveBeenCalledWith({
           where: expect.anything(),
           orderBy: expect.anything(),
           take: 500,
@@ -219,7 +235,7 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.findMany).mockResolvedValue([])
+        vi.mocked(mockPrisma.analyticsEvent.findMany).mockResolvedValue([])
 
         const result = await analyticsDb.getAnalyticsEventsByDateRange(
           startDate,
@@ -238,7 +254,7 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.findMany).mockRejectedValue(
+        vi.mocked(mockPrisma.analyticsEvent.findMany).mockRejectedValue(
           new Error('Database connection failed')
         )
 
@@ -264,7 +280,7 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.findMany).mockResolvedValue([
+        vi.mocked(mockPrisma.analyticsEvent.findMany).mockResolvedValue([
           {
             id: '1',
             type: 'resource_view',
@@ -286,7 +302,7 @@ describe('analytics-db', () => {
 
         expect(result).toHaveLength(1)
         expect(result[0].resourceId).toBe(resourceId)
-        expect(prisma.analyticsEvent.findMany).toHaveBeenCalledWith({
+        expect(mockPrisma.analyticsEvent.findMany).toHaveBeenCalledWith({
           where: {
             resourceId,
             timestamp: {
@@ -306,7 +322,7 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.findMany).mockResolvedValue([])
+        vi.mocked(mockPrisma.analyticsEvent.findMany).mockResolvedValue([])
 
         await analyticsDb.getAnalyticsEventsForResource(
           resourceId,
@@ -315,7 +331,7 @@ describe('analytics-db', () => {
           'resource_view'
         )
 
-        expect(prisma.analyticsEvent.findMany).toHaveBeenCalledWith({
+        expect(mockPrisma.analyticsEvent.findMany).toHaveBeenCalledWith({
           where: {
             resourceId,
             timestamp: {
@@ -334,7 +350,7 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.findMany).mockResolvedValue([])
+        vi.mocked(mockPrisma.analyticsEvent.findMany).mockResolvedValue([])
 
         const result = await analyticsDb.getAnalyticsEventsForResource(
           resourceId,
@@ -351,7 +367,7 @@ describe('analytics-db', () => {
         const consoleErrorSpy = vi
           .spyOn(console, 'error')
           .mockImplementation(() => {})
-        vi.mocked(prisma.analyticsEvent.findMany).mockRejectedValue(
+        vi.mocked(mockPrisma.analyticsEvent.findMany).mockRejectedValue(
           new Error('Database connection failed')
         )
 
@@ -377,12 +393,12 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.count).mockResolvedValue(100)
-        vi.mocked(prisma.analyticsEvent.groupBy).mockResolvedValue([
+        vi.mocked(mockPrisma.analyticsEvent.count).mockResolvedValue(100)
+        vi.mocked(mockPrisma.analyticsEvent.groupBy).mockResolvedValue([
           { type: 'resource_view', _count: 80 },
           { type: 'search', _count: 20 },
         ])
-        vi.mocked(prisma.$queryRaw).mockResolvedValue([
+        vi.mocked(mockPrisma.$queryRaw).mockResolvedValue([
           { date: '2026-01-01', count: 50 },
           { date: '2026-01-02', count: 50 },
         ])
@@ -409,8 +425,8 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.count).mockResolvedValue(80)
-        vi.mocked(prisma.analyticsEvent.groupBy).mockImplementation(
+        vi.mocked(mockPrisma.analyticsEvent.count).mockResolvedValue(80)
+        vi.mocked(mockPrisma.analyticsEvent.groupBy).mockImplementation(
           async (args: any) => {
             if (args && 'by' in args && args.by[0] === 'resourceId') {
               return [
@@ -421,7 +437,7 @@ describe('analytics-db', () => {
             return []
           }
         )
-        vi.mocked(prisma.$queryRaw).mockResolvedValue([])
+        vi.mocked(mockPrisma.$queryRaw).mockResolvedValue([])
 
         const result = await analyticsDb.getAggregatedAnalytics(
           startDate,
@@ -438,10 +454,10 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.count).mockResolvedValue(100)
-        vi.mocked(prisma.$queryRaw).mockResolvedValue([])
+        vi.mocked(mockPrisma.analyticsEvent.count).mockResolvedValue(100)
+        vi.mocked(mockPrisma.$queryRaw).mockResolvedValue([])
 
-        vi.mocked(prisma.analyticsEvent.groupBy).mockImplementation(
+        vi.mocked(mockPrisma.analyticsEvent.groupBy).mockImplementation(
           async (args: any) => {
             if (args && 'by' in args && args.by[0] === 'category') {
               return [
@@ -470,7 +486,7 @@ describe('analytics-db', () => {
         const consoleErrorSpy = vi
           .spyOn(console, 'error')
           .mockImplementation(() => {})
-        vi.mocked(prisma.analyticsEvent.count).mockRejectedValue(
+        vi.mocked(mockPrisma.analyticsEvent.count).mockRejectedValue(
           new Error('Database connection failed')
         )
 
@@ -502,15 +518,15 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.count).mockResolvedValue(100)
-        vi.mocked(prisma.analyticsEvent.groupBy).mockResolvedValue([
+        vi.mocked(mockPrisma.analyticsEvent.count).mockResolvedValue(100)
+        vi.mocked(mockPrisma.analyticsEvent.groupBy).mockResolvedValue([
           { ip: '127.0.0.1', _count: 1 },
           { ip: '192.168.1.1', _count: 1 },
         ])
-        vi.mocked(prisma.analyticsEvent.findFirst).mockResolvedValue({
+        vi.mocked(mockPrisma.analyticsEvent.findFirst).mockResolvedValue({
           timestamp: endDate.getTime(),
         } as any)
-        vi.mocked(prisma.$queryRaw).mockResolvedValue([
+        vi.mocked(mockPrisma.$queryRaw).mockResolvedValue([
           { date: '2026-01-01', count: 50 },
           { date: '2026-01-02', count: 50 },
         ])
@@ -538,10 +554,10 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.count).mockResolvedValue(0)
-        vi.mocked(prisma.analyticsEvent.groupBy).mockResolvedValue([])
-        vi.mocked(prisma.analyticsEvent.findFirst).mockResolvedValue(null)
-        vi.mocked(prisma.$queryRaw).mockResolvedValue([])
+        vi.mocked(mockPrisma.analyticsEvent.count).mockResolvedValue(0)
+        vi.mocked(mockPrisma.analyticsEvent.groupBy).mockResolvedValue([])
+        vi.mocked(mockPrisma.analyticsEvent.findFirst).mockResolvedValue(null)
+        vi.mocked(mockPrisma.$queryRaw).mockResolvedValue([])
 
         const result = await analyticsDb.getResourceAnalytics(
           resourceId,
@@ -561,7 +577,7 @@ describe('analytics-db', () => {
         const consoleErrorSpy = vi
           .spyOn(console, 'error')
           .mockImplementation(() => {})
-        vi.mocked(prisma.analyticsEvent.count).mockRejectedValue(
+        vi.mocked(mockPrisma.analyticsEvent.count).mockRejectedValue(
           new Error('Database connection failed')
         )
 
@@ -593,7 +609,7 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.findMany).mockResolvedValue([
+        vi.mocked(mockPrisma.analyticsEvent.findMany).mockResolvedValue([
           {
             id: '1',
             type: 'resource_view',
@@ -624,7 +640,7 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.findMany).mockResolvedValue([
+        vi.mocked(mockPrisma.analyticsEvent.findMany).mockResolvedValue([
           {
             id: '1',
             type: 'resource_view',
@@ -651,7 +667,7 @@ describe('analytics-db', () => {
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
 
-        vi.mocked(prisma.analyticsEvent.findMany).mockResolvedValue([])
+        vi.mocked(mockPrisma.analyticsEvent.findMany).mockResolvedValue([])
 
         const result = await analyticsDb.exportAnalyticsToCsv(
           startDate,
@@ -671,7 +687,7 @@ describe('analytics-db', () => {
         const consoleErrorSpy = vi
           .spyOn(console, 'error')
           .mockImplementation(() => {})
-        vi.mocked(prisma.analyticsEvent.findMany).mockRejectedValue(
+        vi.mocked(mockPrisma.analyticsEvent.findMany).mockRejectedValue(
           new Error('Database connection failed')
         )
 
@@ -695,14 +711,14 @@ describe('analytics-db', () => {
   describe('cleanupOldEvents', () => {
     describe('Happy Path - Deletes old events', () => {
       it('should delete events older than retention period', async () => {
-        vi.mocked(prisma.analyticsEvent.updateMany).mockResolvedValue({
+        vi.mocked(mockPrisma.analyticsEvent.updateMany).mockResolvedValue({
           count: 100,
         })
 
         const result = await analyticsDb.cleanupOldEvents(30)
 
         expect(result).toBe(100)
-        expect(prisma.analyticsEvent.updateMany).toHaveBeenCalledWith({
+        expect(mockPrisma.analyticsEvent.updateMany).toHaveBeenCalledWith({
           where: {
             timestamp: {
               lt: expect.any(Number),
@@ -716,13 +732,13 @@ describe('analytics-db', () => {
       })
 
       it('should use default 30 day retention period', async () => {
-        vi.mocked(prisma.analyticsEvent.updateMany).mockResolvedValue({
+        vi.mocked(mockPrisma.analyticsEvent.updateMany).mockResolvedValue({
           count: 0,
         })
 
         await analyticsDb.cleanupOldEvents()
 
-        expect(prisma.analyticsEvent.updateMany).toHaveBeenCalledWith({
+        expect(mockPrisma.analyticsEvent.updateMany).toHaveBeenCalledWith({
           where: {
             timestamp: {
               lt: expect.any(Number),
@@ -736,7 +752,7 @@ describe('analytics-db', () => {
       })
 
       it('should return 0 when no events to delete', async () => {
-        vi.mocked(prisma.analyticsEvent.deleteMany).mockResolvedValue({
+        vi.mocked(mockPrisma.analyticsEvent.deleteMany).mockResolvedValue({
           count: 0,
         })
 
@@ -751,7 +767,7 @@ describe('analytics-db', () => {
         const consoleErrorSpy = vi
           .spyOn(console, 'error')
           .mockImplementation(() => {})
-        vi.mocked(prisma.analyticsEvent.updateMany).mockRejectedValue(
+        vi.mocked(mockPrisma.analyticsEvent.updateMany).mockRejectedValue(
           new Error('Database connection failed')
         )
 
@@ -771,7 +787,7 @@ describe('analytics-db', () => {
     it('should disconnect from database', async () => {
       await analyticsDb.closeDatabase()
 
-      expect(prisma.$disconnect).toHaveBeenCalled()
+      expect(mockPrisma.$disconnect).toHaveBeenCalled()
     })
   })
 })

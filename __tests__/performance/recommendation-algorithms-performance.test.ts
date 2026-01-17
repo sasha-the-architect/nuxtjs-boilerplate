@@ -25,9 +25,8 @@ const createMockResource = (
     tags,
     technology,
     benefits: [],
-    lastUpdated: Date.now(),
-    featured: false,
-    trending: false,
+    lastUpdated: new Date(Date.now()).toISOString(),
+    dateAdded: new Date(Date.now()).toISOString(),
     alternatives: [],
   }
 }

@@ -10,7 +10,7 @@ describe('Memoization Utilities', () => {
         return a + b
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       const result1 = memoizedFn(1, 2)
       const result2 = memoizedFn(1, 2)
@@ -27,7 +27,7 @@ describe('Memoization Utilities', () => {
         return a + b
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       memoizedFn(1, 2)
       memoizedFn(2, 3)
@@ -43,7 +43,7 @@ describe('Memoization Utilities', () => {
         return obj.a
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       memoizedFn({ a: 1 })
       memoizedFn({ a: 1 })
@@ -60,7 +60,7 @@ describe('Memoization Utilities', () => {
 
       const customKeyFn = (obj: { id: number; value: string }) =>
         obj.id.toString()
-      const memoizedFn = memoize(fn, customKeyFn)
+      const memoizedFn = memoize(fn as any, customKeyFn as any)
 
       memoizedFn({ id: 1, value: 'first' })
       memoizedFn({ id: 1, value: 'second' })
@@ -75,7 +75,7 @@ describe('Memoization Utilities', () => {
         return `${a}-${b}-${c}`
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       memoizedFn('test', 42, true)
       memoizedFn('test', 42, true)
@@ -85,7 +85,7 @@ describe('Memoization Utilities', () => {
 
     it('should return correct type', () => {
       const fn = (x: number) => x * 2
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       const result: number = memoizedFn(5)
 
@@ -99,7 +99,7 @@ describe('Memoization Utilities', () => {
         return value
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       memoizedFn(1)
       memoizedFn(1)
@@ -114,7 +114,7 @@ describe('Memoization Utilities', () => {
         return x * 2
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       const result1 = await memoizedFn(5)
       const result2 = await memoizedFn(5)
@@ -131,7 +131,7 @@ describe('Memoization Utilities', () => {
         return obj.x + obj.y
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       memoizedFn({ x: 1, y: 2 })
       memoizedFn({ x: 1, y: 2 })
@@ -146,7 +146,7 @@ describe('Memoization Utilities', () => {
         return { nested: { value: 42 } }
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       const result1 = memoizedFn()
       const result2 = memoizedFn()
@@ -265,7 +265,7 @@ describe('Memoization Utilities', () => {
         return x * 2
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       memoizedFn(5)
       clearMemoCache()
@@ -281,7 +281,7 @@ describe('Memoization Utilities', () => {
         return x * 2
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       memoizedFn(1)
       memoizedFn(2)
@@ -310,8 +310,8 @@ describe('Memoization Utilities', () => {
         return x * 3
       }
 
-      const memoizedFn1 = memoize(fn1)
-      const memoizedFn2 = memoize(fn2)
+      const memoizedFn1 = memoize(fn1 as any)
+      const memoizedFn2 = memoize(fn2 as any)
 
       memoizedFn1(5)
       clearMemoCache()
@@ -334,7 +334,7 @@ describe('Memoization Utilities', () => {
         return { x, y }
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       memoizedFn(null, undefined)
       memoizedFn(null, undefined)
@@ -349,7 +349,7 @@ describe('Memoization Utilities', () => {
         return 'result'
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       const result1 = memoizedFn()
       memoizedFn()
@@ -365,7 +365,7 @@ describe('Memoization Utilities', () => {
         return str
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       memoizedFn('hello\nworld')
       memoizedFn('hello\nworld')
@@ -380,7 +380,7 @@ describe('Memoization Utilities', () => {
         return x
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       for (let i = 0; i < 1000; i++) {
         memoizedFn(i)
@@ -400,7 +400,7 @@ describe('Memoization Utilities', () => {
         return x * 2
       }
 
-      const memoizedFn = memoize(fn)
+      const memoizedFn = memoize(fn as any)
 
       const result1 = memoizedFn(5)
       const result2 = memoizedFn(5)
