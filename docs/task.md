@@ -1,5 +1,198 @@
 # Principal Software Architect Task
 
+## Date: 2026-01-18
+
+## Agent: Principal Software Architect
+
+## Branch: agent
+
+---
+
+## [ARCHITECTURE] Extract Pure Utilities from useFilterUtils (Single Responsibility) ✅ COMPLETED (2026-01-18)
+
+### Overview
+
+Refactored `composables/useFilterUtils.ts` by extracting pure utility functions to `utils/filter-utils.ts`, removing unnecessary composable wrapper pattern.
+
+### Issue
+
+**Location**: `composables/useFilterUtils.ts` (146 lines)
+
+**Problem**: Pure utility functions were unnecessarily wrapped in a composable pattern with no reactivity benefits.
+
+**Issues**:
+
+1. **Single Responsibility Violation**: Pure functions don't need composable wrapper
+2. **Inconsistent with Codebase**: Other utilities (`collection-utils.ts`, `event-emitter.ts`, etc.) export functions directly
+3. **Unnecessary Complexity**: Every file must call `useFilterUtils()` to get functions
+4. **Misplaced**: Pure utilities should be in `utils/` directory, not `composables/`
+5. **No Reactivity**: All functions are pure - they don't use Vue's ref, computed, watch, etc.
+
+**Impact**: MEDIUM - Architectural inconsistency makes code harder to understand and maintain
+
+**Current Pattern**:
+
+```typescript
+// composables/useFilterUtils.ts (BEFORE)
+const filterByAllCriteria = (resources, filterOptions) => { ... } // Pure function
+const toggleArrayItem = (currentArray, item) => { ... } // Pure function
+export const useFilterUtils = () => ({ // Unnecessary composable wrapper
+  filterByAllCriteria,
+  toggleArrayItem,
+  // ... more functions
+})
+
+// Usage in other files:
+import { useFilterUtils } from './useFilterUtils'
+const { filterByAllCriteria, toggleArrayItem } = useFilterUtils()
+```
+
+### Solution
+
+#### Created utils/filter-utils.ts ✅
+
+**File Created**: `utils/filter-utils.ts` (185 lines)
+
+**Features**:
+
+- Direct function exports (no composable wrapper)
+- Pure functions for filtering resources
+- Functions for array manipulation (toggleArrayItem)
+- Functions for date parsing and matching
+- Consistent with other utility files in codebase
+
+**Benefits**:
+
+- Single Responsibility: Pure functions exported directly
+- Consistent with codebase: Matches pattern of `collection-utils.ts`, `event-emitter.ts`, etc.
+- Simpler imports: Direct import instead of destructuring composable return
+- Better organization: Pure utilities in `utils/` directory
+- Clear separation: Composables for reactive state, utils for pure functions
+
+#### Updated All Importing Files ✅
+
+**Files Modified**:
+
+1. `composables/useResourceSort.ts` (54 → 51 lines, -3 lines)
+   - Changed: `import { useFilterUtils } from './useFilterUtils'`
+   - To: `import { parseDate } from '~/utils/filter-utils'`
+   - Removed: `const { parseDate } = useFilterUtils()`
+
+2. `composables/useResourceSearchFilter.ts` (29 → 27 lines, -2 lines)
+   - Changed: `import { useFilterUtils } from './useFilterUtils'`
+   - To: `import { filterByAllCriteria } from '~/utils/filter-utils'`
+   - Removed: `const { filterByAllCriteria } = useFilterUtils()`
+
+3. `composables/useResourceFilters.ts` (119 → 115 lines, -4 lines)
+   - Changed: `import { useFilterUtils } from './useFilterUtils'`
+   - To: `import { filterByAllCriteria, parseDate, toggleArrayItem } from '~/utils/filter-utils'`
+   - Removed: `const { filterByAllCriteria, parseDate, toggleArrayItem } = useFilterUtils()`
+
+4. `composables/useSearchPage.ts` (231 → 229 lines, -2 lines)
+   - Changed: `import { useFilterUtils } from './useFilterUtils'`
+   - To: `import { filterByAllCriteriaWithDateRange, toggleArrayItem } from '~/utils/filter-utils'`
+   - Removed: `const { filterByAllCriteriaWithDateRange, toggleArrayItem } = useFilterUtils()`
+
+5. `__tests__/composables/useFilterUtils.test.ts` (576 lines, test description updated)
+   - Changed: `import { useFilterUtils } from '~/composables/useFilterUtils'`
+   - To: `import { ... } from '~/utils/filter-utils'`
+   - Changed: `describe('useFilterUtils', ...)` to `describe('filter-utils', ...)`
+   - Removed: `const { ... } = useFilterUtils()` destructuring
+
+#### Deleted Old File ✅
+
+**File Deleted**: `composables/useFilterUtils.ts` (146 lines)
+
+### Architecture Improvements
+
+#### Before: Unnecessary Composable Wrapper
+
+```
+composables/useFilterUtils.ts (146 lines)
+├── Pure functions (no reactivity)
+├── Composable wrapper: useFilterUtils() returns object
+└── Usage: Must call useFilterUtils() to get functions
+
+Imports in other files:
+├── composables/useResourceSort.ts: import { useFilterUtils } from './useFilterUtils'
+├── composables/useResourceSearchFilter.ts: import { useFilterUtils } from './useFilterUtils'
+├── composables/useResourceFilters.ts: import { useFilterUtils } from './useFilterUtils'
+└── composables/useSearchPage.ts: import { useFilterUtils } from './useFilterUtils'
+```
+
+#### After: Direct Utility Function Exports
+
+```
+utils/filter-utils.ts (185 lines)
+├── Direct exports of pure functions
+├── No composable wrapper
+└── Single Responsibility: Pure utility functions
+
+Imports in other files:
+├── composables/useResourceSort.ts: import { parseDate } from '~/utils/filter-utils'
+├── composables/useResourceSearchFilter.ts: import { filterByAllCriteria } from '~/utils/filter-utils'
+├── composables/useResourceFilters.ts: import { filterByAllCriteria, ... } from '~/utils/filter-utils'
+└── composables/useSearchPage.ts: import { filterByAllCriteriaWithDateRange, ... } from '~/utils/filter-utils'
+```
+
+### Success Criteria
+
+- [x] More modular than before - Pure utilities extracted to separate module
+- [x] Dependencies flow correctly - Composables import from utils (clean hierarchy)
+- [x] Simplest solution that works - Direct exports, no wrapper
+- [x] Zero regressions - Same functional behavior, just refactored imports
+- [x] Single Responsibility - Pure functions exported as utilities
+- [x] Consistency - Matches pattern of other utilities in codebase
+- [x] Better organization - utils/ for pure functions, composables/ for reactive state
+- [x] Simplified imports - Direct import instead of destructuring
+
+### Files Created
+
+- `utils/filter-utils.ts` (185 lines) - Pure utility functions for filtering and manipulation
+
+### Files Modified
+
+1. `composables/useResourceSort.ts` - Updated imports to use utils/filter-utils (-3 lines)
+2. `composables/useResourceSearchFilter.ts` - Updated imports to use utils/filter-utils (-2 lines)
+3. `composables/useResourceFilters.ts` - Updated imports to use utils/filter-utils (-4 lines)
+4. `composables/useSearchPage.ts` - Updated imports to use utils/filter-utils (-2 lines)
+5. `__tests__/composables/useFilterUtils.test.ts` - Updated imports to use utils/filter-utils (test description updated)
+
+### Files Deleted
+
+- `composables/useFilterUtils.ts` (146 lines) - Old composable wrapper no longer needed
+
+### Total Impact
+
+- **New Utility Module**: 1 (utils/filter-utils.ts, 185 lines)
+- **Files Updated**: 5 composables + 1 test file
+- **Lines Reduced**: 11 lines total from composables (-11 lines)
+- **Lines Deleted**: 146 lines (old composables/useFilterUtils.ts)
+- **Net Lines**: +185 (new utils) -11 (reduced composables) -146 (old file) = +28 lines
+- **Import Simplicity**: Direct imports instead of destructuring composable returns
+- **Architectural Consistency**: Matches pattern of other utility files
+
+### Architectural Principles Applied
+
+✅ **Single Responsibility**: Pure functions exported directly as utilities
+✅ **Consistency**: Matches pattern of collection-utils.ts, event-emitter.ts, etc.
+✅ **Separation of Concerns**: utils/ for pure functions, composables/ for reactive state
+✅ **Simplicity**: Direct exports, no unnecessary composable wrapper
+✅ **Zero Regressions**: Same functional behavior, just refactored imports
+✅ **Better Organization**: Pure utilities properly located in utils/ directory
+✅ **Cleaner Dependencies**: Clear hierarchy - composables import from utils
+
+### Anti-Patterns Avoided
+
+❌ **Unnecessary Abstraction**: Removed composable wrapper from pure functions
+❌ **Inconsistent Patterns**: Now consistent with other utility files in codebase
+❌ **Misplaced Code**: Pure utilities moved from composables/ to utils/
+❌ **Complex Imports**: Simplified from composable destructuring to direct imports
+
+---
+
+# Principal Software Architect Task
+
 ## Date: 2026-01-17
 
 ## Agent: Principal Security Engineer

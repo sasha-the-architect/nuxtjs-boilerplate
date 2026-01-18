@@ -2,7 +2,10 @@ import { computed, ref, readonly } from 'vue'
 import type { SortOption } from '~/types/resource'
 import { useResourceData } from './useResourceData'
 import { useAdvancedResourceSearch } from './useAdvancedResourceSearch'
-import { useFilterUtils } from './useFilterUtils'
+import {
+  filterByAllCriteriaWithDateRange,
+  toggleArrayItem,
+} from '~/utils/filter-utils'
 import { useResourceSort } from './useResourceSort'
 import { trackSearch, trackFilter } from '~/utils/analytics'
 
@@ -47,7 +50,6 @@ export const useSearchPage = () => {
     })
     return Array.from(benefitsSet).sort()
   })
-  const { filterByAllCriteriaWithDateRange, toggleArrayItem } = useFilterUtils()
 
   const filterOptions = ref<SearchPageFilterOptions>({
     searchQuery: '',

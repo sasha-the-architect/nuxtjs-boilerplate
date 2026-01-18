@@ -2,7 +2,7 @@ import { computed } from 'vue'
 import type { Resource } from '~/types/resource'
 import { useResourceSearch } from './useResourceSearch'
 import type { FilterOptions } from '~/types/resource'
-import { useFilterUtils } from './useFilterUtils'
+import { filterByAllCriteria } from '~/utils/filter-utils'
 
 // Composable for combining search and filter results
 export const useResourceSearchFilter = (
@@ -11,7 +11,6 @@ export const useResourceSearchFilter = (
   searchQuery?: string
 ) => {
   const { searchResources } = useResourceSearch(resources)
-  const { filterByAllCriteria } = useFilterUtils()
 
   const finalResources = computed(() => {
     if (searchQuery && searchQuery.trim() !== '') {

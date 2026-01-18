@@ -1,19 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import type { Resource } from '~/types/resource'
-import { useFilterUtils } from '~/composables/useFilterUtils'
+import {
+  hasActiveFilter,
+  matchesCategory,
+  matchesPricingModel,
+  matchesDifficultyLevel,
+  matchesTechnology,
+  matchesTag,
+  filterByAllCriteria,
+  parseDate,
+} from '~/utils/filter-utils'
 
-describe('useFilterUtils', () => {
-  const {
-    hasActiveFilter,
-    matchesCategory,
-    matchesPricingModel,
-    matchesDifficultyLevel,
-    matchesTechnology,
-    matchesTag,
-    filterByAllCriteria,
-    parseDate,
-  } = useFilterUtils()
-
+describe('filter-utils', () => {
   const mockResources: Resource[] = [
     {
       id: '1',

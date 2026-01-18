@@ -1,11 +1,13 @@
 import { ref, computed, readonly } from 'vue'
 import type { Resource, FilterOptions, SortOption } from '~/types/resource'
-import { useFilterUtils } from './useFilterUtils'
+import {
+  filterByAllCriteria,
+  parseDate,
+  toggleArrayItem,
+} from '~/utils/filter-utils'
 
 // Composable for managing resource filters
 export const useResourceFilters = (resources: readonly Resource[]) => {
-  const { filterByAllCriteria, parseDate, toggleArrayItem } = useFilterUtils()
-
   // Filter options
   const filterOptions = ref<FilterOptions>({
     searchQuery: '',
