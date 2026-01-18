@@ -130,3 +130,4 @@ export type SortOption =
   | 'alphabetical-desc'
   | 'popularity-desc'
   | 'date-added-desc'
+  | 'relevance'

@@ -8,6 +8,184 @@
 
 ---
 
+## [ARCHITECTURE] Centralize SortOption Type Definitions (DRY Principle) ✅ COMPLETED (2026-01-18)
+
+### Overview
+
+Eliminated duplicate type definitions by centralizing the `'relevance'` sort option in the unified `SortOption` type.
+
+### Issue
+
+**Location**: `composables/useResourceSort.ts`, `composables/useSearchPage.ts`
+
+**Problem**: Two composables defined identical type extensions for the same purpose:
+
+- `composables/useResourceSort.ts:5` - `type ExtendedSortOption = SortOption | 'relevance'`
+- `composables/useSearchPage.ts:24` - `type SearchPageSortOption = SortOption | 'relevance'`
+
+Both types extend the base `SortOption` with the `'relevance'` option, creating duplicate definitions.
+
+**Impact**: MEDIUM - Violates DRY principle, makes type changes harder, potential for type inconsistency
+
+### Solution
+
+#### Centralized Type Definition ✅
+
+**File Modified**: `types/resource.ts` (lines 128-133)
+
+**Changes**:
+
+Added `'relevance'` to the `SortOption` union type:
+
+```typescript
+export type SortOption =
+  | 'alphabetical-asc'
+  | 'alphabetical-desc'
+  | 'popularity-desc'
+  | 'date-added-desc'
+  | 'relevance' // ADDED
+```
+
+#### Updated useResourceSort.ts ✅
+
+**File Modified**: `composables/useResourceSort.ts` (lines 5-11)
+
+**Changes**:
+
+1. Removed local `ExtendedSortOption` type definition (line 5)
+2. Changed all references from `ExtendedSortOption` to `SortOption`
+3. Removed 1 line of duplicate code
+
+**Before**:
+
+```typescript
+type ExtendedSortOption = SortOption | 'relevance'
+export const useResourceSort = (
+  resources: ComputedRef<Resource[]>,
+  sortOption: ComputedRef<ExtendedSortOption>
+) => {
+  const sortResources = (
+    resourcesToSort: Resource[],
+    currentSortOption: ExtendedSortOption
+```
+
+**After**:
+
+```typescript
+export const useResourceSort = (
+  resources: ComputedRef<Resource[]>,
+  sortOption: ComputedRef<SortOption>
+) => {
+  const sortResources = (
+    resourcesToSort: Resource[],
+    currentSortOption: SortOption
+```
+
+#### Updated useSearchPage.ts ✅
+
+**File Modified**: `composables/useSearchPage.ts` (lines 24, 65, 173)
+
+**Changes**:
+
+1. Removed local `SearchPageSortOption` type definition (line 24)
+2. Changed `sortOption` ref type from `SearchPageSortOption` to `SortOption` (line 65)
+3. Changed `setSortOption` parameter type from `SearchPageSortOption` to `SortOption` (line 173)
+4. Removed 1 line of duplicate code
+
+**Before**:
+
+```typescript
+type SearchPageSortOption = SortOption | 'relevance'
+const sortOption = ref<SearchPageSortOption>('relevance')
+const setSortOption = (option: SearchPageSortOption) => {
+```
+
+**After**:
+
+```typescript
+const sortOption = ref<SortOption>('relevance')
+const setSortOption = (option: SortOption) => {
+```
+
+### Architecture Improvements
+
+#### Before: Duplicate Type Definitions
+
+```
+types/resource.ts
+└── SortOption (4 options: alphabetical-asc, alphabetical-desc, popularity-desc, date-added-desc)
+
+composables/useResourceSort.ts
+└── ExtendedSortOption = SortOption | 'relevance'  ← Duplicate #1
+
+composables/useSearchPage.ts
+└── SearchPageSortOption = SortOption | 'relevance'  ← Duplicate #2
+```
+
+#### After: Centralized Type Definition
+
+```
+types/resource.ts
+└── SortOption (5 options: alphabetical-asc, alphabetical-desc, popularity-desc, date-added-desc, relevance)  ← Single source of truth
+
+composables/useResourceSort.ts
+└── Uses centralized SortOption type
+
+composables/useSearchPage.ts
+└── Uses centralized SortOption type
+```
+
+### Success Criteria
+
+- [x] More modular than before - Types centralized in types/ directory
+- [x] Dependencies flow correctly - Composables import types from types/ directory
+- [x] Simplest solution that works - Single type definition, no new abstractions
+- [x] Zero regressions - No functional changes, only type consolidation
+- [x] DRY principle - Single source of truth for SortOption type
+- [x] Type safety - Centralized type ensures consistency across codebase
+- [x] Maintainability - Type changes only needed in one location
+- [x] Code reduction - 2 lines of duplicate code removed
+
+### Files Modified
+
+1. `types/resource.ts` - Added 'relevance' to SortOption type (+1 line)
+2. `composables/useResourceSort.ts` - Removed ExtendedSortOption, use SortOption (-1 line)
+3. `composables/useSearchPage.ts` - Removed SearchPageSortOption, use SortOption (-1 line)
+
+### Total Impact
+
+- **Type Definitions**: 3 → 1 unified SortOption definition
+- **Lines Changed**: -1 lines total (added 1, removed 2)
+- **Duplicate Code**: 2 duplicate type definitions removed
+- **Type Safety**: Enhanced - centralized definition ensures consistency
+- **Maintainability**: Improved - single source of truth for sort options
+
+### Architectural Principles Applied
+
+✅ **DRY Principle**: Single source of truth for SortOption type
+✅ **Interface Definition**: Centralized type definition in types/ directory
+✅ **Single Responsibility**: Types belong in types/, not in composables
+✅ **Modularity**: Clean separation between types and implementation
+✅ **Type Safety**: Consistent types across all composables
+✅ **Simplicity**: Single definition, no wrapper types
+✅ **Zero Regressions**: No functional changes, only type consolidation
+
+### Anti-Patterns Avoided
+
+❌ **Duplicate Type Definitions**: 2 duplicate types removed
+❌ **Type Inconsistency**: Centralized definition ensures consistency
+❌ **Scattered Logic**: All sort options in one place
+❌ **Maintenance Burden**: Changes only needed in one location
+
+### Related Architectural Decisions
+
+This follows the same pattern as:
+
+- Community Types Architecture (2026-01-10): Centralized community types in `types/community.ts`
+- ApiClient Interface (2026-01-10): Centralized interface definition in `utils/api-client.ts`
+
+---
+
 ## [ARCHITECTURE] Extract Pure Utilities from useFilterUtils (Single Responsibility) ✅ COMPLETED (2026-01-18)
 
 ### Overview
