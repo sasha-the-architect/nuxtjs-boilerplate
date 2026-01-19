@@ -1,4 +1,4 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useResourceData } from './useResourceData'
 import { useResourceFilters } from './useResourceFilters'
 import { useResourceSearch } from './useResourceSearch'
@@ -12,7 +12,7 @@ export type { Resource, SortOption, FilterOptions }
 
 // Main composable that combines all resource functionality
 export const useResources = () => {
-  // Use the data composable for resource loading
+  // Use by data composable for resource loading
   const {
     resources,
     loading,
@@ -27,17 +27,21 @@ export const useResources = () => {
     retryResources,
   } = useResourceData()
 
+  const sortOption = ref<SortOption>('popularity-desc')
+
+  const setSortOption = (option: SortOption) => {
+    sortOption.value = option
+  }
+
   // Use the filters composable
   const {
     filterOptions,
-    sortOption,
     updateSearchQuery,
     toggleCategory,
     togglePricingModel,
     toggleDifficultyLevel,
     toggleTechnology,
     toggleTag,
-    setSortOption,
     resetFilters,
   } = useResourceFilters(resources.value)
 

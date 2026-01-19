@@ -67,8 +67,9 @@ export const useSearchSuggestions = (resources: readonly Resource[]) => {
       })
     })
 
-    // Add tag suggestions based on query (O(n) with O(1) lookups)
+    // Add tag and category suggestions based on query (O(n) single-pass with O(1) lookups)
     const tagMatches = new Set<string>()
+    const categoryMatches = new Set<string>()
     resources.forEach(resource => {
       if (resource.tags) {
         resource.tags.forEach(tag => {
@@ -91,11 +92,6 @@ export const useSearchSuggestions = (resources: readonly Resource[]) => {
           }
         })
       }
-    })
-
-    // Add category suggestions based on query (O(n) with O(1) lookups)
-    const categoryMatches = new Set<string>()
-    resources.forEach(resource => {
       if (
         resource.category &&
         resource.category.toLowerCase().includes(query.toLowerCase()) &&
