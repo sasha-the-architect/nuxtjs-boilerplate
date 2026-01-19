@@ -15,11 +15,17 @@
 
       <!-- Search Bar -->
       <div class="mt-8 max-w-2xl mx-auto">
-        <LazySearchBar v-model="searchQuery" @search="handleSearch" />
+        <LazySearchBar
+          v-model="searchQuery"
+          @search="handleSearch"
+        />
       </div>
 
       <!-- Loading State with Skeletons -->
-      <div v-if="loading" class="mt-16">
+      <div
+        v-if="loading"
+        class="mt-16"
+      >
         <div class="flex flex-wrap gap-2 mb-8 justify-center">
           <div
             v-for="i in 5"
@@ -35,12 +41,18 @@
 
         <!-- Resources Grid with Skeletons -->
         <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <ResourceCardSkeleton v-for="i in 6" :key="`skeleton-${i}`" />
+          <ResourceCardSkeleton
+            v-for="i in 6"
+            :key="`skeleton-${i}`"
+          />
         </div>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="mt-16">
+      <div
+        v-else-if="error"
+        class="mt-16"
+      >
         <ErrorMessage
           :message="errorMessage || error"
           variant="error"
@@ -49,7 +61,10 @@
       </div>
 
       <!-- Resources Grid -->
-      <div v-else class="mt-16">
+      <div
+        v-else
+        class="mt-16"
+      >
         <!-- ARIA live region for search results -->
         <div
           id="search-results-status"
@@ -159,7 +174,10 @@
           </div>
 
           <!-- Trending Resources Section -->
-          <div v-if="filteredResources.length > 0 && !loading" class="mt-16">
+          <div
+            v-if="filteredResources.length > 0 && !loading"
+            class="mt-16"
+          >
             <h2 class="text-2xl font-bold text-gray-900 mb-6">
               Trending Resources
             </h2>
@@ -184,7 +202,10 @@
         </div>
 
         <!-- Recommendations Section -->
-        <div v-if="filteredResources.length > 0 && !loading" class="mt-16">
+        <div
+          v-if="filteredResources.length > 0 && !loading"
+          class="mt-16"
+        >
           <ClientOnly>
             <LazyRecommendationsSection />
           </ClientOnly>
