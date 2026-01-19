@@ -35,11 +35,6 @@ export const useResourceDetailPage = () => {
   const resource = ref<Resource | null>(null)
   const relatedResources = ref<Resource[]>([])
   const analyticsData = ref<Record<string, unknown> | null>(null)
-  const resourceStats = ref({
-    viewCount: 0,
-    trending: false,
-    lastViewed: '',
-  })
 
   const resourceId = computed(() => {
     return typeof route.params.id === 'string' ? route.params.id : ''
@@ -189,12 +184,6 @@ export const useResourceDetailPage = () => {
       await fetchResourceHistory(resourceId.value)
       await trackView()
 
-      resourceStats.value = {
-        viewCount: Math.floor(Math.random() * 1000) + 100,
-        trending: Math.random() > 0.5,
-        lastViewed: new Date().toISOString(),
-      }
-
       setSeoMetadata()
     } catch (err) {
       logger.error('Error loading resource:', err)
@@ -225,7 +214,6 @@ export const useResourceDetailPage = () => {
     resource,
     relatedResources,
     analyticsData,
-    resourceStats,
     resourceId,
     currentUrl,
     shareUrls,
