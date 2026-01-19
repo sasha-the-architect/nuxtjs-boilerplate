@@ -1,5 +1,5 @@
 import type { Resource } from '~/types/resource'
-import { logError } from './errorLogger'
+import { createStorageWithDateSerialization } from './storage'
 
 // Interface for search analytics data
 export interface SearchAnalytics {
@@ -34,6 +34,20 @@ export interface ZeroResultSearch {
 
 // Search analytics utility class
 export class SearchAnalyticsTracker {
+  private popularSearchesStorage = createStorageWithDateSerialization<
+    PopularSearch[]
+  >('popularSearches', [])
+  private zeroResultSearchesStorage = createStorageWithDateSerialization<
+    ZeroResultSearch[]
+  >('zeroResultSearches', [])
+  private performanceHistoryStorage = createStorageWithDateSerialization<
+    {
+      query: string
+      duration: number
+      timestamp: Date
+    }[]
+  >('performanceHistory', [])
+
   private popularSearches: PopularSearch[] = []
   private zeroResultSearches: ZeroResultSearch[] = []
   private performanceHistory: {
@@ -43,8 +57,10 @@ export class SearchAnalyticsTracker {
   }[] = []
 
   constructor() {
-    // Load from localStorage if available
-    this.loadFromStorage()
+    // Load from storage
+    this.popularSearches = this.popularSearchesStorage.get()
+    this.zeroResultSearches = this.zeroResultSearchesStorage.get()
+    this.performanceHistory = this.performanceHistoryStorage.get()
   }
 
   // Track a search query
@@ -111,7 +127,9 @@ export class SearchAnalyticsTracker {
       .slice(0, 50) // Keep top 50 zero-result searches
 
     // Save to storage
-    this.saveToStorage()
+    this.popularSearchesStorage.set(this.popularSearches)
+    this.zeroResultSearchesStorage.set(this.zeroResultSearches)
+    this.performanceHistoryStorage.set(this.performanceHistory)
   }
 
   // Get popular searches
@@ -243,81 +261,14 @@ export class SearchAnalyticsTracker {
       .slice(0, limit)
   }
 
-  // Load data from localStorage
-  private loadFromStorage() {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      try {
-        const popularData = localStorage.getItem('popularSearches')
-        const zeroResultData = localStorage.getItem('zeroResultSearches')
-        const performanceData = localStorage.getItem('performanceHistory')
-
-        if (popularData) {
-          this.popularSearches = JSON.parse(popularData, (key, value) => {
-            if (key === 'lastUsed') return new Date(value)
-            return value
-          })
-        }
-
-        if (zeroResultData) {
-          this.zeroResultSearches = JSON.parse(zeroResultData, (key, value) => {
-            if (key === 'lastUsed') return new Date(value)
-            return value
-          })
-        }
-
-        if (performanceData) {
-          this.performanceHistory = JSON.parse(
-            performanceData,
-            (key, value) => {
-              if (key === 'timestamp') return new Date(value)
-              return value
-            }
-          )
-        }
-      } catch (error) {
-        logError(
-          'Error loading search analytics from storage',
-          error as Error,
-          'SearchAnalytics',
-          { action: 'loadFromStorage' }
-        )
-      }
-    }
-  }
-
-  // Save data to localStorage
-  private saveToStorage() {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      try {
-        localStorage.setItem(
-          'popularSearches',
-          JSON.stringify(this.popularSearches)
-        )
-        localStorage.setItem(
-          'zeroResultSearches',
-          JSON.stringify(this.zeroResultSearches)
-        )
-        localStorage.setItem(
-          'performanceHistory',
-          JSON.stringify(this.performanceHistory)
-        )
-      } catch (error) {
-        logError(
-          'Error saving search analytics to storage',
-          error as Error,
-          'SearchAnalytics',
-          { action: 'saveToStorage' }
-        )
-      }
-    }
-  }
-
   // Clear all analytics data
   clear() {
     this.popularSearches = []
     this.zeroResultSearches = []
     this.performanceHistory = []
-    this.saveToStorage()
+    this.popularSearchesStorage.set([])
+    this.zeroResultSearchesStorage.set([])
+    this.performanceHistoryStorage.set([])
   }
 }
 

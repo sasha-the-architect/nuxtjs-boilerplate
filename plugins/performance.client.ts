@@ -1,6 +1,7 @@
 // plugins/performance.client.ts
 // Client-side performance monitoring plugin
 import { onCLS, onFCP, onLCP, onTTFB, onINP } from 'web-vitals'
+import { createStorage } from '~/utils/storage'
 
 export default defineNuxtPlugin(() => {
   if (process.client) {
@@ -18,16 +19,22 @@ export default defineNuxtPlugin(() => {
           console.log(`${metric.name}: ${metric.value}`)
         }
 
-        // Store metrics in localStorage for potential later aggregation
+        // Store metrics in storage for potential later aggregation
         if (typeof window !== 'undefined') {
           const key = `web-vitals-${metric.name}`
-          const existing = localStorage.getItem(key)
-          const data = existing ? JSON.parse(existing) : []
+          const storage = createStorage<
+            {
+              value: number
+              delta: number
+              id: string
+              timestamp: number
+            }[]
+          >(key, [])
+
+          const existing = storage.get()
 
           // Keep only last 100 entries to prevent storage from growing too large
-          if (data.length > 100) {
-            data.shift()
-          }
+          const data = existing.length > 100 ? existing.slice(1) : existing
 
           data.push({
             value: metric.value,
@@ -36,7 +43,7 @@ export default defineNuxtPlugin(() => {
             timestamp: Date.now(),
           })
 
-          localStorage.setItem(key, JSON.stringify(data))
+          storage.set(data)
         }
 
         // In a real implementation, you would send these metrics to your analytics service
