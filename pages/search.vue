@@ -13,7 +13,7 @@
 
       <!-- Search Bar -->
       <div class="mb-8">
-        <SearchBar
+        <LazySearchBar
           v-model="searchQuery"
           @search="handleSearch"
         />
@@ -83,7 +83,7 @@
 
         <!-- Filters Sidebar -->
         <div class="lg:w-1/4">
-          <ResourceFilters
+          <LazyResourceFilters
             :categories="categories"
             :pricing-models="pricingModels"
             :difficulty-levels="difficultyLevels"
@@ -172,8 +172,6 @@
 <script setup lang="ts">
 import { useUrlSync } from '~/composables/useUrlSync'
 import { useSearchPage } from '~/composables/useSearchPage'
-import SearchBar from '~/components/SearchBar.vue'
-import ResourceFilters from '~/components/ResourceFilters.vue'
 import ResourceSort from '~/components/ResourceSort.vue'
 import VirtualResourceList from '~/components/VirtualResourceList.vue'
 import PopularSearches from '~/components/PopularSearches.vue'

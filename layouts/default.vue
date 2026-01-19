@@ -26,7 +26,7 @@
 
           <!-- Desktop Navigation -->
           <div class="hidden lg:flex items-center flex-1 max-w-lg mx-8">
-            <SearchBar
+            <LazySearchBar
               v-model="searchQuery"
               :aria-label="'Search for free resources'"
               @search="handleSearch"
@@ -220,7 +220,7 @@
           </NuxtLink>
           <!-- Mobile search bar -->
           <div class="px-2 pt-2 sm:px-3">
-            <SearchBar
+            <LazySearchBar
               v-model="searchQuery"
               :aria-label="'Search for free resources'"
               @search="handleMobileSearch"
@@ -264,7 +264,6 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, navigateTo } from '#app'
 import { useResources } from '~/composables/useResources'
 import type { NodeListOf } from 'dom'
-import SearchBar from '~/components/SearchBar.vue'
 import PWAInstallPrompt from '~/components/PWAInstallPrompt.vue'
 
 const mobileMenuOpen = ref(false)

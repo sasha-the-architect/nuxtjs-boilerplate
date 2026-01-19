@@ -12,7 +12,7 @@
 
       <!-- Search Bar -->
       <div class="mb-8">
-        <SearchBar
+        <LazySearchBar
           v-model="searchQuery"
           @search="handleSearch"
         />
@@ -106,7 +106,6 @@
 <script setup lang="ts">
 import { useAIResources } from '~/composables/useAIResources'
 import { useUrlSync } from '~/composables/useUrlSync'
-import SearchBar from '~/components/SearchBar.vue'
 import ResourceSort from '~/components/ResourceSort.vue'
 
 definePageMeta({

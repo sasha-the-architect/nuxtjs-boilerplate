@@ -15,7 +15,7 @@
 
       <!-- Search Bar -->
       <div class="mt-8 max-w-2xl mx-auto">
-        <SearchBar
+        <LazySearchBar
           v-model="searchQuery"
           @search="handleSearch"
         />
@@ -79,7 +79,7 @@
         <div class="flex flex-col lg:flex-row gap-8">
           <!-- Resource Filters Component -->
           <div class="lg:w-1/4">
-            <ResourceFilters
+            <LazyResourceFilters
               :categories="categories"
               :pricing-models="pricingModels"
               :difficulty-levels="difficultyLevels"
@@ -220,9 +220,7 @@ import { useResources } from '~/composables/useResources'
 import { useUrlSync } from '~/composables/useUrlSync'
 import { useHomePage } from '~/composables/useHomePage'
 import { getButtonLabel } from '~/utils/resourceHelper'
-import SearchBar from '~/components/SearchBar.vue'
 import ResourceSort from '~/components/ResourceSort.vue'
-import ResourceFilters from '~/components/ResourceFilters.vue'
 
 definePageMeta({
   layout: 'default',
