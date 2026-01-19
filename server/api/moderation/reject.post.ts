@@ -7,8 +7,8 @@ import {
   sendNotFoundError,
   handleApiRouteError,
 } from '~/server/utils/api-response'
+import { logger } from '~/utils/logger'
 
-// Mock data for demonstration - in a real application, this would come from a database
 const mockSubmissions: Submission[] = []
 
 export default defineEventHandler(async event => {
@@ -17,7 +17,6 @@ export default defineEventHandler(async event => {
   try {
     const body = await readBody(event)
 
-    // Validate required fields
     if (!body.submissionId) {
       return sendBadRequestError(event, 'Submission ID is required')
     }
@@ -26,7 +25,6 @@ export default defineEventHandler(async event => {
       return sendBadRequestError(event, 'Reviewer ID is required')
     }
 
-    // Validate rejection reason
     if (
       !body.rejectionReason ||
       typeof body.rejectionReason !== 'string' ||
@@ -35,7 +33,6 @@ export default defineEventHandler(async event => {
       return sendBadRequestError(event, 'Rejection reason is required')
     }
 
-    // Find submission
     const submissionIndex = mockSubmissions.findIndex(
       sub => sub.id === body.submissionId
     )
@@ -44,7 +41,6 @@ export default defineEventHandler(async event => {
       return sendNotFoundError(event, 'Submission', body.submissionId)
     }
 
-    // Update submission status
     const submission = mockSubmissions[submissionIndex]
     submission.status = 'rejected'
     submission.reviewedBy = body.reviewedBy
@@ -52,9 +48,7 @@ export default defineEventHandler(async event => {
     submission.rejectionReason = body.rejectionReason
     submission.notes = body.notes || ''
 
-    // In a real application, we would notify the submitter about rejection
-    // For now, we'll just log it
-    console.info(
+    logger.info(
       `Notification: Submission ${submission.id} rejected for user ${submission.submittedBy}`
     )
 

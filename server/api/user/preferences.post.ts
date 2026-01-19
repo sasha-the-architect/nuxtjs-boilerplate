@@ -5,6 +5,7 @@ import { readBody, getQuery } from 'h3'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
 import { updateUserPreferencesSchema } from '~/server/utils/validation-schemas'
 import { sendBadRequestError } from '~/server/utils/api-response'
+import { logger } from '~/utils/logger'
 
 export default defineEventHandler(async event => {
   await rateLimit(event)
@@ -56,7 +57,7 @@ export default defineEventHandler(async event => {
     }
   } catch (error) {
     const err = error as { statusCode?: number; statusMessage?: string }
-    console.error('Error updating user preferences:', error)
+    logger.error('Error updating user preferences:', error)
     throw createError({
       statusCode: err.statusCode || 500,
       statusMessage: err.statusMessage || 'Failed to update user preferences',

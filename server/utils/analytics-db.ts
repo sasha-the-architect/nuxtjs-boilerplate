@@ -1,5 +1,6 @@
 import prisma from './db'
 import { analyticsEventSchema } from './validation-schemas'
+import { logger } from '~/utils/logger'
 
 export interface AnalyticsEvent {
   id?: string
@@ -24,7 +25,7 @@ export async function insertAnalyticsEvent(
       const errorMessage = validation.error.issues
         .map(e => `${e.path.join('.')}: ${e.message}`)
         .join(', ')
-      console.error('Analytics event validation failed:', errorMessage)
+      logger.error('Analytics event validation failed:', errorMessage)
       return { success: false, error: errorMessage }
     }
 
@@ -47,7 +48,7 @@ export async function insertAnalyticsEvent(
     })
     return { success: true }
   } catch (error) {
-    console.error('Error inserting analytics event:', error)
+    logger.error('Error inserting analytics event:', error)
     return { success: false, error: String(error) }
   }
 }
@@ -106,7 +107,7 @@ export async function getAnalyticsEventsByDateRange(
 
     return events.map(mapDbEventToAnalyticsEvent)
   } catch (error) {
-    console.error('Error getting analytics events by date range:', error)
+    logger.error('Error getting analytics events by date range:', error)
     return []
   }
 }
@@ -144,7 +145,7 @@ export async function getAnalyticsEventsForResource(
 
     return events.map(mapDbEventToAnalyticsEvent)
   } catch (error) {
-    console.error('Error getting analytics events for resource:', error)
+    logger.error('Error getting analytics events for resource:', error)
     return []
   }
 }
@@ -257,7 +258,7 @@ export async function getAggregatedAnalytics(
       dailyTrends,
     }
   } catch (error) {
-    console.error('Error getting aggregated analytics:', error)
+    logger.error('Error getting aggregated analytics:', error)
     return {
       totalEvents: 0,
       eventsByType: {},
@@ -344,7 +345,7 @@ export async function getResourceAnalytics(
       dailyViews,
     }
   } catch (error) {
-    console.error('Error getting resource analytics:', error)
+    logger.error('Error getting resource analytics:', error)
     return {
       resourceId,
       viewCount: 0,
@@ -390,7 +391,7 @@ export async function exportAnalyticsToCsv(
 
     return csvContent
   } catch (error) {
-    console.error('Error exporting analytics to CSV:', error)
+    logger.error('Error exporting analytics to CSV:', error)
     return 'Type,Resource ID,Category,URL,IP Address,Timestamp,Properties\n'
   }
 }
@@ -416,7 +417,7 @@ export async function cleanupOldEvents(
 
     return result.count
   } catch (error) {
-    console.error('Error cleaning up old analytics events:', error)
+    logger.error('Error cleaning up old analytics events:', error)
     return 0
   }
 }
@@ -431,7 +432,7 @@ export async function getSoftDeletedEventsCount(): Promise<number> {
       },
     })
   } catch (error) {
-    console.error('Error getting soft-deleted events count:', error)
+    logger.error('Error getting soft-deleted events count:', error)
     return 0
   }
 }
@@ -454,7 +455,7 @@ export async function getSoftDeletedEvents(
 
     return events.map(mapDbEventToAnalyticsEvent)
   } catch (error) {
-    console.error('Error getting soft-deleted events:', error)
+    logger.error('Error getting soft-deleted events:', error)
     return []
   }
 }
@@ -479,7 +480,7 @@ export async function restoreSoftDeletedEvents(
 
     return result.count
   } catch (error) {
-    console.error('Error restoring soft-deleted events:', error)
+    logger.error('Error restoring soft-deleted events:', error)
     return 0
   }
 }
@@ -514,7 +515,7 @@ export async function exportSoftDeletedEventsToCsv(): Promise<string> {
 
     return csvContent
   } catch (error) {
-    console.error('Error exporting soft-deleted events to CSV:', error)
+    logger.error('Error exporting soft-deleted events to CSV:', error)
     return 'ID,Type,Resource ID,Category,URL,IP Address,Timestamp,Deleted At,Properties\n'
   }
 }
@@ -547,7 +548,7 @@ export async function cleanupSoftDeletedEvents(
 
     return { deletedCount: result.count, backupPath }
   } catch (error) {
-    console.error('Error cleaning up soft-deleted events:', error)
+    logger.error('Error cleaning up soft-deleted events:', error)
     return { deletedCount: 0 }
   }
 }

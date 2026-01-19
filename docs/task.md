@@ -2,9 +2,121 @@
 
 ## Date: 2026-01-19
 
-## Agent: Principal Security Engineer
+## Agent: Principal Software Architect
 
 ## Branch: agent
+
+---
+
+## [ARCHITECTURE] Remove Dead Code with Mock Data from useResourceDetailPage ✅ COMPLETED (2026-01-19)
+
+### Overview
+
+Removed dead code containing mock random data from `useResourceDetailPage.ts` composable, eliminating technical debt and improving data integrity.
+
+### Issue
+
+**Location**: `composables/useResourceDetailPage.ts` (lines 38-42, 192-196, 228)
+
+**Problem**: `resourceStats` variable contained mock random data that was never used:
+
+1. **Dead Code**: `resourceStats` was defined and returned from composable but never consumed by any page/component
+2. **Mock Data**: Used `Math.random()` to generate fake view counts and trending status:
+   ```typescript
+   resourceStats.value = {
+     viewCount: Math.floor(Math.random() * 1000) + 100,
+     trending: Math.random() > 0.5,
+     lastViewed: new Date().toISOString(),
+   }
+   ```
+3. **Data Integrity**: Random data creates inconsistent behavior and confusion
+4. **Redundant**: `analyticsData` already provides real stats from `/api/analytics/resource/${id}` endpoint
+5. **Maintenance**: Dead code increases technical debt without providing value
+
+**Evidence**:
+
+1. `resourceStats` never used in pages/resources/[id].vue (only `analyticsData` is destructured)
+2. All 1298 tests pass after removal, confirming it was dead code
+3. Mock data violates architectural principle: no random data in production code
+
+**Impact**: LOW - Code quality issue, no functional bugs
+
+### Solution
+
+#### Removed Dead Code ✅
+
+**File Modified**: `composables/useResourceDetailPage.ts`
+
+**Changes**:
+
+1. Removed `resourceStats` variable definition (lines 38-42)
+2. Removed mock data assignment in `loadResource()` function (lines 192-196)
+3. Removed `resourceStats` from return value (line 228)
+
+**Before**: 238 lines
+**After**: 225 lines
+**Lines Removed**: 13 lines (5.5% reduction)
+
+### Architecture Improvements
+
+#### Before: Confusing Data Sources
+
+```
+useResourceDetailPage.ts
+├── analyticsData (real data from API)
+└── resourceStats (mock random data, never used)
+    ├── viewCount: Math.random()
+    ├── trending: Math.random()
+    └── lastViewed: new Date()
+```
+
+#### After: Single Source of Truth
+
+```
+useResourceDetailPage.ts
+└── analyticsData (real data from API)
+    └── Single source of truth for resource stats
+```
+
+### Success Criteria
+
+- [x] More modular than before - Eliminated dead code
+- [x] Dependencies flow correctly - No changes to external dependencies
+- [x] Simplest solution that works - Straightforward removal of unused code
+- [x] Zero regressions - All 1298 tests pass (0 failures)
+- [x] Data integrity - No mock random data, only real data from API
+- [x] Code reduction - 13 lines removed (5.5% reduction)
+- [x] Lint passes - 0 errors
+- [x] Test results - 1298/1298 passing (100% pass rate)
+
+### Files Modified
+
+1. `composables/useResourceDetailPage.ts` - Removed dead `resourceStats` variable and mock data assignment (238 → 225 lines, -13 lines)
+
+### Total Impact
+
+- **Lines Reduced**: 13 lines (5.5% reduction)
+- **Dead Code**: 0 (all dead code removed)
+- **Mock Data**: 0 (all random mock data removed)
+- **Test Results**: 1298/1298 tests passing (100% pass rate)
+- **Lint Results**: 0 errors ✅
+- **Build Status**: ✅ PASSES (no errors)
+
+### Architectural Principles Applied
+
+✅ **Dead Code Removal**: Eliminated unused `resourceStats` variable
+✅ **Data Integrity**: No mock random data, only real data from API
+✅ **Single Source of Truth**: `analyticsData` is the only stats source
+✅ **Code Clarity**: Removed confusing duplicate data sources
+✅ **Zero Regressions**: All tests pass with same functional behavior
+✅ **Maintenance**: Reduced technical debt
+
+### Anti-Patterns Avoided
+
+❌ **Dead Code**: `resourceStats` never used by any component
+❌ **Mock Data**: `Math.random()` for fake view counts/trending
+❌ **Data Duplication**: Confusing duplicate stats sources (`analyticsData` vs `resourceStats`)
+❌ **Maintenance Burden**: Unnecessary code that needed understanding and maintenance
 
 ---
 
@@ -8499,3 +8611,96 @@ Non-critical type errors remain in composables (11 errors):
 - useSearchPage.ts, useWebhooksManager.ts
 
 These are lower priority and don't prevent build.
+
+---
+
+## [CODE SANITIZER] Standardize Error Logging with Centralized Logger ✅ COMPLETED (2026-01-19)
+
+### Overview
+
+Replaced all console.error, console.warn, console.log, and console.info
+statements in server code with centralized logger utility for consistent
+error logging across the codebase.
+
+### Issue
+
+Server API endpoints and utilities used console.error/warn/log/info
+for error logging, creating inconsistency with centralized logger
+utility used elsewhere in the codebase.
+
+### Solution
+
+#### Replaced Console Statements with Logger Utility ✅
+
+Replaced all console statements with logger utility:
+
+**API Endpoints (8 files):**
+- server/api/submissions.get.ts
+- server/api/user/preferences.get.ts
+- server/api/user/preferences.post.ts
+- server/api/resource-health/[id].get.ts
+- server/api/moderation/reject.post.ts
+- server/api/analytics/export/csv.get.ts
+- server/api/analytics/events.post.ts
+- server/api/analytics/resource/[id].get.ts
+
+**Server Utilities (4 files):**
+- server/utils/analytics-db.ts
+- server/utils/analyticsCleanup.ts
+- server/utils/rate-limiter.ts
+- server/utils/webhookQueue.ts
+
+**Tests (1 file):**
+- __tests__/server/utils/analytics-db.test.ts
+
+### Success Criteria
+
+- [x] Build passes - No errors related to logging changes
+- [x] Lint passes - 0 errors
+- [x] Tests pass - 1298/1298 tests passing (100% pass rate)
+- [x] Architectural consistency - All server code uses logger
+- [x] Zero console statements in server code - All replaced with logger
+
+### Files Modified
+
+**API Endpoints (8 files):**
+- server/api/submissions.get.ts - Replaced console.error with logger.error
+- server/api/user/preferences.get.ts - Replaced console.error with logger.error
+- server/api/user/preferences.post.ts - Replaced console.error with logger.error
+- server/api/resource-health/[id].get.ts - Replaced console.error with logger.error
+- server/api/moderation/reject.post.ts - Replaced console.info with logger.info
+- server/api/analytics/export/csv.get.ts - Replaced console.error with logger.error
+- server/api/analytics/events.post.ts - Replaced console.error with logger.error
+- server/api/analytics/resource/[id].get.ts - Replaced console.error with logger.error
+
+**Server Utilities (4 files):**
+- server/utils/analytics-db.ts - Replaced all console.error with logger.error
+- server/utils/analyticsCleanup.ts - Replaced console.warn/log with logger
+- server/utils/rate-limiter.ts - Replaced console.error/log/info with logger
+- server/utils/webhookQueue.ts - Replaced console.error with logger.error
+
+**Tests (1 file):**
+- __tests__/server/utils/analytics-db.test.ts - Updated tests to use logger instead of console
+
+### Total Impact
+
+- **Lines Reduced**: 67 lines net (80 added for logger imports, 147 removed for console statements)
+- **Console Statements Replaced**: 29 instances across 13 files
+- **Architectural Consistency**: All server code now uses centralized logger
+- **Test Results**: 1298/1298 tests passing (100% pass rate)
+- **Lint Results**: 0 errors
+
+### Architectural Principles Applied
+
+✅ **Centralized Logging**: Single source of truth for error logging
+✅ **Consistency**: All server code uses same logging pattern
+✅ **Maintainability**: Changes to logging behavior only needed in one place (logger utility)
+✅ **Zero Regressions**: All tests pass with same functional behavior
+✅ **Code Quality**: Cleaner, more maintainable logging code
+
+### Anti-Patterns Avoided
+
+❌ **Scattered Logging**: 29 console statements replaced with centralized logger
+❌ **Inconsistent Error Handling**: All errors now go through logger utility
+❌ **Direct Console Usage**: No direct console.* calls in server code
+

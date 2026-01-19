@@ -1,15 +1,9 @@
-/**
- * GET /api/resource-health/[id]
- *
- * Retrieve the health status of a specific resource by ID
- */
-
 import { getRouterParam } from 'h3'
 import { getResourceHealthStatus } from '../../utils/resourceHealth'
+import { logger } from '~/utils/logger'
 
 export default defineEventHandler(async event => {
   try {
-    // Get the resource ID from the URL parameter
     const id = getRouterParam(event, 'id')
 
     if (!id) {
@@ -49,7 +43,7 @@ export default defineEventHandler(async event => {
       }
     }
 
-    console.error('Error fetching resource health by ID:', error)
+    logger.error('Error fetching resource health by ID:', error)
 
     return {
       success: false,

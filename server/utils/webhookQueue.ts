@@ -10,6 +10,7 @@ import { webhookStorage } from './webhookStorage'
 import { getCircuitBreaker } from './circuit-breaker'
 import { retryWithResult, retryPresets, calculateBackoff } from './retry'
 import { createCircuitBreakerError } from './api-error'
+import { logger } from '~/utils/logger'
 
 interface WebhookDeliveryOptions {
   maxRetries?: number
@@ -220,7 +221,7 @@ export class WebhookQueueSystem {
         }
       )
     } catch (error: unknown) {
-      lastError = (error as Error) || null
+      lastError = error instanceof Error ? error : null
       success = false
     }
 
@@ -301,7 +302,7 @@ export class WebhookQueueSystem {
         try {
           await this.processQueueItem(item)
         } catch (error) {
-          console.error(`Error processing queue item ${item.id}:`, error)
+          logger.error(`Error processing queue item ${item.id}:`, error)
         }
       }
     }

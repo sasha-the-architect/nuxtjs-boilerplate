@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import * as analyticsDb from '~/server/utils/analytics-db'
+import { logger } from '~/utils/logger'
 
 vi.mock('~/server/utils/db', () => ({
   default: {
@@ -14,6 +15,12 @@ vi.mock('~/server/utils/db', () => ({
     },
     $queryRaw: vi.fn(),
     $disconnect: vi.fn(),
+  },
+}))
+
+vi.mock('~/utils/logger', () => ({
+  logger: {
+    error: vi.fn(),
   },
 }))
 
@@ -137,8 +144,8 @@ describe('analytics-db', () => {
 
     describe('Sad Path - Handles errors gracefully', () => {
       it('should return false on database error', async () => {
-        const consoleErrorSpy = vi
-          .spyOn(console, 'error')
+        const loggerErrorSpy = vi
+          .spyOn(logger, 'error')
           .mockImplementation(() => {})
         vi.mocked(mockPrisma.analyticsEvent.create).mockRejectedValue(
           new Error('Database connection failed')
@@ -152,11 +159,11 @@ describe('analytics-db', () => {
         const result = await analyticsDb.insertAnalyticsEvent(event)
 
         expect(result).toEqual({ success: false, error: expect.any(String) })
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
           'Error inserting analytics event:',
           expect.any(Error)
         )
-        consoleErrorSpy.mockRestore()
+        loggerErrorSpy.mockRestore()
       })
     })
   })
@@ -248,8 +255,8 @@ describe('analytics-db', () => {
 
     describe('Sad Path - Handles errors gracefully', () => {
       it('should return empty array on database error', async () => {
-        const consoleErrorSpy = vi
-          .spyOn(console, 'error')
+        const loggerErrorSpy = vi
+          .spyOn(logger, 'error')
           .mockImplementation(() => {})
         const startDate = new Date('2026-01-01')
         const endDate = new Date('2026-01-31')
@@ -264,11 +271,11 @@ describe('analytics-db', () => {
         )
 
         expect(result).toEqual([])
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
           'Error getting analytics events by date range:',
           expect.any(Error)
         )
-        consoleErrorSpy.mockRestore()
+        loggerErrorSpy.mockRestore()
       })
     })
   })
@@ -364,8 +371,8 @@ describe('analytics-db', () => {
 
     describe('Sad Path - Handles errors gracefully', () => {
       it('should return empty array on database error', async () => {
-        const consoleErrorSpy = vi
-          .spyOn(console, 'error')
+        const loggerErrorSpy = vi
+          .spyOn(logger, 'error')
           .mockImplementation(() => {})
         vi.mocked(mockPrisma.analyticsEvent.findMany).mockRejectedValue(
           new Error('Database connection failed')
@@ -378,11 +385,11 @@ describe('analytics-db', () => {
         )
 
         expect(result).toEqual([])
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
           'Error getting analytics events for resource:',
           expect.any(Error)
         )
-        consoleErrorSpy.mockRestore()
+        loggerErrorSpy.mockRestore()
       })
     })
   })
@@ -483,8 +490,8 @@ describe('analytics-db', () => {
 
     describe('Sad Path - Handles errors gracefully', () => {
       it('should return default object on database error', async () => {
-        const consoleErrorSpy = vi
-          .spyOn(console, 'error')
+        const loggerErrorSpy = vi
+          .spyOn(logger, 'error')
           .mockImplementation(() => {})
         vi.mocked(mockPrisma.analyticsEvent.count).mockRejectedValue(
           new Error('Database connection failed')
@@ -502,11 +509,11 @@ describe('analytics-db', () => {
           resourceViews: {},
           dailyTrends: [],
         })
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
           'Error getting aggregated analytics:',
           expect.any(Error)
         )
-        consoleErrorSpy.mockRestore()
+        loggerErrorSpy.mockRestore()
       })
     })
   })
@@ -574,8 +581,8 @@ describe('analytics-db', () => {
 
     describe('Sad Path - Handles errors gracefully', () => {
       it('should return default object on database error', async () => {
-        const consoleErrorSpy = vi
-          .spyOn(console, 'error')
+        const loggerErrorSpy = vi
+          .spyOn(logger, 'error')
           .mockImplementation(() => {})
         vi.mocked(mockPrisma.analyticsEvent.count).mockRejectedValue(
           new Error('Database connection failed')
@@ -594,11 +601,11 @@ describe('analytics-db', () => {
           lastViewed: expect.any(String),
           dailyViews: [],
         })
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
           'Error getting resource analytics:',
           expect.any(Error)
         )
-        consoleErrorSpy.mockRestore()
+        loggerErrorSpy.mockRestore()
       })
     })
   })
@@ -684,8 +691,8 @@ describe('analytics-db', () => {
 
     describe('Sad Path - Handles errors gracefully', () => {
       it('should return CSV headers on error', async () => {
-        const consoleErrorSpy = vi
-          .spyOn(console, 'error')
+        const loggerErrorSpy = vi
+          .spyOn(logger, 'error')
           .mockImplementation(() => {})
         vi.mocked(mockPrisma.analyticsEvent.findMany).mockRejectedValue(
           new Error('Database connection failed')
@@ -699,11 +706,11 @@ describe('analytics-db', () => {
         expect(result).toBe(
           'Type,Resource ID,Category,URL,IP Address,Timestamp,Properties\n'
         )
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
           'Error getting analytics events by date range:',
           expect.any(Error)
         )
-        consoleErrorSpy.mockRestore()
+        loggerErrorSpy.mockRestore()
       })
     })
   })
@@ -764,8 +771,8 @@ describe('analytics-db', () => {
 
     describe('Sad Path - Handles errors gracefully', () => {
       it('should return 0 on database error', async () => {
-        const consoleErrorSpy = vi
-          .spyOn(console, 'error')
+        const loggerErrorSpy = vi
+          .spyOn(logger, 'error')
           .mockImplementation(() => {})
         vi.mocked(mockPrisma.analyticsEvent.updateMany).mockRejectedValue(
           new Error('Database connection failed')
@@ -774,11 +781,11 @@ describe('analytics-db', () => {
         const result = await analyticsDb.cleanupOldEvents(30)
 
         expect(result).toBe(0)
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
           'Error cleaning up old analytics events:',
           expect.any(Error)
         )
-        consoleErrorSpy.mockRestore()
+        loggerErrorSpy.mockRestore()
       })
     })
   })

@@ -1,5 +1,3 @@
-// server/api/analytics/export/csv.get.ts
-// API endpoint for exporting analytics data as CSV
 import {
   defineEventHandler,
   getQuery,
@@ -8,6 +6,7 @@ import {
 } from 'h3'
 import { exportAnalyticsToCsv } from '~/server/utils/analytics-db'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
+import { logger } from '~/utils/logger'
 
 export default defineEventHandler(async event => {
   await rateLimit(event)
@@ -15,18 +14,15 @@ export default defineEventHandler(async event => {
   try {
     const query = getQuery(event)
 
-    // Parse date range from query parameters
     const startDate = query.startDate
       ? new Date(query.startDate as string)
-      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Default to last 30 days
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     const endDate = query.endDate
       ? new Date(query.endDate as string)
       : new Date()
 
-    // Export analytics to CSV from database
     const csvContent = await exportAnalyticsToCsv(startDate, endDate)
 
-    // Set response headers for CSV download
     setResponseHeader(event, 'Content-Type', 'text/csv')
     setResponseHeader(
       event,
@@ -35,12 +31,11 @@ export default defineEventHandler(async event => {
     )
 
     setResponseHeader(event, 'Content-Length', Buffer.byteLength(csvContent))
-    setResponseHeader(event, 'Content-Length', Buffer.byteLength(csvContent))
 
     setResponseStatus(event, 200)
     return csvContent
   } catch (error) {
-    console.error('Analytics CSV export error:', error)
+    logger.error('Analytics CSV export error:', error)
     setResponseStatus(event, 500)
     return {
       success: false,
