@@ -13,30 +13,19 @@
 
       <!-- Search Bar -->
       <div class="mb-8">
-        <SearchBar
-          v-model="searchQuery"
-          @search="handleSearch"
-        />
+        <LazySearchBar v-model="searchQuery" @search="handleSearch" />
       </div>
 
       <!-- Loading State -->
-      <div
-        v-if="loading"
-        class="flex justify-center items-center py-12"
-      >
+      <div v-if="loading" class="flex justify-center items-center py-12">
         <div
           class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-800"
         />
       </div>
 
       <!-- Error State -->
-      <div
-        v-else-if="error"
-        class="text-center py-12"
-      >
-        <p class="text-red-600 text-lg">
-          Error loading resources: {{ error }}
-        </p>
+      <div v-else-if="error" class="text-center py-12">
+        <p class="text-red-600 text-lg">Error loading resources: {{ error }}</p>
       </div>
 
       <!-- No Results State -->
@@ -67,10 +56,7 @@
       </div>
 
       <!-- Results with Filters -->
-      <div
-        v-else
-        class="flex flex-col lg:flex-row gap-8"
-      >
+      <div v-else class="flex flex-col lg:flex-row gap-8">
         <!-- ARIA live region for search results -->
         <div
           id="search-results-status"
@@ -83,7 +69,7 @@
 
         <!-- Filters Sidebar -->
         <div class="lg:w-1/4">
-          <ResourceFilters
+          <LazyResourceFilters
             :categories="categories"
             :pricing-models="pricingModels"
             :difficulty-levels="difficultyLevels"
@@ -172,8 +158,6 @@
 <script setup lang="ts">
 import { useUrlSync } from '~/composables/useUrlSync'
 import { useSearchPage } from '~/composables/useSearchPage'
-import SearchBar from '~/components/SearchBar.vue'
-import ResourceFilters from '~/components/ResourceFilters.vue'
 import ResourceSort from '~/components/ResourceSort.vue'
 import VirtualResourceList from '~/components/VirtualResourceList.vue'
 import PopularSearches from '~/components/PopularSearches.vue'

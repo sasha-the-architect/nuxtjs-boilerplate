@@ -10,18 +10,23 @@ export async function cleanupOldAnalyticsEvents(daysToKeep: number = 90) {
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
   const cutoffTimestamp = cutoffDate.getTime()
+  const deletedAt = Date.now()
 
   try {
-    const deletedCount = await db.analyticsEvent.deleteMany({
+    const result = await db.analyticsEvent.updateMany({
       where: {
         timestamp: {
           lt: cutoffTimestamp,
         },
+        deletedAt: null,
+      },
+      data: {
+        deletedAt,
       },
     })
 
-    logger.info(`Cleaned up ${deletedCount.count} old analytics events`)
-    return deletedCount.count
+    logger.info(`Soft-deleted ${result.count} old analytics events`)
+    return result.count
   } catch (error) {
     logger.error('Error cleaning up old analytics events:', error)
     throw error
