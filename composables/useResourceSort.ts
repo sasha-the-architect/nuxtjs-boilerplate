@@ -2,16 +2,14 @@ import { computed, type ComputedRef } from 'vue'
 import type { Resource, SortOption } from '~/types/resource'
 import { parseDate } from '~/utils/filter-utils'
 
-type ExtendedSortOption = SortOption | 'relevance'
-
 // Composable for handling resource sorting
 export const useResourceSort = (
   resources: ComputedRef<Resource[]>,
-  sortOption: ComputedRef<ExtendedSortOption>
+  sortOption: ComputedRef<SortOption>
 ) => {
   const sortResources = (
     resourcesToSort: Resource[],
-    currentSortOption: ExtendedSortOption
+    currentSortOption: SortOption
   ): Resource[] => {
     const result = [...resourcesToSort]
 

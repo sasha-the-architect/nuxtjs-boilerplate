@@ -21,8 +21,6 @@ export interface SearchPageFilterOptions {
   dateRange?: string
 }
 
-type SearchPageSortOption = SortOption | 'relevance'
-
 // Orchestrator composable for search page combining filtering, search, and analytics
 export const useSearchPage = () => {
   const {
@@ -62,7 +60,7 @@ export const useSearchPage = () => {
     dateRange: 'anytime',
   })
 
-  const sortOption = ref<SearchPageSortOption>('relevance')
+  const sortOption = ref<SortOption>('relevance')
 
   const advancedSearch = useAdvancedResourceSearch(resources.value)
 
@@ -170,7 +168,7 @@ export const useSearchPage = () => {
     trackFilter('dateRange', dateRange)
   }
 
-  const setSortOption = (option: SearchPageSortOption) => {
+  const setSortOption = (option: SortOption) => {
     sortOption.value = option
   }
 

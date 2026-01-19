@@ -131,7 +131,7 @@ describe('useResources', () => {
 
   it('should have default sort option', () => {
     const { sortOption } = useResources()
-    expect(sortOption.value).toBe('relevance')
+    expect(sortOption.value).toBe('popularity-desc')
   })
 
   it('should have empty allTags array initially', () => {
