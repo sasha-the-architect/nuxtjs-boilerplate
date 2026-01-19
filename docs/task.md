@@ -8611,3 +8611,96 @@ Non-critical type errors remain in composables (11 errors):
 - useSearchPage.ts, useWebhooksManager.ts
 
 These are lower priority and don't prevent build.
+
+---
+
+## [CODE SANITIZER] Standardize Error Logging with Centralized Logger ✅ COMPLETED (2026-01-19)
+
+### Overview
+
+Replaced all console.error, console.warn, console.log, and console.info
+statements in server code with centralized logger utility for consistent
+error logging across the codebase.
+
+### Issue
+
+Server API endpoints and utilities used console.error/warn/log/info
+for error logging, creating inconsistency with centralized logger
+utility used elsewhere in the codebase.
+
+### Solution
+
+#### Replaced Console Statements with Logger Utility ✅
+
+Replaced all console statements with logger utility:
+
+**API Endpoints (8 files):**
+- server/api/submissions.get.ts
+- server/api/user/preferences.get.ts
+- server/api/user/preferences.post.ts
+- server/api/resource-health/[id].get.ts
+- server/api/moderation/reject.post.ts
+- server/api/analytics/export/csv.get.ts
+- server/api/analytics/events.post.ts
+- server/api/analytics/resource/[id].get.ts
+
+**Server Utilities (4 files):**
+- server/utils/analytics-db.ts
+- server/utils/analyticsCleanup.ts
+- server/utils/rate-limiter.ts
+- server/utils/webhookQueue.ts
+
+**Tests (1 file):**
+- __tests__/server/utils/analytics-db.test.ts
+
+### Success Criteria
+
+- [x] Build passes - No errors related to logging changes
+- [x] Lint passes - 0 errors
+- [x] Tests pass - 1298/1298 tests passing (100% pass rate)
+- [x] Architectural consistency - All server code uses logger
+- [x] Zero console statements in server code - All replaced with logger
+
+### Files Modified
+
+**API Endpoints (8 files):**
+- server/api/submissions.get.ts - Replaced console.error with logger.error
+- server/api/user/preferences.get.ts - Replaced console.error with logger.error
+- server/api/user/preferences.post.ts - Replaced console.error with logger.error
+- server/api/resource-health/[id].get.ts - Replaced console.error with logger.error
+- server/api/moderation/reject.post.ts - Replaced console.info with logger.info
+- server/api/analytics/export/csv.get.ts - Replaced console.error with logger.error
+- server/api/analytics/events.post.ts - Replaced console.error with logger.error
+- server/api/analytics/resource/[id].get.ts - Replaced console.error with logger.error
+
+**Server Utilities (4 files):**
+- server/utils/analytics-db.ts - Replaced all console.error with logger.error
+- server/utils/analyticsCleanup.ts - Replaced console.warn/log with logger
+- server/utils/rate-limiter.ts - Replaced console.error/log/info with logger
+- server/utils/webhookQueue.ts - Replaced console.error with logger.error
+
+**Tests (1 file):**
+- __tests__/server/utils/analytics-db.test.ts - Updated tests to use logger instead of console
+
+### Total Impact
+
+- **Lines Reduced**: 67 lines net (80 added for logger imports, 147 removed for console statements)
+- **Console Statements Replaced**: 29 instances across 13 files
+- **Architectural Consistency**: All server code now uses centralized logger
+- **Test Results**: 1298/1298 tests passing (100% pass rate)
+- **Lint Results**: 0 errors
+
+### Architectural Principles Applied
+
+✅ **Centralized Logging**: Single source of truth for error logging
+✅ **Consistency**: All server code uses same logging pattern
+✅ **Maintainability**: Changes to logging behavior only needed in one place (logger utility)
+✅ **Zero Regressions**: All tests pass with same functional behavior
+✅ **Code Quality**: Cleaner, more maintainable logging code
+
+### Anti-Patterns Avoided
+
+❌ **Scattered Logging**: 29 console statements replaced with centralized logger
+❌ **Inconsistent Error Handling**: All errors now go through logger utility
+❌ **Direct Console Usage**: No direct console.* calls in server code
+
