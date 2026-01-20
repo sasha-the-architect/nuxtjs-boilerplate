@@ -52,7 +52,7 @@ describe('useResourceFilters', () => {
   let filtersComposable: ReturnType<typeof useResourceFilters>
 
   beforeEach(() => {
-    filtersComposable = useResourceFilters(mockResources)
+    filtersComposable = useResourceFilters()
   })
 
   describe('category filtering', () => {

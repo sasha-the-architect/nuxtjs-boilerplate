@@ -39,13 +39,11 @@ interface Props {
   totalResources?: number
 }
 
-type EmitsType = {
-  'update-sort-option': (option: string) => void
-}
+const emit = defineEmits<{
+  (e: 'update-sort-option', option: string): void
+}>()
 
- 
 defineProps<Props>()
-const emit = defineEmits<EmitsType>()
 
 const handleChange = (event: Event) => {
   const target = event.target as HTMLSelectElement

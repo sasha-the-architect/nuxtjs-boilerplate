@@ -16,7 +16,7 @@
     <FilterSection
       id="category"
       label="Category"
-      aria-label="Category filters"
+      :aria-label="'Category filters'"
       :options="categories"
       :selected-options="selectedCategories"
       :show-count="true"
@@ -27,7 +27,7 @@
     <FilterSection
       id="pricing"
       label="Pricing Model"
-      aria-label="Pricing model filters"
+      :aria-label="'Pricing model filters'"
       :options="pricingModels"
       :selected-options="selectedPricingModels"
       :show-count="true"
@@ -38,7 +38,7 @@
     <FilterSection
       id="difficulty"
       label="Difficulty"
-      aria-label="Difficulty level filters"
+      :aria-label="'Difficulty level filters'"
       :options="difficultyLevels"
       :selected-options="selectedDifficultyLevels"
       :show-count="true"
@@ -49,7 +49,7 @@
     <FilterSection
       id="technology"
       label="Technology"
-      aria-label="Technology filters"
+      :aria-label="'Technology filters'"
       :options="technologies"
       :selected-options="selectedTechnologies"
       :show-count="true"
@@ -60,7 +60,7 @@
     <FilterSection
       id="tags"
       label="Tags"
-      aria-label="Tag filters"
+      :aria-label="'Tag filters'"
       :options="tags"
       :selected-options="selectedTags"
       :show-count="false"
@@ -72,7 +72,7 @@
       v-if="allBenefits.length > 0"
       id="benefits"
       label="Benefits"
-      aria-label="Benefit filters"
+      :aria-label="'Benefit filters'"
       :options="allBenefits"
       :selected-options="selectedBenefits"
       :show-count="true"

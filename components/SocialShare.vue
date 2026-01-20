@@ -240,9 +240,15 @@ const handleClickOutside = (event: Event) => {
 }
 
 // Track share events
-const trackShare = () => {
+const trackShare = (_platform: string) => {
   // In a real implementation, this would call an analytics service
   // Close dropdown after clicking a share option
+  isOpen.value = false
+}
+
+// Copy link to clipboard
+const copyLink = () => {
+  navigator.clipboard.writeText(props.url)
   isOpen.value = false
 }
 
