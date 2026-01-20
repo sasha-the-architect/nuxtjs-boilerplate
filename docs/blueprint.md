@@ -1460,138 +1460,6 @@ model AnalyticsEvent {
 - Properties stored as JSON for flexibility
 - **Soft-delete support**: `deletedAt` timestamp prevents permanent data loss
 
-#### Webhook Models
-
-**Location**: `prisma/schema.prisma`
-
-**Purpose**: Persistent storage for webhook system with database-backed persistence (migrated from in-memory storage)
-
-```prisma
-model Webhook {
-  id               String   @id @default(cuid())
-  url              String
-  events           String
-  active           Boolean  @default(true)
-  secret           String?
-  deliveryCount    Int      @default(0)
-  failureCount     Int      @default(0)
-  lastDeliveryAt   Int?
-  lastDeliveryStatus String?
-  createdAt        Int      @default(0)
-  updatedAt        Int      @default(0)
-  deletedAt        Int?
-
-  @@index([active])
-  @@index([deletedAt])
-  @@index([url])
-}
-
-model WebhookDelivery {
-  id               String   @id @default(cuid())
-  webhookId        String
-  event            String
-  payload          String
-  status           String
-  responseCode     Int?
-  responseMessage  String?
-  attemptCount     Int      @default(0)
-  nextRetryAt      Int?
-  createdAt        Int      @default(0)
-  completedAt      Int?
-  idempotencyKey   String?
-  deletedAt        Int?
-
-  @@index([webhookId])
-  @@index([idempotencyKey])
-  @@index([status])
-  @@index([createdAt])
-  @@index([webhookId, status])
-  @@index([idempotencyKey, webhookId])
-  @@index([deletedAt])
-}
-
-model WebhookQueue {
-  id               String   @id @default(cuid())
-  webhookId        String
-  event            String
-  payload          String
-  priority         Int      @default(0)
-  scheduledFor     Int
-  createdAt        Int      @default(0)
-  retryCount       Int      @default(0)
-  maxRetries       Int      @default(3)
-  deletedAt        Int?
-
-  @@index([scheduledFor])
-  @@index([priority, scheduledFor])
-  @@index([webhookId])
-  @@index([deletedAt])
-}
-
-model DeadLetterWebhook {
-  id               String   @id @default(cuid())
-  webhookId        String
-  event            String
-  payload          String
-  failureReason    String
-  lastAttemptAt    Int      @default(0)
-  createdAt        Int      @default(0)
-  deletedAt        Int?
-
-  @@index([createdAt])
-  @@index([webhookId])
-  @@index([deletedAt])
-}
-
-model ApiKey {
-  id               String   @id @default(cuid())
-  name             String
-  key              String   @unique
-  userId           String?
-  permissions      String
-  expiresAt        Int?
-  lastUsedAt       Int?
-  active           Boolean  @default(true)
-  createdAt        Int      @default(0)
-  updatedAt        Int      @default(0)
-  deletedAt        Int?
-
-  @@index([key])
-  @@index([userId])
-  @@index([active])
-  @@index([expiresAt])
-  @@index([deletedAt])
-}
-
-model IdempotencyKey {
-  id               String   @id @default(cuid())
-  key              String   @unique
-  deliveryId       String?
-  webhookId        String?
-  createdAt        Int      @default(0)
-  expiresAt        Int?
-  deletedAt        Int?
-
-  @@index([key])
-  @@index([webhookId])
-  @@index([createdAt])
-  @@index([expiresAt])
-  @@index([deletedAt])
-}
-```
-
-**Design Principles**:
-
-- Type-safe with TypeScript
-- Database persistence (no data loss on server restart)
-- Soft-delete support across all models
-- Optimized indexes for query patterns
-- JSON serialization for array fields (events, permissions)
-- Timestamps as integers for fast comparison
-- **Idempotency**: Duplicate webhook deliveries prevented via unique idempotency keys
-
-**Note**: SQLite doesn't support ARRAY or ENUM types, so arrays are stored as JSON strings and validated at application layer via Zod schemas.
-
 ### Index Strategy
 
 #### Single-Column Indexes
@@ -2072,21 +1940,20 @@ export async function cleanupOldEvents(
 
 ## 📊 Data Architecture Decision Log
 
-| Date       | Decision                                           | Rationale                                                                                                                    |
-| ---------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| 2025-01-07 | Migrate to SQLite from PostgreSQL                  | Zero configuration, better for boilerplate, matches better-sqlite3 dep                                                       |
-| 2025-01-07 | Consolidate to Prisma ORM                          | Single source of truth, type safety, migrations, query optimization                                                          |
-| 2025-01-07 | Add composite indexes                              | Optimize common query patterns (timestamp + resourceId, timestamp + type)                                                    |
-| 2025-01-07 | Refactor to database-level aggregation             | Fix N+1 queries, 95% reduction in data transfer                                                                              |
-| 2025-01-07 | Implement Prisma Migrate                           | Version-controlled schema changes, reversible migrations                                                                     |
-| 2025-01-07 | Enhanced data validation at boundary               | Centralized Zod schemas, consistent error responses, better type safety                                                      |
-| 2025-01-07 | Made IP field optional in schema                   | Handle edge cases where IP unavailable, better data model flexibility                                                        |
-| 2025-01-07 | Database-based rate limiting                       | Scalable across instances, efficient aggregation, no in-memory state                                                         |
-| 2025-01-07 | Fix N+1 query in getAggregatedAnalytics            | Move category aggregation to Promise.all, 50% reduction in roundtrips                                                        |
-| 2026-01-09 | Added strict category and event type validation    | Prevent invalid data from entering system, establish single source of truth                                                  |
-| 2026-01-09 | Created shared constants for validation            | Eliminate data duplication, ensure consistency across validation layers                                                      |
-| 2026-01-09 | Added composite index for rate limiting            | Optimize (ip, timestamp) queries used in rate limiting, improve scalability                                                  |
-| 2026-01-20 | Migrate webhook storage from in-memory to database | Eliminate data loss on server restart, enable scaling, add soft-delete support, improve data integrity with idempotency keys |
+| Date       | Decision                                        | Rationale                                                                   |
+| ---------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
+| 2025-01-07 | Migrate to SQLite from PostgreSQL               | Zero configuration, better for boilerplate, matches better-sqlite3 dep      |
+| 2025-01-07 | Consolidate to Prisma ORM                       | Single source of truth, type safety, migrations, query optimization         |
+| 2025-01-07 | Add composite indexes                           | Optimize common query patterns (timestamp + resourceId, timestamp + type)   |
+| 2025-01-07 | Refactor to database-level aggregation          | Fix N+1 queries, 95% reduction in data transfer                             |
+| 2025-01-07 | Implement Prisma Migrate                        | Version-controlled schema changes, reversible migrations                    |
+| 2025-01-07 | Enhanced data validation at boundary            | Centralized Zod schemas, consistent error responses, better type safety     |
+| 2025-01-07 | Made IP field optional in schema                | Handle edge cases where IP unavailable, better data model flexibility       |
+| 2025-01-07 | Database-based rate limiting                    | Scalable across instances, efficient aggregation, no in-memory state        |
+| 2025-01-07 | Fix N+1 query in getAggregatedAnalytics         | Move category aggregation to Promise.all, 50% reduction in roundtrips       |
+| 2026-01-09 | Added strict category and event type validation | Prevent invalid data from entering system, establish single source of truth |
+| 2026-01-09 | Created shared constants for validation         | Eliminate data duplication, ensure consistency across validation layers     |
+| 2026-01-09 | Added composite index for rate limiting         | Optimize (ip, timestamp) queries used in rate limiting, improve scalability |
 
 ## 📊 Performance Architecture Decision Log
 
