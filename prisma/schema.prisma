@@ -45,3 +45,117 @@ model AnalyticsEvent {
 // Note: SQLite does not support ENUM types or CHECK constraints,
 // so event type validation is enforced at the application boundary
 // using Zod schemas in server/utils/validation-schemas.ts
+
+// Webhook Models
+// Note: Array fields (events, permissions) are stored as JSON strings
+// for SQLite compatibility. JSON serialization handled by Prisma.
+
+model Webhook {
+  id        String   @id @default(cuid())
+  url       String
+  secret    String?
+  active    Boolean  @default(true)
+  events    String   // JSON array of WebhookEvent
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([active])
+  @@index([deletedAt])
+  @@index([url])
+}
+
+model WebhookDelivery {
+  id             String   @id @default(cuid())
+  webhookId      String
+  event          String
+  payload        String   // JSON object
+  status         String   @default("pending") // pending, success, failed
+  statusCode     Int?
+  responseBody   String?
+  errorMessage   String?
+  attemptCount   Int      @default(1)
+  idempotencyKey String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([webhookId])
+  @@index([idempotencyKey])
+  @@index([status])
+  @@index([createdAt])
+  @@index([webhookId, status])
+  @@index([deletedAt])
+}
+
+model WebhookQueue {
+  id          String   @id @default(cuid())
+  webhookId   String
+  event       String
+  payload     String   // JSON object
+  priority    Int      @default(0)
+  retryCount  Int      @default(0)
+  maxRetries  Int      @default(3)
+  scheduledFor DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@index([scheduledFor])
+  @@index([priority, scheduledFor])
+  @@index([webhookId])
+  @@index([deletedAt])
+}
+
+model DeadLetterWebhook {
+  id               String   @id @default(cuid())
+  webhookId        String
+  event            String
+  payload          String   // JSON object
+  failureReason    String
+  lastAttemptAt    DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deliveryAttempts String   // JSON array of WebhookDelivery
+  deletedAt        DateTime?
+
+  @@index([createdAt])
+  @@index([webhookId])
+  @@index([deletedAt])
+}
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  userId      String?
+  name        String
+  permissions String   // JSON array of permission strings
+  active      Boolean  @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@index([key])
+  @@index([userId])
+  @@index([active])
+  @@index([expiresAt])
+  @@index([deletedAt])
+}
+
+model IdempotencyKey {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  webhookId   String?
+  deliveryId  String?
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@index([key])
+  @@index([webhookId])
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@index([deletedAt])
+}

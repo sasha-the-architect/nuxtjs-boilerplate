@@ -6,185 +6,616 @@ import type {
   WebhookQueueItem,
   DeadLetterWebhook,
 } from '~/types/webhook'
-
-// In-memory storage for webhooks (in production, use a database)
-const webhooks: Webhook[] = []
-const webhookDeliveries: WebhookDelivery[] = []
-const apiKeys: ApiKey[] = []
-const webhookQueue: WebhookQueueItem[] = []
-const deadLetterWebhooks: DeadLetterWebhook[] = []
-const idempotencyKeys = new Map<string, WebhookDelivery>()
+import { prisma } from './db'
 
 export const webhookStorage = {
   // Webhook methods
-  getAllWebhooks() {
-    return [...webhooks]
+  async getAllWebhooks() {
+    const webhooks = await prisma.webhook.findMany({
+      where: { deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return webhooks.map(w => ({
+      id: w.id,
+      url: w.url,
+      secret: w.secret,
+      active: w.active,
+      events: JSON.parse(w.events) as WebhookEvent[],
+      createdAt: w.createdAt.toISOString(),
+      updatedAt: w.updatedAt.toISOString(),
+    }))
   },
 
-  getWebhookById(id: string) {
-    return webhooks.find(w => w.id === id)
-  },
+  async getWebhookById(id: string) {
+    const webhook = await prisma.webhook.findFirst({
+      where: { id, deletedAt: null },
+    })
 
-  createWebhook(webhook: Webhook) {
-    webhooks.push(webhook)
-    return webhook
-  },
+    if (!webhook) return null
 
-  updateWebhook(id: string, data: Partial<Webhook>) {
-    const index = webhooks.findIndex(w => w.id === id)
-    if (index !== -1) {
-      webhooks[index] = {
-        ...webhooks[index],
-        ...data,
-        updatedAt: new Date().toISOString(),
-      }
-      return webhooks[index]
+    return {
+      id: webhook.id,
+      url: webhook.url,
+      secret: webhook.secret,
+      active: webhook.active,
+      events: JSON.parse(webhook.events) as WebhookEvent[],
+      createdAt: webhook.createdAt.toISOString(),
+      updatedAt: webhook.updatedAt.toISOString(),
     }
-    return null
   },
 
-  deleteWebhook(id: string) {
-    const index = webhooks.findIndex(w => w.id === id)
-    if (index !== -1) {
-      webhooks.splice(index, 1)
-      return true
+  async createWebhook(webhook: Webhook) {
+    const created = await prisma.webhook.create({
+      data: {
+        id: webhook.id,
+        url: webhook.url,
+        secret: webhook.secret,
+        active: webhook.active,
+        events: JSON.stringify(webhook.events),
+      },
+    })
+
+    return {
+      id: created.id,
+      url: created.url,
+      secret: created.secret,
+      active: created.active,
+      events: JSON.parse(created.events) as WebhookEvent[],
+      createdAt: created.createdAt.toISOString(),
+      updatedAt: created.updatedAt.toISOString(),
     }
-    return false
   },
 
-  getWebhooksByEvent(event: string) {
-    return webhooks.filter(
-      w => w.events.includes(event as WebhookEvent) && w.active
-    )
+  async updateWebhook(id: string, data: Partial<Webhook>) {
+    const updated = await prisma.webhook.update({
+      where: { id },
+      data: {
+        ...(data.url && { url: data.url }),
+        ...(data.secret !== undefined && { secret: data.secret }),
+        ...(data.active !== undefined && { active: data.active }),
+        ...(data.events && { events: JSON.stringify(data.events) }),
+      },
+    })
+
+    return {
+      id: updated.id,
+      url: updated.url,
+      secret: updated.secret,
+      active: updated.active,
+      events: JSON.parse(updated.events) as WebhookEvent[],
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
+    }
+  },
+
+  async deleteWebhook(id: string) {
+    const webhook = await prisma.webhook.findFirst({
+      where: { id, deletedAt: null },
+    })
+
+    if (!webhook) return false
+
+    await prisma.webhook.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    })
+
+    return true
+  },
+
+  async getWebhooksByEvent(event: string) {
+    const webhooks = await prisma.webhook.findMany({
+      where: {
+        deletedAt: null,
+        active: true,
+        events: { contains: `"${event}"` },
+      },
+    })
+
+    return webhooks.map(w => ({
+      id: w.id,
+      url: w.url,
+      secret: w.secret,
+      active: w.active,
+      events: JSON.parse(w.events) as WebhookEvent[],
+      createdAt: w.createdAt.toISOString(),
+      updatedAt: w.updatedAt.toISOString(),
+    }))
   },
 
   // Delivery methods
-  getAllDeliveries() {
-    return [...webhookDeliveries]
+  async getAllDeliveries() {
+    const deliveries = await prisma.webhookDelivery.findMany({
+      where: { deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return deliveries.map(d => ({
+      id: d.id,
+      webhookId: d.webhookId,
+      event: d.event as WebhookEvent,
+      payload: JSON.parse(d.payload),
+      status: d.status,
+      statusCode: d.statusCode,
+      responseBody: d.responseBody ? JSON.parse(d.responseBody) : undefined,
+      errorMessage: d.errorMessage,
+      attemptCount: d.attemptCount,
+      idempotencyKey: d.idempotencyKey,
+      createdAt: d.createdAt.toISOString(),
+      updatedAt: d.updatedAt.toISOString(),
+    }))
   },
 
-  getDeliveryById(id: string) {
-    return webhookDeliveries.find(d => d.id === id)
-  },
+  async getDeliveryById(id: string) {
+    const delivery = await prisma.webhookDelivery.findFirst({
+      where: { id, deletedAt: null },
+    })
 
-  createDelivery(delivery: WebhookDelivery) {
-    webhookDeliveries.push(delivery)
-    return delivery
-  },
+    if (!delivery) return null
 
-  updateDelivery(id: string, data: Partial<WebhookDelivery>) {
-    const index = webhookDeliveries.findIndex(d => d.id === id)
-    if (index !== -1) {
-      webhookDeliveries[index] = { ...webhookDeliveries[index], ...data }
-      return webhookDeliveries[index]
+    return {
+      id: delivery.id,
+      webhookId: delivery.webhookId,
+      event: delivery.event as WebhookEvent,
+      payload: JSON.parse(delivery.payload),
+      status: delivery.status,
+      statusCode: delivery.statusCode,
+      responseBody: delivery.responseBody
+        ? JSON.parse(delivery.responseBody)
+        : undefined,
+      errorMessage: delivery.errorMessage,
+      attemptCount: delivery.attemptCount,
+      idempotencyKey: delivery.idempotencyKey,
+      createdAt: delivery.createdAt.toISOString(),
+      updatedAt: delivery.updatedAt.toISOString(),
     }
-    return null
   },
 
-  getDeliveriesByWebhookId(webhookId: string) {
-    return webhookDeliveries.filter(d => d.webhookId === webhookId)
+  async createDelivery(delivery: WebhookDelivery) {
+    const created = await prisma.webhookDelivery.create({
+      data: {
+        id: delivery.id,
+        webhookId: delivery.webhookId,
+        event: delivery.event,
+        payload: JSON.stringify(delivery.payload),
+        status: delivery.status,
+        statusCode: delivery.statusCode,
+        responseBody: delivery.responseBody
+          ? JSON.stringify(delivery.responseBody)
+          : null,
+        errorMessage: delivery.errorMessage,
+        attemptCount: delivery.attemptCount,
+        idempotencyKey: delivery.idempotencyKey,
+      },
+    })
+
+    return {
+      id: created.id,
+      webhookId: created.webhookId,
+      event: created.event as WebhookEvent,
+      payload: JSON.parse(created.payload),
+      status: created.status,
+      statusCode: created.statusCode,
+      responseBody: created.responseBody
+        ? JSON.parse(created.responseBody)
+        : undefined,
+      errorMessage: created.errorMessage,
+      attemptCount: created.attemptCount,
+      idempotencyKey: created.idempotencyKey,
+      createdAt: created.createdAt.toISOString(),
+      updatedAt: created.updatedAt.toISOString(),
+    }
+  },
+
+  async updateDelivery(id: string, data: Partial<WebhookDelivery>) {
+    const updated = await prisma.webhookDelivery.update({
+      where: { id },
+      data: {
+        ...(data.status && { status: data.status }),
+        ...(data.statusCode && { statusCode: data.statusCode }),
+        ...(data.responseBody && {
+          responseBody: JSON.stringify(data.responseBody),
+        }),
+        ...(data.errorMessage && { errorMessage: data.errorMessage }),
+        ...(data.attemptCount && { attemptCount: data.attemptCount }),
+      },
+    })
+
+    return {
+      id: updated.id,
+      webhookId: updated.webhookId,
+      event: updated.event as WebhookEvent,
+      payload: JSON.parse(updated.payload),
+      status: updated.status,
+      statusCode: updated.statusCode,
+      responseBody: updated.responseBody
+        ? JSON.parse(updated.responseBody)
+        : undefined,
+      errorMessage: updated.errorMessage,
+      attemptCount: updated.attemptCount,
+      idempotencyKey: updated.idempotencyKey,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
+    }
+  },
+
+  async getDeliveriesByWebhookId(webhookId: string) {
+    const deliveries = await prisma.webhookDelivery.findMany({
+      where: { webhookId, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return deliveries.map(d => ({
+      id: d.id,
+      webhookId: d.webhookId,
+      event: d.event as WebhookEvent,
+      payload: JSON.parse(d.payload),
+      status: d.status,
+      statusCode: d.statusCode,
+      responseBody: d.responseBody ? JSON.parse(d.responseBody) : undefined,
+      errorMessage: d.errorMessage,
+      attemptCount: d.attemptCount,
+      idempotencyKey: d.idempotencyKey,
+      createdAt: d.createdAt.toISOString(),
+      updatedAt: d.updatedAt.toISOString(),
+    }))
   },
 
   // API Key methods
-  getAllApiKeys() {
-    return [...apiKeys]
+  async getAllApiKeys() {
+    const apiKeys = await prisma.apiKey.findMany({
+      where: { deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return apiKeys.map(k => ({
+      id: k.id,
+      key: k.key,
+      userId: k.userId,
+      name: k.name,
+      permissions: JSON.parse(k.permissions),
+      active: k.active,
+      expiresAt: k.expiresAt?.toISOString(),
+      createdAt: k.createdAt.toISOString(),
+      updatedAt: k.updatedAt.toISOString(),
+    }))
   },
 
-  getApiKeyById(id: string) {
-    return apiKeys.find(k => k.id === id)
-  },
+  async getApiKeyById(id: string) {
+    const apiKey = await prisma.apiKey.findFirst({
+      where: { id, deletedAt: null },
+    })
 
-  getApiKeyByValue(key: string) {
-    return apiKeys.find(k => k.key === key)
-  },
+    if (!apiKey) return null
 
-  createApiKey(apiKey: ApiKey) {
-    apiKeys.push(apiKey)
-    return apiKey
-  },
-
-  updateApiKey(id: string, data: Partial<ApiKey>) {
-    const index = apiKeys.findIndex(k => k.id === id)
-    if (index !== -1) {
-      apiKeys[index] = {
-        ...apiKeys[index],
-        ...data,
-        updatedAt: new Date().toISOString(),
-      }
-      return apiKeys[index]
+    return {
+      id: apiKey.id,
+      key: apiKey.key,
+      userId: apiKey.userId,
+      name: apiKey.name,
+      permissions: JSON.parse(apiKey.permissions),
+      active: apiKey.active,
+      expiresAt: apiKey.expiresAt?.toISOString(),
+      createdAt: apiKey.createdAt.toISOString(),
+      updatedAt: apiKey.updatedAt.toISOString(),
     }
-    return null
   },
 
-  deleteApiKey(id: string) {
-    const index = apiKeys.findIndex(k => k.id === id)
-    if (index !== -1) {
-      apiKeys.splice(index, 1)
-      return true
+  async getApiKeyByValue(key: string) {
+    const apiKey = await prisma.apiKey.findFirst({
+      where: {
+        key,
+        deletedAt: null,
+        active: true,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+    })
+
+    if (!apiKey) return null
+
+    return {
+      id: apiKey.id,
+      key: apiKey.key,
+      userId: apiKey.userId,
+      name: apiKey.name,
+      permissions: JSON.parse(apiKey.permissions),
+      active: apiKey.active,
+      expiresAt: apiKey.expiresAt?.toISOString(),
+      createdAt: apiKey.createdAt.toISOString(),
+      updatedAt: apiKey.updatedAt.toISOString(),
     }
-    return false
+  },
+
+  async createApiKey(apiKey: ApiKey) {
+    const created = await prisma.apiKey.create({
+      data: {
+        id: apiKey.id,
+        key: apiKey.key,
+        userId: apiKey.userId,
+        name: apiKey.name,
+        permissions: JSON.stringify(apiKey.permissions),
+        active: apiKey.active,
+        expiresAt: apiKey.expiresAt ? new Date(apiKey.expiresAt) : null,
+      },
+    })
+
+    return {
+      id: created.id,
+      key: created.key,
+      userId: created.userId,
+      name: created.name,
+      permissions: JSON.parse(created.permissions),
+      active: created.active,
+      expiresAt: created.expiresAt?.toISOString(),
+      createdAt: created.createdAt.toISOString(),
+      updatedAt: created.updatedAt.toISOString(),
+    }
+  },
+
+  async updateApiKey(id: string, data: Partial<ApiKey>) {
+    const updated = await prisma.apiKey.update({
+      where: { id },
+      data: {
+        ...(data.name && { name: data.name }),
+        ...(data.permissions && {
+          permissions: JSON.stringify(data.permissions),
+        }),
+        ...(data.active !== undefined && { active: data.active }),
+        ...(data.expiresAt !== undefined && {
+          expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
+        }),
+      },
+    })
+
+    return {
+      id: updated.id,
+      key: updated.key,
+      userId: updated.userId,
+      name: updated.name,
+      permissions: JSON.parse(updated.permissions),
+      active: updated.active,
+      expiresAt: updated.expiresAt?.toISOString(),
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
+    }
+  },
+
+  async deleteApiKey(id: string) {
+    const apiKey = await prisma.apiKey.findFirst({
+      where: { id, deletedAt: null },
+    })
+
+    if (!apiKey) return false
+
+    await prisma.apiKey.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    })
+
+    return true
   },
 
   // Webhook Queue methods
-  getQueue() {
-    return [...webhookQueue].sort(
-      (a, b) =>
-        new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime()
-    )
+  async getQueue() {
+    const queue = await prisma.webhookQueue.findMany({
+      where: { deletedAt: null },
+      orderBy: [{ priority: 'asc' }, { scheduledFor: 'asc' }],
+    })
+
+    return queue.map(q => ({
+      id: q.id,
+      webhookId: q.webhookId,
+      event: q.event as WebhookEvent,
+      payload: JSON.parse(q.payload),
+      priority: q.priority,
+      retryCount: q.retryCount,
+      maxRetries: q.maxRetries,
+      scheduledFor: q.scheduledFor.toISOString(),
+      createdAt: q.createdAt.toISOString(),
+      updatedAt: q.updatedAt.toISOString(),
+    }))
   },
 
-  getQueueItemById(id: string) {
-    return webhookQueue.find(q => q.id === id)
-  },
+  async getQueueItemById(id: string) {
+    const item = await prisma.webhookQueue.findFirst({
+      where: { id, deletedAt: null },
+    })
 
-  addToQueue(item: WebhookQueueItem) {
-    webhookQueue.push(item)
-    return item
-  },
+    if (!item) return null
 
-  removeFromQueue(id: string) {
-    const index = webhookQueue.findIndex(q => q.id === id)
-    if (index !== -1) {
-      webhookQueue.splice(index, 1)
-      return true
+    return {
+      id: item.id,
+      webhookId: item.webhookId,
+      event: item.event as WebhookEvent,
+      payload: JSON.parse(item.payload),
+      priority: item.priority,
+      retryCount: item.retryCount,
+      maxRetries: item.maxRetries,
+      scheduledFor: item.scheduledFor.toISOString(),
+      createdAt: item.createdAt.toISOString(),
+      updatedAt: item.updatedAt.toISOString(),
     }
-    return false
+  },
+
+  async addToQueue(item: WebhookQueueItem) {
+    const created = await prisma.webhookQueue.create({
+      data: {
+        id: item.id,
+        webhookId: item.webhookId,
+        event: item.event,
+        payload: JSON.stringify(item.payload),
+        priority: item.priority,
+        retryCount: item.retryCount,
+        maxRetries: item.maxRetries,
+        scheduledFor: new Date(item.scheduledFor),
+      },
+    })
+
+    return {
+      id: created.id,
+      webhookId: created.webhookId,
+      event: created.event as WebhookEvent,
+      payload: JSON.parse(created.payload),
+      priority: created.priority,
+      retryCount: created.retryCount,
+      maxRetries: created.maxRetries,
+      scheduledFor: created.scheduledFor.toISOString(),
+      createdAt: created.createdAt.toISOString(),
+      updatedAt: created.updatedAt.toISOString(),
+    }
+  },
+
+  async removeFromQueue(id: string) {
+    const item = await prisma.webhookQueue.findFirst({
+      where: { id, deletedAt: null },
+    })
+
+    if (!item) return false
+
+    await prisma.webhookQueue.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    })
+
+    return true
   },
 
   // Dead Letter Queue methods
-  getDeadLetterQueue() {
-    return [...deadLetterWebhooks]
+  async getDeadLetterQueue() {
+    const deadLetter = await prisma.deadLetterWebhook.findMany({
+      where: { deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return deadLetter.map(dl => ({
+      id: dl.id,
+      webhookId: dl.webhookId,
+      event: dl.event as WebhookEvent,
+      payload: JSON.parse(dl.payload),
+      failureReason: dl.failureReason,
+      lastAttemptAt: dl.lastAttemptAt.toISOString(),
+      createdAt: dl.createdAt.toISOString(),
+      updatedAt: dl.updatedAt.toISOString(),
+      deliveryAttempts: JSON.parse(dl.deliveryAttempts),
+    }))
   },
 
-  getDeadLetterWebhookById(id: string) {
-    return deadLetterWebhooks.find(dl => dl.id === id)
-  },
+  async getDeadLetterWebhookById(id: string) {
+    const item = await prisma.deadLetterWebhook.findFirst({
+      where: { id, deletedAt: null },
+    })
 
-  addToDeadLetterQueue(item: DeadLetterWebhook) {
-    deadLetterWebhooks.push(item)
-    return item
-  },
+    if (!item) return null
 
-  removeFromDeadLetterQueue(id: string) {
-    const index = deadLetterWebhooks.findIndex(dl => dl.id === id)
-    if (index !== -1) {
-      deadLetterWebhooks.splice(index, 1)
-      return true
+    return {
+      id: item.id,
+      webhookId: item.webhookId,
+      event: item.event as WebhookEvent,
+      payload: JSON.parse(item.payload),
+      failureReason: item.failureReason,
+      lastAttemptAt: item.lastAttemptAt.toISOString(),
+      createdAt: item.createdAt.toISOString(),
+      updatedAt: item.updatedAt.toISOString(),
+      deliveryAttempts: JSON.parse(item.deliveryAttempts),
     }
-    return false
+  },
+
+  async addToDeadLetterQueue(item: DeadLetterWebhook) {
+    const created = await prisma.deadLetterWebhook.create({
+      data: {
+        id: item.id,
+        webhookId: item.webhookId,
+        event: item.event,
+        payload: JSON.stringify(item.payload),
+        failureReason: item.failureReason,
+        lastAttemptAt: new Date(item.lastAttemptAt),
+        deliveryAttempts: JSON.stringify(item.deliveryAttempts),
+      },
+    })
+
+    return {
+      id: created.id,
+      webhookId: created.webhookId,
+      event: created.event as WebhookEvent,
+      payload: JSON.parse(created.payload),
+      failureReason: created.failureReason,
+      lastAttemptAt: created.lastAttemptAt.toISOString(),
+      createdAt: created.createdAt.toISOString(),
+      updatedAt: created.updatedAt.toISOString(),
+      deliveryAttempts: JSON.parse(created.deliveryAttempts),
+    }
+  },
+
+  async removeFromDeadLetterQueue(id: string) {
+    const item = await prisma.deadLetterWebhook.findFirst({
+      where: { id, deletedAt: null },
+    })
+
+    if (!item) return false
+
+    await prisma.deadLetterWebhook.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    })
+
+    return true
   },
 
   // Idempotency methods
-  getDeliveryByIdempotencyKey(key: string) {
-    return idempotencyKeys.get(key)
+  async getDeliveryByIdempotencyKey(key: string) {
+    const idempotencyKey = await prisma.idempotencyKey.findFirst({
+      where: {
+        key,
+        deletedAt: null,
+      },
+    })
+
+    if (!idempotencyKey) return null
+
+    const delivery = await prisma.webhookDelivery.findFirst({
+      where: { id: idempotencyKey.deliveryId, deletedAt: null },
+    })
+
+    if (!delivery) return null
+
+    return {
+      id: delivery.id,
+      webhookId: delivery.webhookId,
+      event: delivery.event as WebhookEvent,
+      payload: JSON.parse(delivery.payload),
+      status: delivery.status,
+      statusCode: delivery.statusCode,
+      responseBody: delivery.responseBody
+        ? JSON.parse(delivery.responseBody)
+        : undefined,
+      errorMessage: delivery.errorMessage,
+      attemptCount: delivery.attemptCount,
+      idempotencyKey: delivery.idempotencyKey,
+      createdAt: delivery.createdAt.toISOString(),
+      updatedAt: delivery.updatedAt.toISOString(),
+    }
   },
 
-  setDeliveryByIdempotencyKey(key: string, delivery: WebhookDelivery) {
-    idempotencyKeys.set(key, delivery)
+  async setDeliveryByIdempotencyKey(key: string, delivery: WebhookDelivery) {
+    await prisma.idempotencyKey.create({
+      data: {
+        key,
+        deliveryId: delivery.id,
+      },
+    })
+
     return delivery
   },
 
-  hasDeliveryWithIdempotencyKey(key: string) {
-    return idempotencyKeys.has(key)
+  async hasDeliveryWithIdempotencyKey(key: string) {
+    const idempotencyKey = await prisma.idempotencyKey.findFirst({
+      where: {
+        key,
+        deletedAt: null,
+      },
+    })
+
+    return !!idempotencyKey
   },
 }

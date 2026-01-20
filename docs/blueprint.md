@@ -601,10 +601,56 @@ HTTP Delivery (10s timeout, HMAC signature)
     ↓
     ├─ Success → Record delivery
     └─ Failure → Retry with exponential backoff
-                     ↓
-                ├─ Max retries → Dead letter queue
-                └─ < Max retries → Retry queue (reschedule)
+                      ↓
+                 ├─ Max retries → Dead letter queue
+                 └─ < Max retries → Retry queue (reschedule)
 ```
+
+**Database Persistence (Prisma + SQLite)**:
+
+- **Webhook Model**: Stores webhook configurations with soft-delete support
+  - Indexes: `active`, `deletedAt`, `url`
+  - JSON serialization for `events` array field
+  - Supports activation/deactivation without data loss
+
+- **WebhookDelivery Model**: Logs all webhook delivery attempts
+  - Indexes: `webhookId`, `idempotencyKey`, `status`, `createdAt`, `webhookId + status`, `deletedAt`
+  - Tracks delivery status, attempts, responses
+  - Supports idempotency via dedicated IdempotencyKey model
+
+- **WebhookQueue Model**: Persists scheduled webhook deliveries
+  - Indexes: `scheduledFor`, `priority + scheduledFor`, `webhookId`, `deletedAt`
+  - Enables queue persistence across server restarts
+  - Priority-based scheduling for critical webhooks
+
+- **DeadLetterWebhook Model**: Stores failed webhooks after max retries
+  - Indexes: `createdAt`, `webhookId`, `deletedAt`
+  - Preserves failed webhook history for debugging and retry
+  - Full delivery attempt history for troubleshooting
+
+- **ApiKey Model**: Manages API keys with expiration support
+  - Indexes: `key` (unique), `userId`, `active`, `expiresAt`, `deletedAt`
+  - JSON serialization for `permissions` array field
+  - Supports scoped permissions and expiration dates
+
+- **IdempotencyKey Model**: Stores idempotency key mappings
+  - Indexes: `key` (unique), `webhookId`, `createdAt`, `expiresAt`, `deletedAt`
+  - Links to WebhookDelivery for delivery tracking
+  - Prevents duplicate deliveries across restarts
+
+**Benefits of Database Persistence**:
+
+✅ **Data Integrity**: ACID transactions ensure data consistency
+✅ **Server Restart Safe**: All webhooks, deliveries, queue, API keys persisted
+✅ **Horizontal Scaling**: Database can be shared across multiple server instances
+✅ **Audit Trail**: Complete history of webhook deliveries and failures
+✅ **Soft-Delete Support**: Data never permanently deleted, recovery possible
+✅ **Idempotency Guarantee**: Persistent idempotency keys prevent duplicate deliveries
+✅ **Performance**: Optimized indexes for query patterns (O(1) lookups)
+
+**Migration**: `20260120234718_add_webhook_models`
+
+**Storage Implementation**: `server/utils/webhookStorage.ts` (Prisma ORM with SQLite)
 
 #### 5. **Rate Limiting**
 
@@ -2735,8 +2781,9 @@ Applied to all relevant file types:
 - ESLint configuration errors: ~50
 - Unused variables/imports: ~35
 
-| Date       | Category                 | Decision                                                  | Rationale                                                                                                                                                    |
-| ---------- | ------------------------ | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 2026-01-19 | Performance Optimization | Single-pass tag/category matching in useSearchSuggestions | Combined duplicate resource iteration loops from O(2n) to O(n), eliminating redundant array traversals, 2x performance improvement for suggestion generation |
+| Date       | Category                 | Decision                                                  | Rationale                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ---------- | ------------------------ | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-01-19 | Performance Optimization | Single-pass tag/category matching in useSearchSuggestions | Combined duplicate resource iteration loops from O(2n) to O(n), eliminating redundant array traversals, 2x performance improvement for suggestion generation                                                                                                                                                                                                                                                                                                   |
+| 2026-01-20 | Data Architecture        | Migrate webhook storage from in-memory to database        | Designed and implemented 6 Prisma models (Webhook, WebhookDelivery, WebhookQueue, DeadLetterWebhook, ApiKey, IdempotencyKey) with soft-delete support, proper indexes, and JSON serialization; refactored webhookStorage.ts to use Prisma ORM instead of in-memory arrays; created reversible migration (20260120234718_add_webhook_models) with up/down scripts; zero data loss on server restart, horizontal scaling capability, persistent idempotency keys |
 
 ---
