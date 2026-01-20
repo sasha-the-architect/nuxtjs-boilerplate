@@ -1182,3 +1182,176 @@ If chronological sorting becomes a requirement, consider:
 3. Documenting sorting as "not supported" for string-based IDs
 
 ---
+
+## [TEST ENGINEERING] Critical Path Testing - Recommendation Algorithms & XSS Prevention ✅ COMPLETED (2026-01-20)
+
+### Overview
+
+Implemented comprehensive test coverage for critical business logic in recommendation algorithms and XSS prevention utilities, ensuring core functionality is thoroughly tested.
+
+### Issue
+
+**Locations**:
+
+- `utils/recommendation-algorithms.ts` - Core recommendation engine algorithms (NO tests)
+- `utils/sanitize.ts` - XSS prevention utilities (NO tests)
+
+**Problem**: Critical business logic functions had zero test coverage, creating risk of:
+
+1. Silent bugs in recommendation logic affecting user experience
+2. Security vulnerabilities from incorrect XSS sanitization
+3. Unintended behavior changes when refactoring
+4. Undiscovered edge cases in security-critical code
+
+**Impact**: HIGH - Critical recommendation features and security utilities untested
+
+### Evidence
+
+1. **No Test Files Found**:
+   - `__tests__/utils/recommendation-algorithms.test.ts` - DID NOT EXIST
+   - `__tests__/utils/sanitize.test.ts` - DID NOT EXIST
+
+2. **Critical Business Logic Untested**:
+   - `calculateSimilarity()` - Resource similarity scoring (no test coverage)
+   - `calculateInterestMatch()` - User interest matching (no test coverage)
+   - `calculateCollaborativeScore()` - Collaborative filtering (no test coverage)
+   - `applyDiversity()` - Recommendation diversity algorithm (no test coverage)
+   - `sanitizeForXSS()` - XSS prevention (no test coverage)
+   - `sanitizeAndHighlight()` - Safe highlighting (no test coverage)
+
+3. **Risk Assessment**:
+   - Recommendations affect user engagement - bugs reduce retention
+   - XSS prevention is security-critical - bugs enable attacks
+   - Both functions used extensively throughout application
+
+### Solution
+
+#### Created recommendation-algorithms.test.ts ✅
+
+**File**: `__tests__/utils/recommendation-algorithms.test.ts` (42 tests)
+
+**Test Categories**:
+
+- **calculateSimilarity** (10 tests): identical resources, same category, different category, tag similarity, technology similarity, empty arrays, score capping, partial matches
+- **calculateInterestMatch** (10 tests): no preferences, no interests, category match, tag match, technology match, multiple matches, no matches, case sensitivity, empty arrays
+- **calculateSkillMatch** (3 tests): no skill level, with skill level, different levels
+- **calculateCollaborativeScore** (8 tests): no preferences, no interactions, viewed resources, bookmarked resources, both lists, not in lists, multiple resources, empty lists
+- **applyDiversity** (11 tests): zero/negative factor, positive factor, max limit, first 3 always included, diverse categories, empty array, single recommendation, diverse technologies
+
+**Test Results**: 42 passing, 0 skipped, 0 failed
+
+**All tests validate**: ✅ Correct behavior ✅ No bugs found ✅ Edge cases covered
+
+#### Created sanitize.test.ts ✅
+
+**File**: `__tests__/utils/sanitize.test.ts` (59 tests)
+
+**Test Categories**:
+
+**sanitizeForXSS** (43 tests):
+
+- Empty/null/undefined inputs
+- Script tag removal (paired, self-closing, different case)
+- Dangerous tag removal (iframe, object, embed, form, img, link, meta, SVG)
+- Anchor tag removal (paired, self-closing)
+- Protocol removal (javascript:, data:, vbscript:)
+- Event handler removal (onclick, onerror, onload, onmouseover, etc.)
+- HTML entity removal (decimal, hex)
+- Whitespace normalization
+- HTML comments and DOCTYPE removal
+- Mixed dangerous/safe content
+- Nested dangerous tags
+- Style tag handling
+- Encoded script content
+- Script with spaces/newlines
+
+**sanitizeAndHighlight** (16 tests):
+
+- Empty/null inputs
+- Search term highlighting
+- Sanitization before highlighting
+- Special regex character escaping
+- Multiple occurrences
+- Case-insensitive matching
+- CSS class preservation
+- Multiple word queries
+- Text structure preservation
+- Special characters in queries (., \*, ?, |, [, ], {, }, ^)
+- HTML in highlighted text
+
+**Test Results**: 59 passing, 0 skipped, 0 failed
+
+**All tests validate**: ✅ Security vulnerabilities prevented ✅ XSS attacks blocked ✅ Safe text highlighting ✅ Edge cases covered
+
+### Architecture Improvements
+
+#### Before: Untested Critical Logic
+
+```
+Critical Functions Untested:
+├── calculateSimilarity() - Resource similarity (0 tests)
+├── calculateInterestMatch() - User matching (0 tests)
+├── calculateCollaborativeScore() - Collaborative filtering (0 tests)
+├── applyDiversity() - Diversity algorithm (0 tests)
+├── sanitizeForXSS() - XSS prevention (0 tests)
+└── sanitizeAndHighlight() - Safe highlighting (0 tests)
+
+Risk: Silent bugs, security vulnerabilities, regression issues
+```
+
+#### After: Comprehensive Test Coverage
+
+```
+Critical Functions Fully Tested:
+├── calculateSimilarity() - 10 tests (all passing)
+├── calculateInterestMatch() - 10 tests (all passing)
+├── calculateCollaborativeScore() - 8 tests (all passing)
+├── applyDiversity() - 11 tests (all passing)
+├── sanitizeForXSS() - 43 tests (all passing)
+└── sanitizeAndHighlight() - 16 tests (all passing)
+
+Confidence: Behavior validated, security verified, regressions prevented
+```
+
+### Success Criteria
+
+- [x] Critical path logic tested - Recommendation algorithms and sanitize utilities fully covered
+- [x] All tests pass consistently - 1497 passing, 54 skipped (0 failed)
+- [x] Edge cases tested - Empty/null inputs, special characters, security scenarios covered
+- [x] Tests readable and maintainable - AAA pattern, descriptive names
+- [x] Breaking code causes test failure - Tests validate behavior, not implementation
+- [x] Security validated - XSS attack vectors tested and prevented
+
+### Files Added
+
+1. `__tests__/utils/recommendation-algorithms.test.ts` - 42 tests for recommendation algorithms
+2. `__tests__/utils/sanitize.test.ts` - 59 tests for XSS prevention utilities
+
+### Files Modified
+
+1. `docs/task.md` - Added critical path testing documentation
+
+### Total Impact
+
+- **Test Coverage Added**: 101 new tests (all passing)
+- **Critical Functions Covered**: 6 previously untested utilities now fully tested
+- **Test Suite Status**: 1497 passing, 54 skipped (100% pass rate for non-skipped tests)
+- **Confidence Level**: HIGH - Critical path logic validated, security verified
+
+### Architectural Principles Applied
+
+✅ **Test Coverage First**: Identify untested critical logic before bugs occur
+✅ **AAA Pattern**: Arrange, Act, Assert structure for clarity
+✅ **Edge Case Coverage**: Null, empty, boundary conditions, security scenarios tested
+✅ **Descriptive Test Names**: Scenario + expectation in test titles
+✅ **Security Testing**: XSS attack vectors tested and validated
+✅ **Behavioral Testing**: Tests verify WHAT, not HOW
+
+### Anti-Patterns Avoided
+
+❌ **Untested Critical Logic**: All critical path functions now have tests
+❌ **Missing Edge Cases**: Empty, null, boundary conditions, security scenarios covered
+❌ **Silent Failures**: Bugs exposed by tests, not ignored
+❌ **Implementation Testing**: Tests verify behavior, not implementation details
+
+---
