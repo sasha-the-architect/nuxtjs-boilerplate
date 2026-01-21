@@ -14,6 +14,7 @@ export const webhookStorage = {
     const webhooks = await prisma.webhook.findMany({
       where: { deletedAt: null },
       orderBy: { createdAt: 'desc' },
+      take: 1000,
     })
 
     return webhooks.map(w => ({
@@ -68,6 +69,12 @@ export const webhookStorage = {
   },
 
   async updateWebhook(id: string, data: Partial<Webhook>) {
+    const webhook = await prisma.webhook.findFirst({
+      where: { id, deletedAt: null },
+    })
+
+    if (!webhook) return null
+
     const updated = await prisma.webhook.update({
       where: { id },
       data: {
@@ -111,6 +118,7 @@ export const webhookStorage = {
         active: true,
         events: { contains: `"${event}"` },
       },
+      take: 100,
     })
 
     return webhooks.map(w => ({
@@ -129,6 +137,7 @@ export const webhookStorage = {
     const deliveries = await prisma.webhookDelivery.findMany({
       where: { deletedAt: null },
       orderBy: { createdAt: 'desc' },
+      take: 1000,
     })
 
     return deliveries.map(d => ({
@@ -209,6 +218,12 @@ export const webhookStorage = {
   },
 
   async updateDelivery(id: string, data: Partial<WebhookDelivery>) {
+    const delivery = await prisma.webhookDelivery.findFirst({
+      where: { id, deletedAt: null },
+    })
+
+    if (!delivery) return null
+
     const updated = await prisma.webhookDelivery.update({
       where: { id },
       data: {
@@ -246,6 +261,7 @@ export const webhookStorage = {
     const deliveries = await prisma.webhookDelivery.findMany({
       where: { webhookId, deletedAt: null },
       orderBy: { createdAt: 'desc' },
+      take: 1000,
     })
 
     return deliveries.map(d => ({
@@ -269,6 +285,7 @@ export const webhookStorage = {
     const apiKeys = await prisma.apiKey.findMany({
       where: { deletedAt: null },
       orderBy: { createdAt: 'desc' },
+      take: 1000,
     })
 
     return apiKeys.map(k => ({
@@ -356,6 +373,12 @@ export const webhookStorage = {
   },
 
   async updateApiKey(id: string, data: Partial<ApiKey>) {
+    const apiKey = await prisma.apiKey.findFirst({
+      where: { id, deletedAt: null },
+    })
+
+    if (!apiKey) return null
+
     const updated = await prisma.apiKey.update({
       where: { id },
       data: {
@@ -403,6 +426,7 @@ export const webhookStorage = {
     const queue = await prisma.webhookQueue.findMany({
       where: { deletedAt: null },
       orderBy: [{ priority: 'asc' }, { scheduledFor: 'asc' }],
+      take: 1000,
     })
 
     return queue.map(q => ({
@@ -488,6 +512,7 @@ export const webhookStorage = {
     const deadLetter = await prisma.deadLetterWebhook.findMany({
       where: { deletedAt: null },
       orderBy: { createdAt: 'desc' },
+      take: 1000,
     })
 
     return deadLetter.map(dl => ({
@@ -600,9 +625,13 @@ export const webhookStorage = {
   },
 
   async setDeliveryByIdempotencyKey(key: string, delivery: WebhookDelivery) {
-    await prisma.idempotencyKey.create({
-      data: {
+    await prisma.idempotencyKey.upsert({
+      where: { key },
+      create: {
         key,
+        deliveryId: delivery.id,
+      },
+      update: {
         deliveryId: delivery.id,
       },
     })
@@ -620,4 +649,13 @@ export const webhookStorage = {
 
     return !!idempotencyKey
   },
+}
+
+export async function resetWebhookStorage() {
+  await prisma.idempotencyKey.deleteMany({})
+  await prisma.webhookDelivery.deleteMany({})
+  await prisma.webhookQueue.deleteMany({})
+  await prisma.deadLetterWebhook.deleteMany({})
+  await prisma.webhook.deleteMany({})
+  await prisma.apiKey.deleteMany({})
 }

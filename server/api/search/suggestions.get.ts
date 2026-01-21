@@ -1,8 +1,12 @@
-import { getQuery, setResponseStatus } from 'h3'
+import { getQuery } from 'h3'
 import type { Resource } from '~/types/resource'
-import { logError } from '~/utils/errorLogger'
 import { cacheManager, cacheSetWithTags } from '~/server/utils/enhanced-cache'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
+import {
+  sendSuccessResponse,
+  sendBadRequestError,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 /**
  * GET /api/search/suggestions
@@ -26,12 +30,10 @@ export default defineEventHandler(async event => {
     if (query.q !== undefined) {
       searchQuery = query.q as string
       if (typeof searchQuery !== 'string') {
-        setResponseStatus(event, 400)
-        return {
-          success: false,
-          message: 'Invalid search query parameter. Must be a string.',
-          error: 'Bad Request',
-        }
+        return sendBadRequestError(
+          event,
+          'Invalid search query parameter. Must be a string.'
+        )
       }
     }
 
@@ -42,13 +44,10 @@ export default defineEventHandler(async event => {
       if (!isNaN(parsedLimit) && parsedLimit > 0) {
         limit = Math.min(parsedLimit, 10) // max 10 suggestions
       } else {
-        // Invalid limit provided, return error
-        setResponseStatus(event, 400)
-        return {
-          success: false,
-          message: 'Invalid limit parameter. Must be a positive integer.',
-          error: 'Bad Request',
-        }
+        return sendBadRequestError(
+          event,
+          'Invalid limit parameter. Must be a positive integer.'
+        )
       }
     }
 
@@ -60,7 +59,7 @@ export default defineEventHandler(async event => {
     if (cachedResult) {
       event.node.res?.setHeader('X-Cache', 'HIT')
       event.node.res?.setHeader('X-Cache-Key', cacheKey)
-      return cachedResult
+      return sendSuccessResponse(event, cachedResult)
     }
 
     // Import resources from JSON
@@ -77,17 +76,15 @@ export default defineEventHandler(async event => {
     // Generate suggestions
     const suggestions = getSearchSuggestions(searchQuery, limit)
 
-    const response = {
-      success: true,
+    // Cache result with tags for easier invalidation
+    // Use shorter TTL for suggestions since they change more frequently
+    const responseData = {
       data: suggestions,
       query: searchQuery,
       limit: limit,
       timestamp: new Date().toISOString(),
     }
-
-    // Cache the result with tags for easier invalidation
-    // Use shorter TTL for suggestions since they change more frequently
-    await cacheSetWithTags(cacheKey, response, 60, [
+    await cacheSetWithTags(cacheKey, responseData, 60, [
       'search',
       'suggestions',
       'api',
@@ -97,29 +94,14 @@ export default defineEventHandler(async event => {
     event.node.res?.setHeader('X-Cache', 'MISS')
     event.node.res?.setHeader('X-Cache-Key', cacheKey)
 
-    // Set success response status
-    setResponseStatus(event, 200)
-    return response
+    // Return standardized success response
+    return sendSuccessResponse(event, {
+      data: suggestions,
+      query: searchQuery,
+      limit: limit,
+      timestamp: new Date().toISOString(),
+    })
   } catch (error) {
-    const err = error instanceof Error ? error : undefined
-    logError(
-      `Error in search suggestions API: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      err,
-      'api-search-suggestions',
-      {
-        query: getQuery(event),
-        errorType: error?.constructor?.name,
-      }
-    )
-
-    setResponseStatus(event, 500)
-    return {
-      success: false,
-      message: 'An error occurred while generating search suggestions',
-      error:
-        process.env.NODE_ENV === 'development' && error instanceof Error
-          ? error.message
-          : undefined,
-    }
+    return handleApiRouteError(event, error)
   }
 })

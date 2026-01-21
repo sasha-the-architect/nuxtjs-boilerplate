@@ -1,6 +1,9 @@
 import { getQuery } from 'h3'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
-import { logger } from '~/utils/logger'
+import {
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 export default defineEventHandler(async event => {
   await rateLimit(event)
@@ -28,16 +31,8 @@ export default defineEventHandler(async event => {
       lastUpdated: new Date().toISOString(),
     }
 
-    return {
-      success: true,
-      preferences: mockPreferences,
-    }
+    return sendSuccessResponse(event, { preferences: mockPreferences })
   } catch (error) {
-    const err = error as { statusCode?: number; statusMessage?: string }
-    logger.error('Error getting user preferences:', error)
-    throw createError({
-      statusCode: err.statusCode || 500,
-      statusMessage: err.statusMessage || 'Failed to get user preferences',
-    })
+    return handleApiRouteError(event, error)
   }
 })

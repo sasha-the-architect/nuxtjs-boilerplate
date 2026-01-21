@@ -1,12 +1,11 @@
-import { setResponseHeader, setResponseStatus } from 'h3'
+import { setResponseHeader } from 'h3'
 import {
   getBaseUrlFromConfig,
   STATIC_PAGES,
   buildSitemapUrlEntry,
   generateSitemapXML,
-  generateSitemapErrorXML,
 } from '../utils/sitemap'
-import { logError } from '~/utils/errorLogger'
+import { handleApiRouteError } from '~/server/utils/api-response'
 
 export default defineEventHandler(async event => {
   try {
@@ -19,14 +18,6 @@ export default defineEventHandler(async event => {
     setResponseHeader(event, 'Content-Type', 'application/xml')
     return generateSitemapXML(entries)
   } catch (error) {
-    logError(
-      `Error generating /api/sitemap: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      error as Error,
-      'api-sitemap'
-    )
-
-    setResponseStatus(event, 500)
-    setResponseHeader(event, 'Content-Type', 'application/xml')
-    return generateSitemapErrorXML()
+    return handleApiRouteError(event, error)
   }
 })

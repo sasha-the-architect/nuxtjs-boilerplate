@@ -67,10 +67,14 @@ export const useSearchSuggestions = (resources: readonly Resource[]) => {
       })
     })
 
-    // Add tag and category suggestions based on query (O(n) single-pass with O(1) lookups)
+    // Add tag and category suggestions based on query (O(k) where k is Fuse search results)
     const tagMatches = new Set<string>()
     const categoryMatches = new Set<string>()
-    resources.forEach(resource => {
+
+    // Only scan resources matched by Fuse.js instead of ALL resources
+    // This reduces O(n) to O(k) where k << n for typical searches
+    searchResults.forEach(result => {
+      const resource = result.item
       if (resource.tags) {
         resource.tags.forEach(tag => {
           if (

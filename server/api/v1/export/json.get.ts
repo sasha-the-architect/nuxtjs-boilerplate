@@ -1,6 +1,6 @@
 import { defineEventHandler, setResponseHeader } from 'h3'
 import type { Resource } from '~/types/resource'
-import { logError } from '~/utils/errorLogger'
+import { handleApiRouteError } from '~/server/utils/api-response'
 
 /**
  * GET /api/v1/export/json
@@ -13,7 +13,7 @@ export default defineEventHandler(async event => {
     const resourcesModule = await import('~/data/resources.json')
     const resources: Resource[] = resourcesModule.default || resourcesModule
 
-    // Set the appropriate content type for JSON
+    // Set appropriate content type for JSON
     setResponseHeader(event, 'Content-Type', 'application/json')
     setResponseHeader(
       event,
@@ -23,19 +23,6 @@ export default defineEventHandler(async event => {
 
     return resources
   } catch (error) {
-    logError(
-      `Error exporting resources as JSON: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      error as Error,
-      'api-v1-export-json'
-    )
-
-    return {
-      success: false,
-      message: 'An error occurred while exporting resources',
-      error:
-        process.env.NODE_ENV === 'development' && error instanceof Error
-          ? error.message
-          : undefined,
-    }
+    return handleApiRouteError(event, error)
   }
 })

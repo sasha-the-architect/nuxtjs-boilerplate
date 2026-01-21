@@ -18,8 +18,13 @@
         :stroke-width="isBookmarked ? '0' : '1.5'"
         class="w-5 h-5"
         viewBox="0 0 24 24"
+        fill="none"
       >
-        <path d="M17.5 22l-1.5-1.5L12 18.1 8 20.5V3h4v6h4V3h4v17.5l-4.5-2.4z" />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+        />
       </svg>
     </button>
 

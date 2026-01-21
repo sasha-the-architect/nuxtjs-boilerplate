@@ -7,12 +7,12 @@ import { randomUUID } from 'node:crypto'
 import { webhookStorage } from './webhookStorage'
 
 export class DeadLetterManager {
-  addToDeadLetter(
+  async addToDeadLetter(
     item: WebhookQueueItem,
     webhook: Webhook,
     error: Error | null
-  ): void {
-    const deliveries = webhookStorage.getDeliveriesByWebhookId(webhook.id)
+  ): Promise<void> {
+    const deliveries = await webhookStorage.getDeliveriesByWebhookId(webhook.id)
     const failedDeliveries = deliveries
       .filter(d => d.webhookId === webhook.id && d.status === 'failed')
       .slice(-item.retryCount)
@@ -28,42 +28,62 @@ export class DeadLetterManager {
       deliveryAttempts: failedDeliveries,
     }
 
-    webhookStorage.addToDeadLetterQueue(deadLetterItem)
+    await webhookStorage.addToDeadLetterQueue(deadLetterItem)
   }
 
-  removeFromDeadLetter(id: string): void {
-    webhookStorage.removeFromDeadLetterQueue(id)
+  async removeFromDeadLetter(id: string): Promise<void> {
+    await webhookStorage.removeFromDeadLetterQueue(id)
   }
 
-  getDeadLetterItems(): DeadLetterWebhook[] {
-    return webhookStorage.getDeadLetterQueue()
+  async getDeadLetterItems(): Promise<DeadLetterWebhook[]> {
+    return await webhookStorage.getDeadLetterQueue()
   }
 
-  getDeadLetterItemById(id: string): DeadLetterWebhook | null {
-    return webhookStorage.getDeadLetterWebhookById(id)
+  async getDeadLetterItemById(id: string): Promise<DeadLetterWebhook | null> {
+    return await webhookStorage.getDeadLetterWebhookById(id)
   }
 
-  getDeadLetterItemsByWebhookId(webhookId: string): DeadLetterWebhook[] {
-    return webhookStorage
-      .getDeadLetterQueue()
-      .filter(item => item.webhookId === webhookId)
+  async getDeadLetterItemsByWebhookId(
+    webhookId: string
+  ): Promise<DeadLetterWebhook[]> {
+    const items = await webhookStorage.getDeadLetterQueue()
+    return items.filter(item => item.webhookId === webhookId)
   }
 
-  retry(
+  async getDeadLetterCount(): Promise<number> {
+    const queue = await webhookStorage.getDeadLetterQueue()
+    return queue.length
+  }
+
+  async getDeadLetterCountByWebhookId(webhookId: string): Promise<number> {
+    const queue = await webhookStorage.getDeadLetterQueue()
+    return queue.filter(item => item.webhookId === webhookId).length
+  }
+
+  async clearDeadLetterQueue(): Promise<void> {
+    const deadLetterItems = await webhookStorage.getDeadLetterQueue()
+    for (const item of deadLetterItems) {
+      await webhookStorage.removeFromDeadLetterQueue(item.id)
+    }
+  }
+
+  async retry(
     id: string,
-    enqueueCallback: (item: WebhookQueueItem) => void
-  ): boolean {
-    const deadLetterItem = webhookStorage.getDeadLetterWebhookById(id)
+    enqueueCallback: (item: WebhookQueueItem) => Promise<void>
+  ): Promise<boolean> {
+    const deadLetterItem = await webhookStorage.getDeadLetterWebhookById(id)
     if (!deadLetterItem) {
       return false
     }
 
-    const webhook = webhookStorage.getWebhookById(deadLetterItem.webhookId)
+    const webhook = await webhookStorage.getWebhookById(
+      deadLetterItem.webhookId
+    )
     if (!webhook) {
       return false
     }
 
-    webhookStorage.removeFromDeadLetterQueue(id)
+    await webhookStorage.removeFromDeadLetterQueue(id)
 
     const queueItem: WebhookQueueItem = {
       id: `q_${randomUUID()}`,
@@ -77,25 +97,8 @@ export class DeadLetterManager {
       maxRetries: 3,
     }
 
-    enqueueCallback(queueItem)
+    await enqueueCallback(queueItem)
     return true
-  }
-
-  getDeadLetterCount(): number {
-    return webhookStorage.getDeadLetterQueue().length
-  }
-
-  getDeadLetterCountByWebhookId(webhookId: string): number {
-    return webhookStorage
-      .getDeadLetterQueue()
-      .filter(item => item.webhookId === webhookId).length
-  }
-
-  clearDeadLetterQueue(): void {
-    const deadLetterItems = webhookStorage.getDeadLetterQueue()
-    deadLetterItems.forEach(item => {
-      webhookStorage.removeFromDeadLetterQueue(item.id)
-    })
   }
 }
 

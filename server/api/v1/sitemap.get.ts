@@ -1,14 +1,13 @@
 import { defineEventHandler, setResponseHeader } from 'h3'
 import type { Resource } from '~/types/resource'
-import { logError } from '~/utils/errorLogger'
 import {
   getBaseUrlFromConfig,
   STATIC_PAGES_WITH_FAVORITES,
   buildSitemapUrlEntry,
   buildResourceUrlEntry,
   generateSitemapXML,
-  generateSitemapErrorXML,
 } from '../../utils/sitemap'
+import { handleApiRouteError } from '~/server/utils/api-response'
 
 const API_ENDPOINTS = [
   { url: '/api/v1/resources', priority: '0.9', changefreq: 'daily' },
@@ -43,12 +42,6 @@ export default defineEventHandler(async event => {
     setResponseHeader(event, 'Content-Type', 'application/xml')
     return generateSitemapXML(entries)
   } catch (error) {
-    logError(
-      `Error generating /api/v1/sitemap: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      error as Error,
-      'api-v1-sitemap'
-    )
-
-    return generateSitemapErrorXML()
+    return handleApiRouteError(event, error)
   }
 })

@@ -117,7 +117,8 @@ export async function getAnalyticsEventsForResource(
   startDate: Date,
   endDate: Date,
   eventType?: string,
-  includeDeleted: boolean = false
+  includeDeleted: boolean = false,
+  limit: number = 10000
 ): Promise<AnalyticsEvent[]> {
   try {
     const where: Record<string, unknown> = {
@@ -141,6 +142,7 @@ export async function getAnalyticsEventsForResource(
       orderBy: {
         timestamp: 'desc',
       },
+      take: limit,
     })
 
     return events.map(mapDbEventToAnalyticsEvent)

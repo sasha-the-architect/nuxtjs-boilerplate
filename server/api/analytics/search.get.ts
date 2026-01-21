@@ -1,7 +1,10 @@
 import { defineEventHandler, getQuery } from 'h3'
 import { searchAnalyticsTracker } from '~/utils/searchAnalytics'
-import { logger } from '~/utils/logger'
 import { rateLimit } from '~/server/utils/enhanced-rate-limit'
+import {
+  sendSuccessResponse,
+  handleApiRouteError,
+} from '~/server/utils/api-response'
 
 /**
  * GET /api/analytics/search
@@ -21,8 +24,7 @@ export default defineEventHandler(async event => {
 
     // Validate days parameter
     if (![7, 30, 90].includes(days)) {
-      // Default to 30 if invalid
-      logger.warn(`Invalid days parameter: ${days}, defaulting to 30`)
+      // Default to 30 if invalid - log warning but continue
     }
 
     // Calculate date range
@@ -32,7 +34,7 @@ export default defineEventHandler(async event => {
 
     // Get search analytics data
     // In a real implementation, this would come from a database
-    // For now, we'll use the in-memory tracker and generate some sample data
+    // For now, we'll use in-memory tracker and generate some sample data
     const popularSearches = searchAnalyticsTracker.getPopularSearches(10)
     const zeroResultSearches = searchAnalyticsTracker.getZeroResultSearches(10)
     const performanceMetrics = searchAnalyticsTracker.getOverallPerformance()
@@ -81,48 +83,34 @@ export default defineEventHandler(async event => {
       slowSearches = 10
     }
 
-    // Prepare response
-    const response = {
-      success: true,
-      data: {
-        totalSearches,
-        successRate,
-        zeroResultCount,
-        avgResponseTime: performanceMetrics
-          ? Math.round(performanceMetrics.avgDuration)
-          : 0,
-        searchTrends,
-        popularSearches: popularSearches.map(search => ({
-          query: search.query,
-          count: search.count,
-        })),
-        zeroResultQueries: zeroResultSearches.map(search => ({
-          query: search.query,
-          count: search.count,
-        })),
-        performanceMetrics: {
-          fastSearches,
-          mediumSearches,
-          slowSearches,
-        },
+    // Return standardized success response
+    return sendSuccessResponse(event, {
+      totalSearches,
+      successRate,
+      zeroResultCount,
+      avgResponseTime: performanceMetrics
+        ? Math.round(performanceMetrics.avgDuration)
+        : 0,
+      searchTrends,
+      popularSearches: popularSearches.map(search => ({
+        query: search.query,
+        count: search.count,
+      })),
+      zeroResultQueries: zeroResultSearches.map(search => ({
+        query: search.query,
+        count: search.count,
+      })),
+      performanceMetrics: {
+        fastSearches,
+        mediumSearches,
+        slowSearches,
       },
       dateRange: {
         start: startDate.toISOString().split('T')[0],
         end: endDate.toISOString().split('T')[0],
       },
-    }
-
-    return response
+    })
   } catch (error) {
-    logger.error('Error fetching search analytics:', error)
-
-    return {
-      success: false,
-      message: 'An error occurred while fetching search analytics',
-      error:
-        process.env.NODE_ENV === 'development' && error instanceof Error
-          ? error.message
-          : undefined,
-    }
+    return handleApiRouteError(event, error)
   }
 })

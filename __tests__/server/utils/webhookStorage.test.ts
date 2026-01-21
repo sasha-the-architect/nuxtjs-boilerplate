@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { webhookStorage } from '~/server/utils/webhookStorage'
+import {
+  webhookStorage,
+  resetWebhookStorage,
+} from '~/server/utils/webhookStorage'
 import type {
   Webhook,
   WebhookDelivery,
@@ -17,10 +20,6 @@ describe('webhookStorage', () => {
     secret: 'test-secret',
     createdAt: '2024-01-01T00:00:00.000Z',
     updatedAt: '2024-01-01T00:00:00.000Z',
-    lastDeliveryAt: '2024-01-01T00:00:00.000Z',
-    lastDeliveryStatus: 'success',
-    deliveryCount: 5,
-    failureCount: 1,
   }
 
   const mockDelivery: WebhookDelivery = {
@@ -33,11 +32,11 @@ describe('webhookStorage', () => {
       timestamp: '2024-01-01T00:00:00.000Z',
     },
     status: 'success',
-    responseCode: 200,
-    responseMessage: 'OK',
+    statusCode: 200,
     attemptCount: 1,
+    idempotencyKey: null,
     createdAt: '2024-01-01T00:00:00.000Z',
-    completedAt: '2024-01-01T00:00:01.000Z',
+    updatedAt: '2024-01-01T00:00:01.000Z',
   }
 
   const mockApiKey: ApiKey = {
@@ -49,6 +48,7 @@ describe('webhookStorage', () => {
     createdAt: '2024-01-01T00:00:00.000Z',
     updatedAt: '2024-01-01T00:00:00.000Z',
     active: true,
+    expiresAt: undefined,
   }
 
   const mockQueueItem: WebhookQueueItem = {
@@ -83,45 +83,11 @@ describe('webhookStorage', () => {
   }
 
   beforeEach(async () => {
-    const webhooks = await webhookStorage.getAllWebhooks()
-    for (const w of webhooks) {
-      await webhookStorage.deleteWebhook(w.id)
-    }
-    const apiKeys = await webhookStorage.getAllApiKeys()
-    for (const k of apiKeys) {
-      await webhookStorage.deleteApiKey(k.id)
-    }
-    const queue = await webhookStorage.getQueue()
-    for (const q of queue) {
-      await webhookStorage.removeFromQueue(q.id)
-    }
-    const deadLetterQueue = await webhookStorage.getDeadLetterQueue()
-    for (const dl of deadLetterQueue) {
-      await webhookStorage.removeFromDeadLetterQueue(dl.id)
-    }
+    await resetWebhookStorage()
   })
 
   afterEach(async () => {
-    const webhooks = await webhookStorage.getAllWebhooks()
-    for (const w of webhooks) {
-      await webhookStorage.deleteWebhook(w.id)
-    }
-    const deliveries = await webhookStorage.getAllDeliveries()
-    for (const d of deliveries) {
-      await webhookStorage.deleteWebhook(d.webhookId)
-    }
-    const apiKeys = await webhookStorage.getAllApiKeys()
-    for (const k of apiKeys) {
-      await webhookStorage.deleteApiKey(k.id)
-    }
-    const queue = await webhookStorage.getQueue()
-    for (const q of queue) {
-      await webhookStorage.removeFromQueue(q.id)
-    }
-    const deadLetterQueue = await webhookStorage.getDeadLetterQueue()
-    for (const dl of deadLetterQueue) {
-      await webhookStorage.removeFromDeadLetterQueue(dl.id)
-    }
+    await resetWebhookStorage()
   })
 
   describe('Webhook Methods', () => {
@@ -161,7 +127,7 @@ describe('webhookStorage', () => {
       it('should return undefined for non-existent webhook', async () => {
         const result = await webhookStorage.getWebhookById('non-existent')
 
-        expect(result).toBeUndefined()
+        expect(result).toBeNull()
       })
     })
 
@@ -194,14 +160,15 @@ describe('webhookStorage', () => {
       it('should update webhook with partial data', async () => {
         await webhookStorage.createWebhook(mockWebhook)
 
-        const result = await webhookStorage.updateWebhook('wh_123', {
-          active: false,
-          failureCount: 2,
-        })
+        const result = await webhookStorage.updateWebhook(
+          'wh_test_webhook_001',
+          {
+            active: false,
+          }
+        )
 
         expect(result?.active).toBe(false)
-        expect(result?.failureCount).toBe(2)
-        expect(result?.id).toBe('wh_123')
+        expect(result?.id).toBe('wh_test_webhook_001')
         expect(result?.url).toBe(mockWebhook.url)
         expect(result?.updatedAt).toBeDefined()
       })
@@ -303,7 +270,7 @@ describe('webhookStorage', () => {
       it('should return undefined for non-existent delivery', async () => {
         const result = await webhookStorage.getDeliveryById('non-existent')
 
-        expect(result).toBeUndefined()
+        expect(result).toBeNull()
       })
     })
 
@@ -399,7 +366,7 @@ describe('webhookStorage', () => {
       it('should return undefined for non-existent API key', async () => {
         const result = await webhookStorage.getApiKeyById('non-existent')
 
-        expect(result).toBeUndefined()
+        expect(result).toBeNull()
       })
     })
 
@@ -415,7 +382,7 @@ describe('webhookStorage', () => {
       it('should return undefined for non-existent API key value', async () => {
         const result = await webhookStorage.getApiKeyByValue('sk_non_existent')
 
-        expect(result).toBeUndefined()
+        expect(result).toBeNull()
       })
     })
 
@@ -444,11 +411,9 @@ describe('webhookStorage', () => {
 
         const result = await webhookStorage.updateApiKey('ak_test_apikey_001', {
           active: false,
-          lastUsedAt: '2024-01-01T00:00:00.000Z',
         })
 
         expect(result?.active).toBe(false)
-        expect(result?.lastUsedAt).toBe('2024-01-01T00:00:00.000Z')
         expect(result?.id).toBe('ak_test_apikey_001')
         expect(result?.updatedAt).toBeDefined()
       })
@@ -471,7 +436,7 @@ describe('webhookStorage', () => {
         expect(result).toBe(true)
         expect(
           await webhookStorage.getApiKeyById('ak_test_apikey_001')
-        ).toBeUndefined()
+        ).toBeNull()
       })
 
       it('should return false for non-existent API key', async () => {
@@ -541,7 +506,7 @@ describe('webhookStorage', () => {
       it('should return undefined for non-existent queue item', async () => {
         const result = await webhookStorage.getQueueItemById('non-existent')
 
-        expect(result).toBeUndefined()
+        expect(result).toBeNull()
       })
     })
 
@@ -611,7 +576,7 @@ describe('webhookStorage', () => {
         const result =
           await webhookStorage.getDeadLetterWebhookById('non-existent')
 
-        expect(result).toBeUndefined()
+        expect(result).toBeNull()
       })
     })
 
@@ -663,7 +628,7 @@ describe('webhookStorage', () => {
         const result =
           await webhookStorage.getDeliveryByIdempotencyKey('non-existent')
 
-        expect(result).toBeUndefined()
+        expect(result).toBeNull()
       })
     })
 

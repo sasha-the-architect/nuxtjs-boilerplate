@@ -7,27 +7,27 @@ export class WebhookQueueManager {
   private processCallback: ((item: WebhookQueueItem) => Promise<void>) | null =
     null
 
-  enqueue(item: WebhookQueueItem): void {
-    webhookStorage.addToQueue(item)
+  async enqueue(item: WebhookQueueItem): Promise<void> {
+    await webhookStorage.addToQueue(item)
   }
 
-  dequeue(): WebhookQueueItem | null {
-    const queue = webhookStorage.getQueue()
+  async dequeue(): Promise<WebhookQueueItem | null> {
+    const queue = await webhookStorage.getQueue()
     if (queue.length === 0) {
       return null
     }
 
     const item = queue[0]
-    webhookStorage.removeFromQueue(item.id)
+    await webhookStorage.removeFromQueue(item.id)
     return item
   }
 
-  getPendingItems(): WebhookQueueItem[] {
-    return webhookStorage.getQueue()
+  async getPendingItems(): Promise<WebhookQueueItem[]> {
+    return await webhookStorage.getQueue()
   }
 
-  remove(id: string): void {
-    webhookStorage.removeFromQueue(id)
+  async remove(id: string): Promise<void> {
+    await webhookStorage.removeFromQueue(id)
   }
 
   startProcessor(callback: (item: WebhookQueueItem) => Promise<void>): void {
@@ -68,17 +68,23 @@ export class WebhookQueueManager {
     }
   }
 
-  getQueueSize(): number {
-    return webhookStorage.getQueue().length
+  async getQueueSize(): Promise<number> {
+    const queue = await webhookStorage.getQueue()
+    return queue.length
   }
 
   isRunning(): boolean {
     return this.isProcessing
   }
 
-  getNextScheduledTime(): string | null {
-    const queue = webhookStorage.getQueue()
+  async getNextScheduledTime(): Promise<string | null> {
+    const queue = await webhookStorage.getQueue()
     return queue.length > 0 ? queue[0].scheduledFor : null
+  }
+
+  getNextScheduledAt(): number | null {
+    const queue = webhookStorage.getQueue()
+    return queue.length > 0 ? new Date(queue[0].scheduledFor).getTime() : null
   }
 }
 

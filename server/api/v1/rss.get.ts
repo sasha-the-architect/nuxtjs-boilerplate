@@ -1,6 +1,6 @@
 import { defineEventHandler, setResponseHeader } from 'h3'
 import type { Resource } from '~/types/resource'
-import { logError } from '~/utils/errorLogger'
+import { handleApiRouteError } from '~/server/utils/api-response'
 
 /**
  * GET /api/v1/rss
@@ -24,7 +24,7 @@ export default defineEventHandler(async event => {
     // Generate RSS XML
     const rssContent = generateRssFeed(resources)
 
-    // Set the appropriate content type for RSS
+    // Set's appropriate content type for RSS
     setResponseHeader(
       event,
       'Content-Type',
@@ -33,21 +33,7 @@ export default defineEventHandler(async event => {
 
     return rssContent
   } catch (error) {
-    const err = error instanceof Error ? error : undefined
-    logError(
-      `Error generating RSS feed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      err,
-      'api-v1-rss'
-    )
-
-    return {
-      success: false,
-      message: 'An error occurred while generating RSS feed',
-      error:
-        process.env.NODE_ENV === 'development' && error instanceof Error
-          ? error.message
-          : undefined,
-    }
+    return handleApiRouteError(event, error)
   }
 })
 
