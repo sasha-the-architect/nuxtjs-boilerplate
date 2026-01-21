@@ -1,4 +1,70 @@
-# Principal Software Architect Task
+# Principal Product Strategist Task Management
+
+**Last Updated**: January 21, 2026
+**Document Owner**: Principal Product Strategist (Agent 00)
+
+This document serves as the central task backlog for the autonomous coding system. Tasks are created from feature requirements and assigned to specialist agents.
+
+---
+
+## Task Template
+
+Copy this template for new tasks:
+
+```markdown
+## [TASK-ID] Title
+
+**Feature**: FEATURE-ID
+**Status**: Backlog | In Progress | Complete | Cancelled
+**Agent**: (specialist number)
+**Created**: YYYY-MM-DD
+**Updated**: YYYY-MM-DD
+**Priority**: P0 | P1 | P2 | P3
+
+### Description
+
+Clear, actionable. Agent can execute without questions.
+
+### Acceptance Criteria
+
+- [ ] Verifiable criterion 1
+- [ ] Verifiable criterion 2
+
+### Implementation Notes
+
+Technical details, constraints, or approach guidance.
+
+### Dependencies
+
+- Dependency 1 (LINK)
+- Dependency 2 (LINK)
+
+### Related Issues
+
+- Issue #123
+```
+
+---
+
+## Agent Assignment Guide
+
+| Task Type         | Agent             |
+| ----------------- | ----------------- |
+| Architecture      | 01 Architect      |
+| Bugs, lint, build | 02 Sanitizer      |
+| Tests             | 03 Test Engineer  |
+| Security          | 04 Security       |
+| Performance       | 05 Performance    |
+| Database          | 06 Data Architect |
+| APIs              | 07 Integration    |
+| UI/UX             | 08 UI/UX          |
+| CI/CD             | 09 DevOps         |
+| Docs              | 10 Tech Writer    |
+| Review/Refactor   | 11 Code Reviewer  |
+
+---
+
+# Principal Software Architect Task Log
 
 ## Date: 2026-01-20
 

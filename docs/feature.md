@@ -18,6 +18,7 @@ Copy this template for new features:
 **Priority**: P0 | P1 | P2 | P3
 **Created**: YYYY-MM-DD
 **Updated**: YYYY-MM-DD
+**Agent**: (specialist number - 00 Strategist, 01 Architect, 02 Sanitizer, 03 Test Engineer, 04 Security, 05 Performance, 06 Data Architect, 07 Integration, 08 UI/UX, 09 DevOps, 10 Tech Writer, 11 Code Reviewer)
 
 ### User Story
 
@@ -25,7 +26,7 @@ As a [role], I want [capability], so that [benefit].
 
 ### Description
 
-Detailed description of the feature including technical context and business value.
+Detailed description of feature including technical context and business value.
 
 ### Acceptance Criteria
 
@@ -57,9 +58,9 @@ Any additional notes, considerations, or constraints for implementation.
 
 ## Feature Index
 
-| Feature ID | Title                                  | Status      | Priority | Updated    |
-| ---------- | -------------------------------------- | ----------- | -------- | ---------- |
-| FEAT-001   | Test Infrastructure Fix - useBookmarks | In Progress | P0       | 2026-01-17 |
+| Feature ID | Title                                  | Status      | Priority | Agent            | Updated    |
+| ---------- | -------------------------------------- | ----------- | -------- | ---------------- | ---------- |
+| FEAT-001   | Test Infrastructure Fix - useBookmarks | In Progress | P0       | 03 Test Engineer | 2026-01-17 |
 
 ---
 
@@ -71,6 +72,7 @@ Any additional notes, considerations, or constraints for implementation.
 **Priority**: P0 (CRITICAL)
 **Created**: 2026-01-17
 **Updated**: 2026-01-17
+**Agent**: 03 Test Engineer
 
 ### User Story
 

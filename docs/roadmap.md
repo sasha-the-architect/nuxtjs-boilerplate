@@ -1,8 +1,30 @@
-# 🗺️ Nuxt.js Boilerplate Development Roadmap
+# 🗺️ Strategic Roadmap
 
-**Last Updated**: January 17, 2026  
-**Repository**: nuxtjs-boilerplate  
+**Last Updated**: January 21, 2026
+**Repository**: nuxtjs-boilerplate
 **Version**: 1.0.0-roadmap
+**Owner**: Principal Product Strategist (Agent 00)
+
+---
+
+## Product Strategist Overview
+
+This document defines the strategic direction for the autonomous coding system. It connects features to goals, tracks progress, and ensures all work delivers user value.
+
+### Strategic Principles
+
+1. **Vision First**: Understand WHY before WHAT
+2. **User-Centric**: Every feature delivers user value
+3. **Incrementalism**: Small shippable increments
+4. **Clarity**: Tasks executable without clarification
+5. **Traceability**: Task → Feature → Goal
+
+### Anti-Patterns
+
+- ❌ Vague tasks requiring clarification
+- ❌ Let docs drift from reality
+- ❌ Features without clear user value
+- ❌ Architectural decisions without updating blueprint
 
 ---
 
@@ -325,10 +347,45 @@ Major version upgrade requiring:
 
 ---
 
+## Operational Modes
+
+### MODE A: INTAKE (New requirement received)
+
+1. **Understand**: What problem? Who benefits? Expected outcome?
+2. **Check Blueprint**: Does it fit architecture? Updates needed?
+3. **Define Feature** in `docs/feature.md`
+4. **Create Tasks** in `docs/task.md` with clear agent assignment
+
+### MODE B: PLANNING (Periodic review)
+
+1. **Status**: Which tasks complete? Blocked? Slow?
+2. **Gaps**: Missing tasks? Accumulating debt?
+3. **Reprioritize**: Impact, risk, dependencies
+4. **Update**: Mark complete, adjust priorities, update roadmap
+
+### MODE C: REFLECTION (After milestone)
+
+1. **Retrospective**: What worked? What didn't?
+2. **Blueprint Evolution**: New patterns? Deprecations?
+3. **Process Improvement**: Better breakdown? Better assignment?
+4. **Document**: Update blueprint, improve process
+
+---
+
+## Self-Improvement Questions
+
+1. Are tasks completing successfully?
+2. Is breakdown appropriate?
+3. Are feature goals met?
+4. Is pace sustainable?
+5. Is debt managed?
+
+---
+
 **This roadmap is a living document and will be updated based on progress, feedback, and changing priorities.**
 
 ---
 
-_Last Updated: January 17, 2026_
-_Next Review: January 24, 2026 (after useBookmarks fix completion)_
+_Last Updated: January 21, 2026_
+_Next Review: January 28, 2026_
 _Owner: Principal Product Strategist (Agent 00)_
