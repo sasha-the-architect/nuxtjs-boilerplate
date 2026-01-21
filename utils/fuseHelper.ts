@@ -17,6 +17,13 @@ const DEFAULT_FUSE_CONFIG: IFuseOptions<Resource> = {
 const FUSE_CONFIG_FOR_SUGGESTIONS: IFuseOptions<Resource> = {
   ...DEFAULT_FUSE_CONFIG,
   minMatchCharLength: 1,
+  keys: [
+    { name: 'title', weight: 0.35 },
+    { name: 'description', weight: 0.25 },
+    { name: 'benefits', weight: 0.15 },
+    { name: 'tags', weight: 0.1 },
+    { name: 'category', weight: 0.15 },
+  ],
 }
 
 const fuseCache = new WeakMap<readonly Resource[], Fuse<Resource>>()

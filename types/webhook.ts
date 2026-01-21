@@ -49,6 +49,7 @@ export interface WebhookQueueItem {
   priority: number
   scheduledFor: string
   createdAt: string
+  updatedAt: string
   retryCount: number
   maxRetries: number
 }
@@ -61,6 +62,7 @@ export interface DeadLetterWebhook {
   failureReason: string
   lastAttemptAt: string
   createdAt: string
+  updatedAt: string
   deliveryAttempts: WebhookDelivery[]
 }
 

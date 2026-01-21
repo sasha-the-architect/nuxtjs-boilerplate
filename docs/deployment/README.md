@@ -64,18 +64,6 @@ Before deploying to any platform:
    # Test generated .output/public folder
    ```
 
-4. **Environment Variables**: Configure required environment variables
-
-   ```env
-   NUXT_PUBLIC_SITE_URL=https://your-domain.com
-   NUXT_PUBLIC_SITE_NAME="Free Stuff on the Internet"
-   ```
-
-5. **Performance Check**: Run performance audits
-   ```bash
-   pnpm generate
-   # Test the generated .output/public folder
-   ```
 
 ## 🔧 Configuration
 

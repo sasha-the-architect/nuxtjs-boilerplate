@@ -321,6 +321,7 @@ describe('analytics-db', () => {
           orderBy: {
             timestamp: 'desc',
           },
+          take: 10000,
         })
       })
 
@@ -348,7 +349,10 @@ describe('analytics-db', () => {
             type: 'resource_view',
             deletedAt: null,
           },
-          orderBy: expect.anything(),
+          orderBy: {
+            timestamp: 'desc',
+          },
+          take: 10000,
         })
       })
 
