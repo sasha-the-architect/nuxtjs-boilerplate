@@ -1,5 +1,6 @@
 // API endpoint for approving submissions
 import type { Submission } from '~/types/submission'
+import type { Resource } from '~/types/resource'
 import { readBody } from 'h3'
 import {
   runQualityChecks,
@@ -44,7 +45,7 @@ export default defineEventHandler(async event => {
     submission.reviewedAt = new Date().toISOString()
     submission.notes = body.notes || ''
 
-    const qualityChecks = runQualityChecks(submission.resourceData)
+    const qualityChecks = runQualityChecks(submission.resourceData as Resource)
     const qualityScore = calculateQualityScore(qualityChecks)
 
     const newResource = {

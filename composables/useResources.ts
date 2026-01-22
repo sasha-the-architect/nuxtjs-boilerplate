@@ -43,7 +43,7 @@ export const useResources = () => {
     toggleTechnology,
     toggleTag,
     resetFilters,
-  } = useResourceFilters(resources.value)
+  } = useResourceFilters()
 
   // Use the search-filter composable to handle combining search and filters
   const { finalResources: searchFilteredResources } = useResourceSearchFilter(

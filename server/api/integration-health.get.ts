@@ -44,8 +44,8 @@ export default defineEventHandler(async event => {
     await rateLimit(event)
 
     const circuitBreakerStats = getAllCircuitBreakerStats()
-    const webhookQueueStats = webhookQueueSystem.getQueueStats()
-    const deadLetterQueue = webhookStorage.getDeadLetterQueue()
+    const webhookQueueStats = await webhookQueueSystem.getQueueStats()
+    const deadLetterQueue = await webhookStorage.getDeadLetterQueue()
 
     const openBreakers = Object.values(circuitBreakerStats).filter(
       stats => stats.state === 'open'
@@ -77,13 +77,22 @@ export default defineEventHandler(async event => {
         queue: webhookQueueStats,
         deadLetter: {
           count: deadLetterQueue.length,
-          items: deadLetterQueue.map(dl => ({
-            id: dl.id,
-            webhookId: dl.webhookId,
-            event: dl.event,
-            failureReason: dl.failureReason,
-            createdAt: dl.createdAt,
-          })),
+          items: deadLetterQueue.map(
+            (dl: {
+              id: string
+              webhookId: string
+              event: string
+              failureReason: string
+              lastAttemptAt: string
+              createdAt: string
+            }) => ({
+              id: dl.id,
+              webhookId: dl.webhookId,
+              event: dl.event,
+              failureReason: dl.failureReason,
+              createdAt: dl.createdAt,
+            })
+          ),
         },
       },
     }

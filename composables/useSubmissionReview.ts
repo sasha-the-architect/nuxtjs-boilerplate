@@ -38,10 +38,7 @@ export const useSubmissionReview = (options: SubmissionReviewOptions) => {
       if (response.success && response.data) {
         submission.value = response.data.submission || null
       } else {
-        error.value =
-          response.data?.message ||
-          response.error?.message ||
-          'Failed to load submission'
+        error.value = response.error?.message || 'Failed to load submission'
       }
     } catch (err) {
       error.value = 'An error occurred while fetching submission'
@@ -72,10 +69,7 @@ export const useSubmissionReview = (options: SubmissionReviewOptions) => {
         submission.value.reviewedAt = new Date().toISOString()
         return true
       } else {
-        error.value =
-          response.data?.message ||
-          response.error?.message ||
-          'Failed to approve submission'
+        error.value = response.error?.message || 'Failed to approve submission'
         return false
       }
     } catch (err) {
@@ -114,8 +108,7 @@ export const useSubmissionReview = (options: SubmissionReviewOptions) => {
         return true
       } else {
         error.value =
-          response.data?.message ||
-          response.error?.message ||
+          (response.error as { message?: string } | undefined)?.message ||
           'Failed to reject submission'
         return false
       }

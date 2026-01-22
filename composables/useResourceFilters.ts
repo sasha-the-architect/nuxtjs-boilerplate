@@ -19,35 +19,35 @@ export const useResourceFilters = () => {
 
   const toggleCategory = (category: string) => {
     filterOptions.value.categories = toggleArrayItem(
-      filterOptions.value.categories || [],
+      [...(filterOptions.value.categories || [])],
       category
     )
   }
 
   const togglePricingModel = (pricingModel: string) => {
     filterOptions.value.pricingModels = toggleArrayItem(
-      filterOptions.value.pricingModels || [],
+      [...(filterOptions.value.pricingModels || [])],
       pricingModel
     )
   }
 
   const toggleDifficultyLevel = (difficulty: string) => {
     filterOptions.value.difficultyLevels = toggleArrayItem(
-      filterOptions.value.difficultyLevels || [],
+      [...(filterOptions.value.difficultyLevels || [])],
       difficulty
     )
   }
 
   const toggleTechnology = (technology: string) => {
     filterOptions.value.technologies = toggleArrayItem(
-      filterOptions.value.technologies || [],
+      [...(filterOptions.value.technologies || [])],
       technology
     )
   }
 
   const toggleTag = (tag: string) => {
     filterOptions.value.tags = toggleArrayItem(
-      filterOptions.value.tags || [],
+      [...(filterOptions.value.tags || [])],
       tag
     )
   }

@@ -72,8 +72,18 @@ export const useResourceDetailPage = () => {
       }>(`/api/resources/${id}/history`)
 
       if (response.success && response.data && resource.value) {
-        resource.value.statusHistory = response.data.statusHistory
-        resource.value.updateHistory = response.data.updateHistory
+        ;(
+          resource.value as Resource & {
+            statusHistory: unknown[]
+            updateHistory: unknown[]
+          }
+        ).statusHistory = response.data.statusHistory
+        ;(
+          resource.value as Resource & {
+            statusHistory: unknown[]
+            updateHistory: unknown[]
+          }
+        ).updateHistory = response.data.updateHistory
       }
     } catch (err) {
       logger.error('Error fetching resource history:', err)
@@ -154,7 +164,11 @@ export const useResourceDetailPage = () => {
       currentUrl.value
     )
 
-    useSeoMeta(seoMeta)
+    useSeoMeta({
+      ...seoMeta,
+      ogType: seoMeta.ogType as 'website',
+      twitterCard: seoMeta.twitterCard as 'summary_large_image' | undefined,
+    })
 
     useHead({
       script: [
@@ -179,7 +193,8 @@ export const useResourceDetailPage = () => {
       }
 
       resource.value = foundResource
-      relatedResources.value = getEnhancedRelatedResources(resource.value)
+      const recommendations = getEnhancedRelatedResources(resource.value)
+      relatedResources.value = recommendations.map(r => r.resource)
       await fetchResourceAnalytics(resourceId.value)
       await fetchResourceHistory(resourceId.value)
       await trackView()

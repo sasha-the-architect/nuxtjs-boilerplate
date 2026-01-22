@@ -50,7 +50,7 @@ export const useWebhooksManager = () => {
       )
 
       if (response.success && response.data) {
-        webhooks.value = response.data
+        webhooks.value = response.data as unknown as Webhook[]
       } else {
         errorMessage.value = 'Failed to fetch webhooks. Please try again.'
       }

@@ -61,8 +61,14 @@ export const useApiKeysPage = () => {
       })
 
       if (response.success) {
+        const keyData = response.data?.data
+        if (!keyData) {
+          error.value = 'Failed to create API key. Please try again.'
+          return false
+        }
+
         const newKey: ApiKeyDisplay = {
-          ...(response.data?.data || response.data),
+          ...keyData,
           showFullKey: true,
         }
 

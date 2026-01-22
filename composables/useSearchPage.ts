@@ -65,8 +65,8 @@ export const useSearchPage = () => {
   const advancedSearch = useAdvancedResourceSearch(resources.value)
 
   const { sortResources } = useResourceSort(
-    computed(() => resources.value),
-    sortOption
+    computed(() => [...resources.value]),
+    computed(() => sortOption.value)
   )
 
   const searchedResources = computed(() => {
@@ -134,8 +134,16 @@ export const useSearchPage = () => {
     filterKey: keyof SearchPageFilterOptions,
     item: string
   ) => {
-    const currentArray = (filterOptions.value[filterKey] as string[]) || []
-    filterOptions.value[filterKey] = toggleArrayItem(currentArray, item)
+    const currentArray = filterOptions.value[filterKey] as
+      | string[]
+      | string
+      | undefined
+    if (Array.isArray(currentArray)) {
+      ;(filterOptions.value[filterKey] as string[]) = toggleArrayItem(
+        currentArray,
+        item
+      )
+    }
     trackFilter(filterKey.replace(/s$/, ''), item)
   }
 

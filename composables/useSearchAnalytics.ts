@@ -56,7 +56,11 @@ export function useSearchAnalytics(options: UseSearchAnalyticsOptions = {}) {
 
       searchAnalytics.value = response.data
     } catch (err: unknown) {
-      logError('Error fetching search analytics:', err, 'useSearchAnalytics')
+      logError(
+        'Error fetching search analytics:',
+        err instanceof Error ? err : undefined,
+        'useSearchAnalytics'
+      )
       const errorMessage =
         err instanceof Error
           ? err.message

@@ -68,7 +68,7 @@ export const useApiKeysManager = () => {
         apiKeys.value.unshift(createdKey)
       }
 
-      return createdKey
+      return createdKey ?? null
     } catch (err) {
       error.value = 'Failed to create API key. Please try again.'
       logError('Error creating API key', err as Error, 'useApiKeysManager', {

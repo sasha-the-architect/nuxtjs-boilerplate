@@ -130,24 +130,37 @@ export const useSubmitPage = () => {
           submitSuccess.value = false
         }, 5000)
       } else {
-        if (response.data?.errors && Array.isArray(response.data.errors)) {
-          response.data.errors.forEach(
+        const responseData = response.data as
+          | { errors?: { field: string; message: string }[]; message?: string }
+          | undefined
+        if (responseData?.errors && Array.isArray(responseData.errors)) {
+          responseData.errors.forEach(
             (err: { field: string; message: string }) => {
-              errors.value[err.field] = err.message
+              ;(errors.value as Record<string, string>)[err.field] = err.message
             }
           )
         }
         submitError.value =
-          response.data?.message ||
+          responseData?.message ||
           response.error?.message ||
           'An error occurred while submitting resource'
       }
-    } catch (error: { data?: { message?: string }; message?: string }) {
+    } catch (error: unknown) {
+      const errorData = error as {
+        data?: { message?: string }
+        message?: string
+      }
       submitError.value =
-        error.data?.message || error.message || 'An unexpected error occurred'
+        errorData.data?.message ||
+        errorData.message ||
+        'An unexpected error occurred'
       logError(
         `Failed to submit resource: ${submitError.value}`,
-        error,
+        errorData.data instanceof Error
+          ? errorData.data
+          : errorData.message
+            ? new Error(errorData.message)
+            : undefined,
         'useSubmitPage',
         { formData: formData.value }
       )

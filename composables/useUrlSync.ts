@@ -15,8 +15,8 @@ export const useUrlSync = (
       route.query
 
     // Update search query
-    if (q) {
-      filterOptions.value.searchQuery = Array.isArray(q) ? q[0] : q
+    if (q && typeof q === 'string') {
+      filterOptions.value.searchQuery = q
     }
 
     // Update categories

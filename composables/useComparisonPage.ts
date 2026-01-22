@@ -3,7 +3,6 @@ import { useRoute, navigateTo } from '#app'
 import { useNuxtApp } from '#app'
 import logger from '~/utils/logger'
 import type { Resource } from '~/types/resource'
-import type { ComparisonCriteria } from '~/types/comparison'
 import { useResourceComparison } from '~/composables/useResourceComparison'
 
 interface UseComparisonPageOptions {
@@ -28,9 +27,7 @@ export const useComparisonPage = (options?: UseComparisonPageOptions) => {
   })
 
   // Default comparison criteria from config
-  const defaultCriteria = computed<ComparisonCriteria[]>(
-    () => comparisonConfig.value.defaultCriteria
-  )
+  const defaultCriteria = computed(() => comparisonConfig.value.defaultCriteria)
 
   // Fetch comparison data
   const fetchComparison = async () => {
@@ -55,8 +52,11 @@ export const useComparisonPage = (options?: UseComparisonPageOptions) => {
       }
     } catch (err) {
       logger.error('Error fetching comparison:', err)
+      const errorData = err as Error & { data?: { statusMessage?: string } }
       error.value =
-        err.data?.statusMessage || err.message || 'Failed to load comparison'
+        errorData.data?.statusMessage ||
+        errorData.message ||
+        'Failed to load comparison'
     } finally {
       loading.value = false
     }
