@@ -386,19 +386,6 @@ const resourceSchema = computed(() => {
     priceCurrency: 'USD',
   }
 
-  // Add icon if available
-  if (props.icon) {
-    schema.image = props.icon
-  }
-
-  // Add offers information
-  schema.offers = {
-    '@type': 'Offer',
-    availability: 'https://schema.org/InStock',
-    price: '0',
-    priceCurrency: 'USD',
-  }
-
   // Add category information
   if (props.category) {
     schema.applicationCategory = props.category
