@@ -1,6 +1,7 @@
 import { ref, computed, onMounted } from 'vue'
 import type { SearchAnalyticsData } from '~/types/analytics'
 import { logError } from '~/utils/errorLogger'
+import type { ApiResponse } from '~/utils/api-client'
 
 export function useSearchAnalytics() {
   const searchAnalytics = ref<SearchAnalyticsData | null>(null)
@@ -26,16 +27,23 @@ export function useSearchAnalytics() {
     error.value = null
 
     try {
-      const response = await fetch(
-        `/api/analytics/search?days=${timeRange.value}`
+      const { $apiClient } = useNuxtApp()
+      const response: ApiResponse<SearchAnalyticsData> = await $apiClient.get(
+        '/api/analytics/search',
+        {
+          params: {
+            days: timeRange.value,
+          },
+        }
       )
-      const data = await response.json()
 
-      if (!data.success) {
-        throw new Error(data.message || 'Failed to fetch search analytics data')
+      if (!response.success || !response.data) {
+        throw new Error(
+          response.error?.message || 'Failed to fetch search analytics data'
+        )
       }
 
-      searchAnalytics.value = data
+      searchAnalytics.value = response.data
     } catch (err: unknown) {
       logError('Error fetching search analytics:', err, 'useSearchAnalytics')
       const errorMessage =

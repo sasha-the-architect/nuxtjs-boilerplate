@@ -1,6 +1,7 @@
 import { ref, computed, readonly } from 'vue'
 import { logError } from '~/utils/errorLogger'
 import logger from '~/utils/logger'
+import type { ApiResponse } from '~/utils/api-client'
 
 interface EventsByType {
   page_view?: number
@@ -68,16 +69,24 @@ export const useAnalyticsPage = () => {
     error.value = null
 
     try {
-      const response = await fetch(
-        `/api/analytics/data?startDate=${startDate.value}&endDate=${endDate.value}`
+      const { $apiClient } = useNuxtApp()
+      const response: ApiResponse<AnalyticsData> = await $apiClient.get(
+        '/api/analytics/data',
+        {
+          params: {
+            startDate: startDate.value,
+            endDate: endDate.value,
+          },
+        }
       )
-      const data = await response.json()
 
-      if (!data.success) {
-        throw new Error(data.message || 'Failed to fetch analytics data')
+      if (!response.success || !response.data) {
+        throw new Error(
+          response.error?.message || 'Failed to fetch analytics data'
+        )
       }
 
-      analyticsData.value = data.data
+      analyticsData.value = response.data
     } catch (err) {
       const errorObj = err as Error
       logError(
