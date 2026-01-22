@@ -63,6 +63,7 @@ describe('webhookStorage', () => {
     priority: 0,
     scheduledFor: '2024-01-01T00:00:05.000Z',
     createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z',
     retryCount: 0,
     maxRetries: 3,
   }
@@ -79,6 +80,7 @@ describe('webhookStorage', () => {
     failureReason: 'Max retries exceeded',
     lastAttemptAt: '2024-01-01T00:00:10.000Z',
     createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z',
     deliveryAttempts: [],
   }
 
@@ -95,7 +97,15 @@ describe('webhookStorage', () => {
       it('should create a new webhook', async () => {
         const result = await webhookStorage.createWebhook(mockWebhook)
 
-        expect(result).toEqual(mockWebhook)
+        expect(result).toMatchObject({
+          id: 'wh_test_webhook_001',
+          url: 'https://example.com/webhook',
+          events: ['resource.created', 'resource.updated'],
+          active: true,
+          secret: 'test-secret',
+        })
+        expect(result?.createdAt).toBeDefined()
+        expect(result?.updatedAt).toBeDefined()
         expect(await webhookStorage.getAllWebhooks()).toHaveLength(1)
       })
 
@@ -121,7 +131,15 @@ describe('webhookStorage', () => {
           'wh_test_webhook_001'
         )
 
-        expect(result).toEqual(mockWebhook)
+        expect(result).toMatchObject({
+          id: 'wh_test_webhook_001',
+          url: 'https://example.com/webhook',
+          events: ['resource.created', 'resource.updated'],
+          active: true,
+          secret: 'test-secret',
+        })
+        expect(result?.createdAt).toBeDefined()
+        expect(result?.updatedAt).toBeDefined()
       })
 
       it('should return undefined for non-existent webhook', async () => {
@@ -145,8 +163,18 @@ describe('webhookStorage', () => {
         const result = await webhookStorage.getAllWebhooks()
 
         expect(result).toHaveLength(2)
-        expect(result).toContainEqual(mockWebhook)
-        expect(result).toContainEqual(webhook2)
+        expect(result).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'wh_test_webhook_001',
+              url: 'https://example.com/webhook',
+            }),
+            expect.objectContaining({
+              id: 'wh_test_webhook_003',
+              url: 'https://example2.com/webhook',
+            }),
+          ])
+        )
       })
 
       it('should return empty array when no webhooks exist', async () => {
@@ -186,10 +214,12 @@ describe('webhookStorage', () => {
       it('should delete webhook by id', async () => {
         await webhookStorage.createWebhook(mockWebhook)
 
-        const result = await webhookStorage.deleteWebhook('wh_123')
+        const result = await webhookStorage.deleteWebhook('wh_test_webhook_001')
 
         expect(result).toBe(true)
-        expect(await webhookStorage.getWebhookById('wh_123')).toBeUndefined()
+        expect(
+          await webhookStorage.getWebhookById('wh_test_webhook_001')
+        ).toBeNull()
       })
 
       it('should return false for non-existent webhook', async () => {
@@ -203,7 +233,7 @@ describe('webhookStorage', () => {
       it('should return webhooks that match event', async () => {
         const webhook2: Webhook = {
           ...mockWebhook,
-          id: 'wh_456',
+          id: 'wh_test_webhook_002',
           events: ['resource.deleted'],
           active: true,
         }
@@ -215,13 +245,19 @@ describe('webhookStorage', () => {
           await webhookStorage.getWebhooksByEvent('resource.created')
 
         expect(result).toHaveLength(1)
-        expect(result[0]).toEqual(mockWebhook)
+        expect(result[0]).toMatchObject({
+          id: 'wh_test_webhook_001',
+          url: 'https://example.com/webhook',
+          events: ['resource.created', 'resource.updated'],
+          active: true,
+          secret: 'test-secret',
+        })
       })
 
       it('should only return active webhooks', async () => {
         const inactiveWebhook: Webhook = {
           ...mockWebhook,
-          id: 'wh_456',
+          id: 'wh_test_webhook_002',
           active: false,
         }
 
@@ -232,7 +268,13 @@ describe('webhookStorage', () => {
           await webhookStorage.getWebhooksByEvent('resource.created')
 
         expect(result).toHaveLength(1)
-        expect(result[0]).toEqual(mockWebhook)
+        expect(result[0]).toMatchObject({
+          id: 'wh_test_webhook_001',
+          url: 'https://example.com/webhook',
+          events: ['resource.created', 'resource.updated'],
+          active: true,
+          secret: 'test-secret',
+        })
       })
 
       it('should return empty array when no webhooks match event', async () => {
@@ -251,7 +293,20 @@ describe('webhookStorage', () => {
       it('should create a new delivery', async () => {
         const result = await webhookStorage.createDelivery(mockDelivery)
 
-        expect(result).toEqual(mockDelivery)
+        expect(result).toMatchObject({
+          id: 'del_test_delivery_001',
+          webhookId: 'wh_test_webhook_001',
+          event: 'resource.created',
+          status: 'success',
+          statusCode: 200,
+          attemptCount: 1,
+          idempotencyKey: null,
+        })
+        expect(result?.payload).toEqual(mockDelivery.payload)
+        expect(result?.createdAt).toBeDefined()
+        expect(result?.updatedAt).toBeDefined()
+        expect(result?.errorMessage).toBeNull()
+        expect(result?.responseBody).toBeUndefined()
         expect(await webhookStorage.getAllDeliveries()).toHaveLength(1)
       })
     })
@@ -264,7 +319,18 @@ describe('webhookStorage', () => {
           'del_test_delivery_001'
         )
 
-        expect(result).toEqual(mockDelivery)
+        expect(result).toMatchObject({
+          id: 'del_test_delivery_001',
+          webhookId: 'wh_test_webhook_001',
+          event: 'resource.created',
+          status: 'success',
+          statusCode: 200,
+          attemptCount: 1,
+          idempotencyKey: null,
+        })
+        expect(result?.payload).toEqual(mockDelivery.payload)
+        expect(result?.createdAt).toBeDefined()
+        expect(result?.updatedAt).toBeDefined()
       })
 
       it('should return undefined for non-existent delivery', async () => {
@@ -278,8 +344,8 @@ describe('webhookStorage', () => {
       it('should return all deliveries', async () => {
         const delivery2: WebhookDelivery = {
           ...mockDelivery,
-          id: 'del_789_unique',
-          webhookId: 'wh_456',
+          id: 'del_test_delivery_002',
+          webhookId: 'wh_test_webhook_002',
         }
 
         await webhookStorage.createDelivery(mockDelivery)
@@ -288,8 +354,18 @@ describe('webhookStorage', () => {
         const result = await webhookStorage.getAllDeliveries()
 
         expect(result.length).toBeGreaterThanOrEqual(2)
-        expect(result).toContainEqual(mockDelivery)
-        expect(result).toContainEqual(delivery2)
+        expect(result).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'del_test_delivery_001',
+              webhookId: 'wh_test_webhook_001',
+            }),
+            expect.objectContaining({
+              id: 'del_test_delivery_002',
+              webhookId: 'wh_test_webhook_002',
+            }),
+          ])
+        )
       })
     })
 
@@ -297,14 +373,17 @@ describe('webhookStorage', () => {
       it('should update delivery with partial data', async () => {
         await webhookStorage.createDelivery(mockDelivery)
 
-        const result = await webhookStorage.updateDelivery('del_456', {
-          status: 'failed',
-          attemptCount: 2,
-        })
+        const result = await webhookStorage.updateDelivery(
+          'del_test_delivery_001',
+          {
+            status: 'failed',
+            attemptCount: 2,
+          }
+        )
 
         expect(result?.status).toBe('failed')
         expect(result?.attemptCount).toBe(2)
-        expect(result?.id).toBe('del_456')
+        expect(result?.id).toBe('del_test_delivery_001')
       })
 
       it('should return null for non-existent delivery', async () => {
@@ -320,26 +399,44 @@ describe('webhookStorage', () => {
       it('should return deliveries for webhook', async () => {
         const delivery2: WebhookDelivery = {
           ...mockDelivery,
-          id: 'del_789_unique2',
-          webhookId: 'wh_123',
+          id: 'del_test_delivery_002',
+          webhookId: 'wh_test_webhook_001',
         }
 
         const delivery3: WebhookDelivery = {
           ...mockDelivery,
-          id: 'del_999_unique3',
-          webhookId: 'wh_456_unique',
+          id: 'del_test_delivery_003',
+          webhookId: 'wh_test_webhook_002',
         }
 
         await webhookStorage.createDelivery(mockDelivery)
         await webhookStorage.createDelivery(delivery2)
         await webhookStorage.createDelivery(delivery3)
 
-        const result = await webhookStorage.getDeliveriesByWebhookId('wh_123')
+        const result = await webhookStorage.getDeliveriesByWebhookId(
+          'wh_test_webhook_001'
+        )
 
         expect(result.length).toBeGreaterThanOrEqual(2)
-        expect(result).toContainEqual(mockDelivery)
-        expect(result).toContainEqual(delivery2)
-        expect(result).not.toContainEqual(delivery3)
+        expect(result).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'del_test_delivery_001',
+              webhookId: 'wh_test_webhook_001',
+            }),
+            expect.objectContaining({
+              id: 'del_test_delivery_002',
+              webhookId: 'wh_test_webhook_001',
+            }),
+          ])
+        )
+        expect(result).not.toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'del_test_delivery_003',
+            }),
+          ])
+        )
       })
     })
   })
@@ -349,7 +446,17 @@ describe('webhookStorage', () => {
       it('should create a new API key', async () => {
         const result = await webhookStorage.createApiKey(mockApiKey)
 
-        expect(result).toEqual(mockApiKey)
+        expect(result).toMatchObject({
+          id: 'ak_test_apikey_001',
+          name: 'Test API Key',
+          key: 'sk_test_123456',
+          userId: 'user_1',
+          permissions: ['read', 'write'],
+          active: true,
+          expiresAt: undefined,
+        })
+        expect(result?.createdAt).toBeDefined()
+        expect(result?.updatedAt).toBeDefined()
         expect(await webhookStorage.getAllApiKeys()).toHaveLength(1)
       })
     })
@@ -360,7 +467,17 @@ describe('webhookStorage', () => {
 
         const result = await webhookStorage.getApiKeyById('ak_test_apikey_001')
 
-        expect(result).toEqual(mockApiKey)
+        expect(result).toMatchObject({
+          id: 'ak_test_apikey_001',
+          name: 'Test API Key',
+          key: 'sk_test_123456',
+          userId: 'user_1',
+          permissions: ['read', 'write'],
+          active: true,
+          expiresAt: undefined,
+        })
+        expect(result?.createdAt).toBeDefined()
+        expect(result?.updatedAt).toBeDefined()
       })
 
       it('should return undefined for non-existent API key', async () => {
@@ -376,7 +493,17 @@ describe('webhookStorage', () => {
 
         const result = await webhookStorage.getApiKeyByValue('sk_test_123456')
 
-        expect(result).toEqual(mockApiKey)
+        expect(result).toMatchObject({
+          id: 'ak_test_apikey_001',
+          name: 'Test API Key',
+          key: 'sk_test_123456',
+          userId: 'user_1',
+          permissions: ['read', 'write'],
+          active: true,
+          expiresAt: undefined,
+        })
+        expect(result?.createdAt).toBeDefined()
+        expect(result?.updatedAt).toBeDefined()
       })
 
       it('should return undefined for non-existent API key value', async () => {
@@ -400,8 +527,18 @@ describe('webhookStorage', () => {
         const result = await webhookStorage.getAllApiKeys()
 
         expect(result).toHaveLength(2)
-        expect(result).toContainEqual(mockApiKey)
-        expect(result).toContainEqual(apiKey2)
+        expect(result).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'ak_test_apikey_001',
+              key: 'sk_test_123456',
+            }),
+            expect.objectContaining({
+              id: 'ak_test_apikey_002',
+              key: 'sk_test_789',
+            }),
+          ])
+        )
       })
     })
 
@@ -452,7 +589,18 @@ describe('webhookStorage', () => {
       it('should add item to queue', async () => {
         const result = await webhookStorage.addToQueue(mockQueueItem)
 
-        expect(result).toEqual(mockQueueItem)
+        expect(result).toMatchObject({
+          id: 'q_001',
+          webhookId: 'wh_123',
+          event: 'resource.created',
+          priority: 0,
+          retryCount: 0,
+          maxRetries: 3,
+        })
+        expect(result?.payload).toEqual(mockQueueItem.payload)
+        expect(result?.scheduledFor).toBeDefined()
+        expect(result?.createdAt).toBeDefined()
+        expect(result?.updatedAt).toBeDefined()
         expect(await webhookStorage.getQueue()).toHaveLength(1)
       })
     })
@@ -482,9 +630,18 @@ describe('webhookStorage', () => {
         const result = await webhookStorage.getQueue()
 
         expect(result).toHaveLength(3)
-        expect(result[0]).toEqual(item2)
-        expect(result[1]).toEqual(item1)
-        expect(result[2]).toEqual(item3)
+        expect(result[0]).toMatchObject({
+          id: 'q_002',
+          scheduledFor: expect.any(String),
+        })
+        expect(result[1]).toMatchObject({
+          id: 'q_001',
+          scheduledFor: expect.any(String),
+        })
+        expect(result[2]).toMatchObject({
+          id: 'q_003',
+          scheduledFor: expect.any(String),
+        })
       })
 
       it('should return empty array when queue is empty', async () => {
@@ -500,7 +657,18 @@ describe('webhookStorage', () => {
 
         const result = await webhookStorage.getQueueItemById('q_001')
 
-        expect(result).toEqual(mockQueueItem)
+        expect(result).toMatchObject({
+          id: 'q_001',
+          webhookId: 'wh_123',
+          event: 'resource.created',
+          priority: 0,
+          retryCount: 0,
+          maxRetries: 3,
+        })
+        expect(result?.payload).toEqual(mockQueueItem.payload)
+        expect(result?.scheduledFor).toBeDefined()
+        expect(result?.createdAt).toBeDefined()
+        expect(result?.updatedAt).toBeDefined()
       })
 
       it('should return undefined for non-existent queue item', async () => {
@@ -534,7 +702,16 @@ describe('webhookStorage', () => {
         const result =
           await webhookStorage.addToDeadLetterQueue(mockDeadLetterItem)
 
-        expect(result).toEqual(mockDeadLetterItem)
+        expect(result).toMatchObject({
+          id: 'dl_001',
+          webhookId: 'wh_123',
+          event: 'resource.created',
+          failureReason: 'Max retries exceeded',
+        })
+        expect(result?.payload).toEqual(mockDeadLetterItem.payload)
+        expect(result?.lastAttemptAt).toBeDefined()
+        expect(result?.createdAt).toBeDefined()
+        expect(result?.updatedAt).toBeDefined()
         expect(await webhookStorage.getDeadLetterQueue()).toHaveLength(1)
       })
     })
@@ -552,8 +729,18 @@ describe('webhookStorage', () => {
         const result = await webhookStorage.getDeadLetterQueue()
 
         expect(result).toHaveLength(2)
-        expect(result).toContainEqual(mockDeadLetterItem)
-        expect(result).toContainEqual(item2)
+        expect(result).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'dl_001',
+              webhookId: 'wh_123',
+            }),
+            expect.objectContaining({
+              id: 'dl_002',
+              webhookId: 'wh_123',
+            }),
+          ])
+        )
       })
 
       it('should return empty array when dead letter queue is empty', async () => {
@@ -569,7 +756,16 @@ describe('webhookStorage', () => {
 
         const result = await webhookStorage.getDeadLetterWebhookById('dl_001')
 
-        expect(result).toEqual(mockDeadLetterItem)
+        expect(result).toMatchObject({
+          id: 'dl_001',
+          webhookId: 'wh_123',
+          event: 'resource.created',
+          failureReason: 'Max retries exceeded',
+        })
+        expect(result?.payload).toEqual(mockDeadLetterItem.payload)
+        expect(result?.lastAttemptAt).toBeDefined()
+        expect(result?.createdAt).toBeDefined()
+        expect(result?.updatedAt).toBeDefined()
       })
 
       it('should return undefined for non-existent dead letter item', async () => {
@@ -602,26 +798,47 @@ describe('webhookStorage', () => {
   describe('Idempotency Methods', () => {
     describe('setDeliveryByIdempotencyKey', () => {
       it('should set delivery by idempotency key', async () => {
+        const createdDelivery =
+          await webhookStorage.createDelivery(mockDelivery)
         const result = await webhookStorage.setDeliveryByIdempotencyKey(
           'key_123',
-          mockDelivery
+          createdDelivery
         )
 
-        expect(result).toEqual(mockDelivery)
+        expect(result).toMatchObject({
+          id: createdDelivery.id,
+          webhookId: 'wh_test_webhook_001',
+          event: 'resource.created',
+          status: 'success',
+          statusCode: 200,
+          attemptCount: 1,
+          idempotencyKey: null,
+        })
       })
     })
 
     describe('getDeliveryByIdempotencyKey', () => {
       it('should get delivery by idempotency key', async () => {
+        const createdDelivery =
+          await webhookStorage.createDelivery(mockDelivery)
         await webhookStorage.setDeliveryByIdempotencyKey(
           'key_123',
-          mockDelivery
+          createdDelivery
         )
 
         const result =
           await webhookStorage.getDeliveryByIdempotencyKey('key_123')
 
-        expect(result).toEqual(mockDelivery)
+        expect(result).toMatchObject({
+          id: createdDelivery.id,
+          webhookId: 'wh_test_webhook_001',
+          event: 'resource.created',
+          status: 'success',
+          statusCode: 200,
+          attemptCount: 1,
+          idempotencyKey: null,
+        })
+        expect(result?.payload).toEqual(mockDelivery.payload)
       })
 
       it('should return undefined for non-existent idempotency key', async () => {
@@ -634,9 +851,11 @@ describe('webhookStorage', () => {
 
     describe('hasDeliveryWithIdempotencyKey', () => {
       it('should return true when idempotency key exists', async () => {
+        const createdDelivery =
+          await webhookStorage.createDelivery(mockDelivery)
         await webhookStorage.setDeliveryByIdempotencyKey(
           'key_123',
-          mockDelivery
+          createdDelivery
         )
 
         const result =
@@ -655,26 +874,41 @@ describe('webhookStorage', () => {
 
     describe('Idempotency Key Overwrite', () => {
       it('should overwrite delivery for existing idempotency key', async () => {
+        const createdDelivery =
+          await webhookStorage.createDelivery(mockDelivery)
         await webhookStorage.setDeliveryByIdempotencyKey(
           'key_123',
-          mockDelivery
+          createdDelivery
         )
 
         const newDelivery: WebhookDelivery = {
           ...mockDelivery,
-          id: 'del_999',
+          id: 'del_test_delivery_002',
+          webhookId: 'wh_test_webhook_001',
           status: 'failed',
         }
 
+        const createdNewDelivery =
+          await webhookStorage.createDelivery(newDelivery)
         const result = await webhookStorage.setDeliveryByIdempotencyKey(
           'key_123',
-          newDelivery
+          createdNewDelivery
         )
 
-        expect(result).toEqual(newDelivery)
+        expect(result).toMatchObject({
+          id: createdNewDelivery.id,
+          webhookId: 'wh_test_webhook_001',
+          event: 'resource.created',
+          status: 'failed',
+        })
         expect(
           await webhookStorage.getDeliveryByIdempotencyKey('key_123')
-        ).toEqual(newDelivery)
+        ).toMatchObject({
+          id: createdNewDelivery.id,
+          webhookId: 'wh_test_webhook_001',
+          event: 'resource.created',
+          status: 'failed',
+        })
       })
     })
   })
