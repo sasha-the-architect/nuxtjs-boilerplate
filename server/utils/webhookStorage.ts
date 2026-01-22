@@ -6,7 +6,94 @@ import type {
   WebhookQueueItem,
   DeadLetterWebhook,
 } from '~/types/webhook'
+import type {
+  Webhook as PrismaWebhook,
+  WebhookDelivery as PrismaWebhookDelivery,
+  ApiKey as PrismaApiKey,
+  WebhookQueueItem as PrismaWebhookQueueItem,
+  DeadLetterWebhook as PrismaDeadLetterWebhook,
+} from '@prisma/client'
 import { prisma } from './db'
+
+function mapPrismaToWebhook(webhook: PrismaWebhook): Webhook {
+  return {
+    id: webhook.id,
+    url: webhook.url,
+    secret: webhook.secret,
+    active: webhook.active,
+    events: JSON.parse(webhook.events) as WebhookEvent[],
+    createdAt: webhook.createdAt.toISOString(),
+    updatedAt: webhook.updatedAt.toISOString(),
+  }
+}
+
+function mapPrismaToWebhookDelivery(
+  delivery: PrismaWebhookDelivery
+): WebhookDelivery {
+  return {
+    id: delivery.id,
+    webhookId: delivery.webhookId,
+    event: delivery.event as WebhookEvent,
+    payload: JSON.parse(delivery.payload),
+    status: delivery.status,
+    statusCode: delivery.statusCode,
+    responseBody: delivery.responseBody
+      ? JSON.parse(delivery.responseBody)
+      : undefined,
+    errorMessage: delivery.errorMessage,
+    attemptCount: delivery.attemptCount,
+    idempotencyKey: delivery.idempotencyKey,
+    createdAt: delivery.createdAt.toISOString(),
+    updatedAt: delivery.updatedAt.toISOString(),
+  }
+}
+
+function mapPrismaToApiKey(apiKey: PrismaApiKey): ApiKey {
+  return {
+    id: apiKey.id,
+    key: apiKey.key,
+    userId: apiKey.userId,
+    name: apiKey.name,
+    permissions: JSON.parse(apiKey.permissions),
+    active: apiKey.active,
+    expiresAt: apiKey.expiresAt?.toISOString(),
+    createdAt: apiKey.createdAt.toISOString(),
+    updatedAt: apiKey.updatedAt.toISOString(),
+  }
+}
+
+function mapPrismaToWebhookQueueItem(
+  queueItem: PrismaWebhookQueueItem
+): WebhookQueueItem {
+  return {
+    id: queueItem.id,
+    webhookId: queueItem.webhookId,
+    event: queueItem.event as WebhookEvent,
+    payload: JSON.parse(queueItem.payload),
+    priority: queueItem.priority,
+    retryCount: queueItem.retryCount,
+    maxRetries: queueItem.maxRetries,
+    scheduledFor: queueItem.scheduledFor.toISOString(),
+    createdAt: queueItem.createdAt.toISOString(),
+    updatedAt: queueItem.updatedAt.toISOString(),
+  }
+}
+
+function mapPrismaToDeadLetterWebhook(
+  deadLetter: PrismaDeadLetterWebhook
+): DeadLetterWebhook {
+  return {
+    id: deadLetter.id,
+    webhookId: deadLetter.webhookId,
+    event: deadLetter.event as WebhookEvent,
+    payload: JSON.parse(deadLetter.payload),
+    failureReason: deadLetter.failureReason,
+    lastAttemptAt: deadLetter.lastAttemptAt.toISOString(),
+    createdAt: deadLetter.createdAt.toISOString(),
+    updatedAt: deadLetter.updatedAt.toISOString(),
+    deliveryAttempts: JSON.parse(deadLetter.deliveryAttempts),
+  }
+}
 
 export const webhookStorage = {
   // Webhook methods
@@ -17,15 +104,7 @@ export const webhookStorage = {
       take: 1000,
     })
 
-    return webhooks.map(w => ({
-      id: w.id,
-      url: w.url,
-      secret: w.secret,
-      active: w.active,
-      events: JSON.parse(w.events) as WebhookEvent[],
-      createdAt: w.createdAt.toISOString(),
-      updatedAt: w.updatedAt.toISOString(),
-    }))
+    return webhooks.map(mapPrismaToWebhook)
   },
 
   async getWebhookById(id: string) {
@@ -35,15 +114,7 @@ export const webhookStorage = {
 
     if (!webhook) return null
 
-    return {
-      id: webhook.id,
-      url: webhook.url,
-      secret: webhook.secret,
-      active: webhook.active,
-      events: JSON.parse(webhook.events) as WebhookEvent[],
-      createdAt: webhook.createdAt.toISOString(),
-      updatedAt: webhook.updatedAt.toISOString(),
-    } as Webhook
+    return mapPrismaToWebhook(webhook)
   },
 
   async createWebhook(webhook: Webhook) {
@@ -57,15 +128,7 @@ export const webhookStorage = {
       },
     })
 
-    return {
-      id: created.id,
-      url: created.url,
-      secret: created.secret,
-      active: created.active,
-      events: JSON.parse(created.events) as WebhookEvent[],
-      createdAt: created.createdAt.toISOString(),
-      updatedAt: created.updatedAt.toISOString(),
-    }
+    return mapPrismaToWebhook(created)
   },
 
   async updateWebhook(id: string, data: Partial<Webhook>) {
@@ -85,15 +148,7 @@ export const webhookStorage = {
       },
     })
 
-    return {
-      id: updated.id,
-      url: updated.url,
-      secret: updated.secret,
-      active: updated.active,
-      events: JSON.parse(updated.events) as WebhookEvent[],
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
-    }
+    return mapPrismaToWebhook(updated)
   },
 
   async deleteWebhook(id: string) {
@@ -121,15 +176,7 @@ export const webhookStorage = {
       take: 100,
     })
 
-    return webhooks.map(w => ({
-      id: w.id,
-      url: w.url,
-      secret: w.secret,
-      active: w.active,
-      events: JSON.parse(w.events) as WebhookEvent[],
-      createdAt: w.createdAt.toISOString(),
-      updatedAt: w.updatedAt.toISOString(),
-    }))
+    return webhooks.map(mapPrismaToWebhook)
   },
 
   // Delivery methods
@@ -140,20 +187,7 @@ export const webhookStorage = {
       take: 1000,
     })
 
-    return deliveries.map(d => ({
-      id: d.id,
-      webhookId: d.webhookId,
-      event: d.event as WebhookEvent,
-      payload: JSON.parse(d.payload),
-      status: d.status,
-      statusCode: d.statusCode,
-      responseBody: d.responseBody ? JSON.parse(d.responseBody) : undefined,
-      errorMessage: d.errorMessage,
-      attemptCount: d.attemptCount,
-      idempotencyKey: d.idempotencyKey,
-      createdAt: d.createdAt.toISOString(),
-      updatedAt: d.updatedAt.toISOString(),
-    }))
+    return deliveries.map(mapPrismaToWebhookDelivery)
   },
 
   async getDeliveryById(id: string) {
@@ -163,22 +197,7 @@ export const webhookStorage = {
 
     if (!delivery) return null
 
-    return {
-      id: delivery.id,
-      webhookId: delivery.webhookId,
-      event: delivery.event as WebhookEvent,
-      payload: JSON.parse(delivery.payload),
-      status: delivery.status,
-      statusCode: delivery.statusCode,
-      responseBody: delivery.responseBody
-        ? JSON.parse(delivery.responseBody)
-        : undefined,
-      errorMessage: delivery.errorMessage,
-      attemptCount: delivery.attemptCount,
-      idempotencyKey: delivery.idempotencyKey,
-      createdAt: delivery.createdAt.toISOString(),
-      updatedAt: delivery.updatedAt.toISOString(),
-    }
+    return mapPrismaToWebhookDelivery(delivery)
   },
 
   async createDelivery(delivery: WebhookDelivery) {
@@ -199,22 +218,7 @@ export const webhookStorage = {
       },
     })
 
-    return {
-      id: created.id,
-      webhookId: created.webhookId,
-      event: created.event as WebhookEvent,
-      payload: JSON.parse(created.payload),
-      status: created.status,
-      statusCode: created.statusCode,
-      responseBody: created.responseBody
-        ? JSON.parse(created.responseBody)
-        : undefined,
-      errorMessage: created.errorMessage,
-      attemptCount: created.attemptCount,
-      idempotencyKey: created.idempotencyKey,
-      createdAt: created.createdAt.toISOString(),
-      updatedAt: created.updatedAt.toISOString(),
-    }
+    return mapPrismaToWebhookDelivery(created)
   },
 
   async updateDelivery(id: string, data: Partial<WebhookDelivery>) {
@@ -237,22 +241,7 @@ export const webhookStorage = {
       },
     })
 
-    return {
-      id: updated.id,
-      webhookId: updated.webhookId,
-      event: updated.event as WebhookEvent,
-      payload: JSON.parse(updated.payload),
-      status: updated.status,
-      statusCode: updated.statusCode,
-      responseBody: updated.responseBody
-        ? JSON.parse(updated.responseBody)
-        : undefined,
-      errorMessage: updated.errorMessage,
-      attemptCount: updated.attemptCount,
-      idempotencyKey: updated.idempotencyKey,
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
-    }
+    return mapPrismaToWebhookDelivery(updated)
   },
 
   async getDeliveriesByWebhookId(
@@ -264,20 +253,7 @@ export const webhookStorage = {
       take: 1000,
     })
 
-    return deliveries.map(d => ({
-      id: d.id,
-      webhookId: d.webhookId,
-      event: d.event as WebhookEvent,
-      payload: JSON.parse(d.payload),
-      status: d.status,
-      statusCode: d.statusCode,
-      responseBody: d.responseBody ? JSON.parse(d.responseBody) : undefined,
-      errorMessage: d.errorMessage,
-      attemptCount: d.attemptCount,
-      idempotencyKey: d.idempotencyKey,
-      createdAt: d.createdAt.toISOString(),
-      updatedAt: d.updatedAt.toISOString(),
-    }))
+    return deliveries.map(mapPrismaToWebhookDelivery)
   },
 
   // API Key methods
@@ -288,17 +264,7 @@ export const webhookStorage = {
       take: 1000,
     })
 
-    return apiKeys.map(k => ({
-      id: k.id,
-      key: k.key,
-      userId: k.userId,
-      name: k.name,
-      permissions: JSON.parse(k.permissions),
-      active: k.active,
-      expiresAt: k.expiresAt?.toISOString(),
-      createdAt: k.createdAt.toISOString(),
-      updatedAt: k.updatedAt.toISOString(),
-    }))
+    return apiKeys.map(mapPrismaToApiKey)
   },
 
   async getApiKeyById(id: string) {
@@ -308,17 +274,7 @@ export const webhookStorage = {
 
     if (!apiKey) return null
 
-    return {
-      id: apiKey.id,
-      key: apiKey.key,
-      userId: apiKey.userId,
-      name: apiKey.name,
-      permissions: JSON.parse(apiKey.permissions),
-      active: apiKey.active,
-      expiresAt: apiKey.expiresAt?.toISOString(),
-      createdAt: apiKey.createdAt.toISOString(),
-      updatedAt: apiKey.updatedAt.toISOString(),
-    }
+    return mapPrismaToApiKey(apiKey)
   },
 
   async getApiKeyByValue(key: string) {
@@ -333,17 +289,7 @@ export const webhookStorage = {
 
     if (!apiKey) return null
 
-    return {
-      id: apiKey.id,
-      key: apiKey.key,
-      userId: apiKey.userId,
-      name: apiKey.name,
-      permissions: JSON.parse(apiKey.permissions),
-      active: apiKey.active,
-      expiresAt: apiKey.expiresAt?.toISOString(),
-      createdAt: apiKey.createdAt.toISOString(),
-      updatedAt: apiKey.updatedAt.toISOString(),
-    }
+    return mapPrismaToApiKey(apiKey)
   },
 
   async createApiKey(apiKey: ApiKey) {
@@ -359,17 +305,7 @@ export const webhookStorage = {
       },
     })
 
-    return {
-      id: created.id,
-      key: created.key,
-      userId: created.userId,
-      name: created.name,
-      permissions: JSON.parse(created.permissions),
-      active: created.active,
-      expiresAt: created.expiresAt?.toISOString(),
-      createdAt: created.createdAt.toISOString(),
-      updatedAt: created.updatedAt.toISOString(),
-    }
+    return mapPrismaToApiKey(created)
   },
 
   async updateApiKey(id: string, data: Partial<ApiKey>) {
@@ -393,17 +329,7 @@ export const webhookStorage = {
       },
     })
 
-    return {
-      id: updated.id,
-      key: updated.key,
-      userId: updated.userId,
-      name: updated.name,
-      permissions: JSON.parse(updated.permissions),
-      active: updated.active,
-      expiresAt: updated.expiresAt?.toISOString(),
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
-    }
+    return mapPrismaToApiKey(updated)
   },
 
   async deleteApiKey(id: string) {
@@ -429,18 +355,7 @@ export const webhookStorage = {
       take: 1000,
     })
 
-    return queue.map(q => ({
-      id: q.id,
-      webhookId: q.webhookId,
-      event: q.event as WebhookEvent,
-      payload: JSON.parse(q.payload),
-      priority: q.priority,
-      retryCount: q.retryCount,
-      maxRetries: q.maxRetries,
-      scheduledFor: q.scheduledFor.toISOString(),
-      createdAt: q.createdAt.toISOString(),
-      updatedAt: q.updatedAt.toISOString(),
-    }))
+    return queue.map(mapPrismaToWebhookQueueItem)
   },
 
   async getQueueItemById(id: string) {
@@ -450,18 +365,7 @@ export const webhookStorage = {
 
     if (!item) return null
 
-    return {
-      id: item.id,
-      webhookId: item.webhookId,
-      event: item.event as WebhookEvent,
-      payload: JSON.parse(item.payload),
-      priority: item.priority,
-      retryCount: item.retryCount,
-      maxRetries: item.maxRetries,
-      scheduledFor: item.scheduledFor.toISOString(),
-      createdAt: item.createdAt.toISOString(),
-      updatedAt: item.updatedAt.toISOString(),
-    }
+    return mapPrismaToWebhookQueueItem(item)
   },
 
   async addToQueue(item: WebhookQueueItem) {
@@ -478,18 +382,7 @@ export const webhookStorage = {
       },
     })
 
-    return {
-      id: created.id,
-      webhookId: created.webhookId,
-      event: created.event as WebhookEvent,
-      payload: JSON.parse(created.payload),
-      priority: created.priority,
-      retryCount: created.retryCount,
-      maxRetries: created.maxRetries,
-      scheduledFor: created.scheduledFor.toISOString(),
-      createdAt: created.createdAt.toISOString(),
-      updatedAt: created.updatedAt.toISOString(),
-    }
+    return mapPrismaToWebhookQueueItem(created)
   },
 
   async removeFromQueue(id: string) {
@@ -515,17 +408,7 @@ export const webhookStorage = {
       take: 1000,
     })
 
-    return deadLetter.map(dl => ({
-      id: dl.id,
-      webhookId: dl.webhookId,
-      event: dl.event as WebhookEvent,
-      payload: JSON.parse(dl.payload),
-      failureReason: dl.failureReason,
-      lastAttemptAt: dl.lastAttemptAt.toISOString(),
-      createdAt: dl.createdAt.toISOString(),
-      updatedAt: dl.updatedAt.toISOString(),
-      deliveryAttempts: JSON.parse(dl.deliveryAttempts),
-    }))
+    return deadLetter.map(mapPrismaToDeadLetterWebhook)
   },
 
   async getDeadLetterWebhookById(id: string) {
@@ -535,17 +418,7 @@ export const webhookStorage = {
 
     if (!item) return null
 
-    return {
-      id: item.id,
-      webhookId: item.webhookId,
-      event: item.event as WebhookEvent,
-      payload: JSON.parse(item.payload),
-      failureReason: item.failureReason,
-      lastAttemptAt: item.lastAttemptAt.toISOString(),
-      createdAt: item.createdAt.toISOString(),
-      updatedAt: item.updatedAt.toISOString(),
-      deliveryAttempts: JSON.parse(item.deliveryAttempts),
-    }
+    return mapPrismaToDeadLetterWebhook(item)
   },
 
   async addToDeadLetterQueue(item: DeadLetterWebhook) {
@@ -561,17 +434,7 @@ export const webhookStorage = {
       },
     })
 
-    return {
-      id: created.id,
-      webhookId: created.webhookId,
-      event: created.event as WebhookEvent,
-      payload: JSON.parse(created.payload),
-      failureReason: created.failureReason,
-      lastAttemptAt: created.lastAttemptAt.toISOString(),
-      createdAt: created.createdAt.toISOString(),
-      updatedAt: created.updatedAt.toISOString(),
-      deliveryAttempts: JSON.parse(created.deliveryAttempts),
-    }
+    return mapPrismaToDeadLetterWebhook(created)
   },
 
   async removeFromDeadLetterQueue(id: string) {
@@ -606,22 +469,7 @@ export const webhookStorage = {
 
     if (!delivery) return null
 
-    return {
-      id: delivery.id,
-      webhookId: delivery.webhookId,
-      event: delivery.event as WebhookEvent,
-      payload: JSON.parse(delivery.payload),
-      status: delivery.status,
-      statusCode: delivery.statusCode,
-      responseBody: delivery.responseBody
-        ? JSON.parse(delivery.responseBody)
-        : undefined,
-      errorMessage: delivery.errorMessage,
-      attemptCount: delivery.attemptCount,
-      idempotencyKey: delivery.idempotencyKey,
-      createdAt: delivery.createdAt.toISOString(),
-      updatedAt: delivery.updatedAt.toISOString(),
-    }
+    return mapPrismaToWebhookDelivery(delivery)
   },
 
   async setDeliveryByIdempotencyKey(key: string, delivery: WebhookDelivery) {
