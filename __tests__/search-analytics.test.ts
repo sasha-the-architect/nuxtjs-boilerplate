@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import SearchAnalytics from '~/components/SearchAnalytics.vue'
-import type { ApiClient } from '~/utils/api-client'
 import type { SearchAnalyticsData } from '~/types/analytics'
 import { ref, computed } from 'vue'
 
