@@ -132,14 +132,8 @@ export const webhookStorage = {
   },
 
   async updateWebhook(id: string, data: Partial<Webhook>) {
-    const webhook = await prisma.webhook.findFirst({
+    const updated = await prisma.webhook.updateMany({
       where: { id, deletedAt: null },
-    })
-
-    if (!webhook) return null
-
-    const updated = await prisma.webhook.update({
-      where: { id },
       data: {
         ...(data.url && { url: data.url }),
         ...(data.secret !== undefined && { secret: data.secret }),
@@ -148,22 +142,22 @@ export const webhookStorage = {
       },
     })
 
-    return mapPrismaToWebhook(updated)
+    if (updated.count === 0) return null
+
+    const webhook = await prisma.webhook.findUnique({
+      where: { id },
+    })
+
+    return webhook ? mapPrismaToWebhook(webhook) : null
   },
 
   async deleteWebhook(id: string) {
-    const webhook = await prisma.webhook.findFirst({
+    const deleted = await prisma.webhook.updateMany({
       where: { id, deletedAt: null },
-    })
-
-    if (!webhook) return false
-
-    await prisma.webhook.update({
-      where: { id },
       data: { deletedAt: new Date() },
     })
 
-    return true
+    return deleted.count > 0
   },
 
   async getWebhooksByEvent(event: string) {
@@ -222,14 +216,8 @@ export const webhookStorage = {
   },
 
   async updateDelivery(id: string, data: Partial<WebhookDelivery>) {
-    const delivery = await prisma.webhookDelivery.findFirst({
+    const updated = await prisma.webhookDelivery.updateMany({
       where: { id, deletedAt: null },
-    })
-
-    if (!delivery) return null
-
-    const updated = await prisma.webhookDelivery.update({
-      where: { id },
       data: {
         ...(data.status && { status: data.status }),
         ...(data.statusCode && { statusCode: data.statusCode }),
@@ -241,7 +229,13 @@ export const webhookStorage = {
       },
     })
 
-    return mapPrismaToWebhookDelivery(updated)
+    if (updated.count === 0) return null
+
+    const delivery = await prisma.webhookDelivery.findUnique({
+      where: { id },
+    })
+
+    return delivery ? mapPrismaToWebhookDelivery(delivery) : null
   },
 
   async getDeliveriesByWebhookId(
@@ -309,14 +303,8 @@ export const webhookStorage = {
   },
 
   async updateApiKey(id: string, data: Partial<ApiKey>) {
-    const apiKey = await prisma.apiKey.findFirst({
+    const updated = await prisma.apiKey.updateMany({
       where: { id, deletedAt: null },
-    })
-
-    if (!apiKey) return null
-
-    const updated = await prisma.apiKey.update({
-      where: { id },
       data: {
         ...(data.name && { name: data.name }),
         ...(data.permissions && {
@@ -329,22 +317,22 @@ export const webhookStorage = {
       },
     })
 
-    return mapPrismaToApiKey(updated)
+    if (updated.count === 0) return null
+
+    const apiKey = await prisma.apiKey.findUnique({
+      where: { id },
+    })
+
+    return apiKey ? mapPrismaToApiKey(apiKey) : null
   },
 
   async deleteApiKey(id: string) {
-    const apiKey = await prisma.apiKey.findFirst({
+    const deleted = await prisma.apiKey.updateMany({
       where: { id, deletedAt: null },
-    })
-
-    if (!apiKey) return false
-
-    await prisma.apiKey.update({
-      where: { id },
       data: { deletedAt: new Date() },
     })
 
-    return true
+    return deleted.count > 0
   },
 
   // Webhook Queue methods
@@ -386,18 +374,12 @@ export const webhookStorage = {
   },
 
   async removeFromQueue(id: string) {
-    const item = await prisma.webhookQueue.findFirst({
+    const deleted = await prisma.webhookQueue.updateMany({
       where: { id, deletedAt: null },
-    })
-
-    if (!item) return false
-
-    await prisma.webhookQueue.update({
-      where: { id },
       data: { deletedAt: new Date() },
     })
 
-    return true
+    return deleted.count > 0
   },
 
   // Dead Letter Queue methods
@@ -438,18 +420,12 @@ export const webhookStorage = {
   },
 
   async removeFromDeadLetterQueue(id: string) {
-    const item = await prisma.deadLetterWebhook.findFirst({
+    const deleted = await prisma.deadLetterWebhook.updateMany({
       where: { id, deletedAt: null },
-    })
-
-    if (!item) return false
-
-    await prisma.deadLetterWebhook.update({
-      where: { id },
       data: { deletedAt: new Date() },
     })
 
-    return true
+    return deleted.count > 0
   },
 
   // Idempotency methods
