@@ -6,10 +6,15 @@
  * - Business logic layer: Manages webhook operations and state
  * - Data access layer: Communicates with API endpoints via ApiClient
  * - Separation of concerns: Components handle presentation only
+ *
+ * Dependency Injection:
+ * - ApiClient can be injected for testing
+ * - Falls back to useNuxtApp() for production use
  */
 import { ref, reactive } from 'vue'
 import { useNuxtApp } from '#app'
 import logger from '~/utils/logger'
+import type { ApiClient } from '~/utils/api-client'
 import type { Webhook } from '~/types/webhook'
 
 export interface WebhookFormData {
@@ -18,7 +23,21 @@ export interface WebhookFormData {
   active: boolean
 }
 
-export const useWebhooksManager = () => {
+export interface UseWebhooksManagerOptions {
+  apiClient?: ApiClient
+}
+
+export const useWebhooksManager = (options: UseWebhooksManagerOptions = {}) => {
+  const { apiClient: providedClient } = options
+
+  const getClient = () => {
+    if (providedClient) {
+      return providedClient
+    }
+    const { $apiClient } = useNuxtApp()
+    return $apiClient
+  }
+
   const webhooks = ref<Webhook[]>([])
   const loading = ref(true)
   const errorMessage = ref('')
@@ -44,10 +63,8 @@ export const useWebhooksManager = () => {
       loading.value = true
       errorMessage.value = ''
 
-      const { $apiClient } = useNuxtApp()
-      const response = await $apiClient.get<{ data: Webhook[] }>(
-        '/api/v1/webhooks'
-      )
+      const client = getClient()
+      const response = await client.get<{ data: Webhook[] }>('/api/v1/webhooks')
 
       if (response.success && response.data) {
         webhooks.value = response.data as unknown as Webhook[]
@@ -76,8 +93,8 @@ export const useWebhooksManager = () => {
     }
 
     try {
-      const { $apiClient } = useNuxtApp()
-      const response = await $apiClient.post('/api/v1/webhooks', webhookData)
+      const client = getClient()
+      const response = await client.post('/api/v1/webhooks', webhookData)
 
       if (!response.success) {
         errorMessage.value =
@@ -104,8 +121,8 @@ export const useWebhooksManager = () => {
   const toggleWebhook = async (webhook: Webhook) => {
     try {
       const newStatus = !webhook.active
-      const { $apiClient } = useNuxtApp()
-      const response = await $apiClient.put(`/api/v1/webhooks/${webhook.id}`, {
+      const client = getClient()
+      const response = await client.put(`/api/v1/webhooks/${webhook.id}`, {
         active: newStatus,
       })
 
@@ -137,8 +154,8 @@ export const useWebhooksManager = () => {
     }
 
     try {
-      const { $apiClient } = useNuxtApp()
-      const response = await $apiClient.delete(`/api/v1/webhooks/${webhook.id}`)
+      const client = getClient()
+      const response = await client.delete(`/api/v1/webhooks/${webhook.id}`)
 
       if (!response.success) {
         errorMessage.value =
