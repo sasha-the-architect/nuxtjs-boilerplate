@@ -45,6 +45,7 @@ model Webhook {
 
   @@index([active])
   @@index([deletedAt])
+  @@index([active, deletedAt])
   @@index([url])
 }
 
@@ -124,6 +125,7 @@ model ApiKey {
   @@index([active])
   @@index([expiresAt])
   @@index([deletedAt])
+  @@index([key, deletedAt, active])
 }
 
 model IdempotencyKey {
