@@ -9,6 +9,7 @@
  */
 import { ref } from 'vue'
 import { useNuxtApp } from '#app'
+import type { ApiClient } from '~/utils/api-client'
 import { logError } from '~/utils/errorLogger'
 import type { Submission } from '~/types/submission'
 
@@ -17,8 +18,24 @@ export interface SubmissionReviewOptions {
   reviewedBy?: string
 }
 
-export const useSubmissionReview = (options: SubmissionReviewOptions) => {
-  const { submissionId, reviewedBy = 'moderator_123' } = options
+export interface UseSubmissionReviewOptions extends SubmissionReviewOptions {
+  apiClient?: ApiClient
+}
+
+export const useSubmissionReview = (options: UseSubmissionReviewOptions) => {
+  const {
+    submissionId,
+    reviewedBy = 'moderator_123',
+    apiClient: providedClient,
+  } = options
+
+  const getClient = () => {
+    if (providedClient) {
+      return providedClient
+    }
+    const { $apiClient } = useNuxtApp()
+    return $apiClient
+  }
 
   const loading = ref(true)
   const error = ref('')
@@ -30,8 +47,8 @@ export const useSubmissionReview = (options: SubmissionReviewOptions) => {
       loading.value = true
       error.value = ''
 
-      const { $apiClient } = useNuxtApp()
-      const response = await $apiClient.get<{ submission?: Submission }>(
+      const client = getClient()
+      const response = await client.get<{ submission?: Submission }>(
         `/api/submissions/${submissionId}`
       )
 
@@ -56,8 +73,8 @@ export const useSubmissionReview = (options: SubmissionReviewOptions) => {
     if (!submission.value) return false
 
     try {
-      const { $apiClient } = useNuxtApp()
-      const response = await $apiClient.post('/api/moderation/approve', {
+      const client = getClient()
+      const response = await client.post('/api/moderation/approve', {
         submissionId,
         reviewedBy,
         notes: 'Approved via moderation interface',
@@ -92,8 +109,8 @@ export const useSubmissionReview = (options: SubmissionReviewOptions) => {
     }
 
     try {
-      const { $apiClient } = useNuxtApp()
-      const response = await $apiClient.post('/api/moderation/reject', {
+      const client = getClient()
+      const response = await client.post('/api/moderation/reject', {
         submissionId,
         reviewedBy,
         rejectionReason: reason,

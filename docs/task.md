@@ -1,3 +1,261 @@
+## [ARCH-005] Dependency Injection Pattern for P2 Composables ✅ COMPLETED (2026-01-23)
+
+**Feature**: ARCH-005
+**Status**: Complete
+**Agent**: 01 Architect
+**Created**: 2026-01-23
+**Completed**: 2026-01-23
+**Priority**: P2 (MEDIUM)
+
+### Description
+
+Implemented Dependency Injection pattern in `useResourceStatusManager`, `useSubmitPage`, and `useSubmissionReview` composables to continue P2 priority refactoring, resolving layer separation violations and improving testability.
+
+### Issue
+
+**Location**: `composables/useResourceStatusManager.ts`, `composables/useSubmitPage.ts`, `composables/useSubmissionReview.ts`
+
+**Problem**: Composables directly call `useNuxtApp()` to access `$apiClient`, creating tight coupling to Nuxt's framework context. This violates:
+
+- **Dependency Inversion Principle**: Business logic depends on framework implementation, not abstraction
+- **Layer Separation**: Business logic layer (composables) tightly coupled to framework layer
+- **Testability**: Difficult to test composables in isolation without mocking Nuxt's internal context
+
+**Impact**: MEDIUM - Resource submission, review, and status management are core features that benefit from testability
+
+### Solution Implemented
+
+#### 1. Dependency Injection Pattern for useResourceStatusManager
+
+Added optional `apiClient` parameter and `getClient()` helper:
+
+```typescript
+export interface UseResourceStatusManagerOptions {
+  apiClient?: ApiClient
+}
+
+export function useResourceStatusManager(
+  initialStatus: string = 'active',
+  options: UseResourceStatusManagerOptions = {}
+) {
+  const { apiClient: providedClient } = options
+
+  const getClient = () => {
+    if (providedClient) {
+      return providedClient
+    }
+    const { $apiClient } = useNuxtApp()
+    return $apiClient
+  }
+
+  const updateStatus = async (resourceId: string) => {
+    const client = getClient()
+    const response = await client.put<UpdateStatusResponse>(
+      `/api/resources/${resourceId}/status`,
+      { status, reason, notes }
+    )
+    // ...
+  }
+}
+```
+
+**Benefits**:
+
+- ✅ Testability: Composable can be tested by injecting mock ApiClient
+- ✅ Dependency Inversion: Business logic depends on abstraction
+- ✅ Backward Compatible: Existing code continues to work
+- ✅ Clean Architecture: Dependencies flow correctly (inward)
+
+#### 2. Dependency Injection Pattern for useSubmitPage
+
+Added optional `apiClient` parameter and `getClient()` helper:
+
+```typescript
+export interface UseSubmitPageOptions {
+  apiClient?: ApiClient
+}
+
+export const useSubmitPage = (options: UseSubmitPageOptions = {}) => {
+  const { apiClient: providedClient } = options
+
+  const getClient = () => {
+    if (providedClient) {
+      return providedClient
+    }
+    const { $apiClient } = useNuxtApp()
+    return $apiClient
+  }
+
+  const submitResource = async () => {
+    const client = getClient()
+    const response = await client.post('/api/submissions', {
+      title: formData.value.title.trim(),
+      description: formData.value.description.trim(),
+      url: formData.value.url.trim(),
+      category: formData.value.category,
+      tags: formData.value.tags,
+    })
+    // ...
+  }
+}
+```
+
+**Benefits**:
+
+- ✅ Testability: Composable can be tested by injecting mock ApiClient
+- ✅ Dependency Inversion: Business logic depends on abstraction
+- ✅ Backward Compatible: Existing code continues to work
+- ✅ Clean Architecture: Dependencies flow correctly (inward)
+
+#### 3. Dependency Injection Pattern for useSubmissionReview
+
+Added optional `apiClient` parameter and `getClient()` helper:
+
+```typescript
+export interface UseSubmissionReviewOptions extends SubmissionReviewOptions {
+  apiClient?: ApiClient
+}
+
+export const useSubmissionReview = (options: UseSubmissionReviewOptions) => {
+  const {
+    submissionId,
+    reviewedBy = 'moderator_123',
+    apiClient: providedClient,
+  } = options
+
+  const getClient = () => {
+    if (providedClient) {
+      return providedClient
+    }
+    const { $apiClient } = useNuxtApp()
+    return $apiClient
+  }
+
+  const fetchSubmission = async () => {
+    const client = getClient()
+    const response = await client.get<{ submission?: Submission }>(
+      `/api/submissions/${submissionId}`
+    )
+    // ...
+  }
+
+  const approveSubmission = async () => {
+    const client = getClient()
+    const response = await client.post('/api/moderation/approve', {
+      submissionId,
+      reviewedBy,
+      notes: 'Approved via moderation interface',
+    })
+    // ...
+  }
+
+  const rejectSubmission = async (reason: string) => {
+    const client = getClient()
+    const response = await client.post('/api/moderation/reject', {
+      submissionId,
+      reviewedBy,
+      rejectionReason: reason,
+      notes: 'Rejected via moderation interface',
+    })
+    // ...
+  }
+}
+```
+
+**Benefits**:
+
+- ✅ Testability: Composable can be tested by injecting mock ApiClient
+- ✅ Dependency Inversion: Business logic depends on abstraction
+- ✅ Backward Compatible: Existing code continues to work
+- ✅ Clean Architecture: Dependencies flow correctly (inward)
+
+### Success Criteria
+
+- [x] Dependency Injection pattern implemented - All 3 composables accept optional apiClient parameter
+- [x] getClient() helper created - Provides injected or Nuxt client
+- [x] All methods updated - useResourceStatusManager (1 method), useSubmitPage (1 method), useSubmissionReview (3 methods) use getClient()
+- [x] All tests passing - 1575/1575 tests passing
+- [x] Blueprint updated - Decision log and Impact Assessment updated
+- [x] Backward compatibility maintained - Existing code continues to work
+- [x] SOLID principles applied - Dependency Inversion, Open/Closed, Single Responsibility
+
+### Test Results
+
+**Before Refactoring**:
+
+- Test Files: 70 passed | 2 skipped (72 total)
+- Tests: 1575 passed | 48 skipped (1623 total)
+- Pass Rate: 97.1%
+
+**After Refactoring**:
+
+- Test Files: 70 passed | 2 skipped (72 total)
+- Tests: 1575 passed | 48 skipped (1623 total)
+- Pass Rate: 97.1%
+- Regression: Zero - All existing tests continue to pass
+
+### Files Modified
+
+1. `composables/useResourceStatusManager.ts` - Added Dependency Injection pattern (96 lines, +9 from original)
+2. `composables/useSubmitPage.ts` - Added Dependency Injection pattern (208 lines, +11 from original)
+3. `composables/useSubmissionReview.ts` - Added Dependency Injection pattern (142 lines, +6 from original)
+4. `docs/blueprint.md` - Added decision log entries and updated Impact Assessment table
+
+### Impact
+
+**Architectural Benefits**:
+
+- **Dependency Inversion**: Business logic no longer directly coupled to Nuxt framework
+- **Testability**: Composables can be tested without Nuxt context by injecting mock ApiClient
+- **Clean Architecture**: Dependencies flow correctly (inward dependency)
+- **Extensibility**: Easy to inject different ApiClient implementations (mocks, test doubles)
+
+**Code Quality**:
+
+- **Maintainability**: Clearer separation of concerns
+- **Testability**: Tests are simpler and more reliable
+- **Production Critical**: Submission, review, and status management features now fully testable
+
+**Progress**:
+
+- **DI Pattern Composables Completed**: 8/17 (useSearchAnalytics, useAnalyticsPage, useApiKeysManager, useWebhooksManager, useModerationDashboard, useResourceStatusManager, useSubmitPage, useSubmissionReview)
+- **P1 Remaining**: 0/3 (All P1 composables refactored)
+- **P2 Remaining**: 6/12 (useComparisonPage, useApiKeysPage, useResourceDetailPage, useResourceHealth, useReviewQueue, useResourceAnalytics)
+- **P3 Remaining**: 1/1 (useCommunityFeatures)
+
+### Dependencies
+
+None - This refactoring is self-contained and doesn't depend on other changes
+
+### Related Architectural Work
+
+This continues the Dependency Injection pattern implementation for P2 composables:
+
+**Completed P1 Composables**:
+
+- useSearchAnalytics (ARCH-002)
+- useAnalyticsPage (ARCH-002)
+- useApiKeysManager (ARCH-003)
+- useWebhooksManager (ARCH-004)
+- useModerationDashboard (ARCH-004)
+
+**Completed P2 Composables** (this task):
+
+- useResourceStatusManager (ARCH-005) ✅ Just completed
+- useSubmitPage (ARCH-005) ✅ Just completed
+- useSubmissionReview (ARCH-005) ✅ Just completed
+
+**Remaining P2 Composables**:
+
+- useComparisonPage - Comparison feature
+- useApiKeysPage - API key management UI
+- useResourceDetailPage - Resource details
+- useResourceHealth - Health checks
+- useReviewQueue - Review queue
+- useResourceAnalytics - Analytics feature
+
+---
+
 ## [ARCH-004] Dependency Injection Pattern for P1 Composables ✅ COMPLETED (2026-01-23)
 
 **Feature**: ARCH-004

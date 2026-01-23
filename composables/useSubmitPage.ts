@@ -1,5 +1,6 @@
 import { ref, readonly } from 'vue'
 import { useNuxtApp } from '#app'
+import type { ApiClient } from '~/utils/api-client'
 import { logError } from '~/utils/errorLogger'
 import logger from '~/utils/logger'
 
@@ -18,7 +19,21 @@ interface FormErrors {
   category?: string
 }
 
-export const useSubmitPage = () => {
+export interface UseSubmitPageOptions {
+  apiClient?: ApiClient
+}
+
+export const useSubmitPage = (options: UseSubmitPageOptions = {}) => {
+  const { apiClient: providedClient } = options
+
+  const getClient = () => {
+    if (providedClient) {
+      return providedClient
+    }
+    const { $apiClient } = useNuxtApp()
+    return $apiClient
+  }
+
   const formData = ref<FormData>({
     title: '',
     description: '',
@@ -108,8 +123,8 @@ export const useSubmitPage = () => {
     submitSuccess.value = false
 
     try {
-      const { $apiClient } = useNuxtApp()
-      const response = await $apiClient.post('/api/submissions', {
+      const client = getClient()
+      const response = await client.post('/api/submissions', {
         title: formData.value.title.trim(),
         description: formData.value.description.trim(),
         url: formData.value.url.trim(),

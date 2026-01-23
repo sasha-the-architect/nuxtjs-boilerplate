@@ -166,18 +166,19 @@ const userResponse = await $apiClient.get<User>('/api/v1/user')
 
 ### API Client Decision Log
 
-| Date       | Decision                                     | Rationale                                                                                                                                                                                                          |
-| ---------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 2026-01-10 | Create ApiClient interface                   | Define contract for HTTP operations, improve testability, support multiple implementations                                                                                                                         |
-| 2026-01-10 | Implement FetchApiClient                     | Default implementation using Nuxt's built-in $fetch for production use                                                                                                                                             |
-| 2026-01-15 | Create ApiClient plugin                      | Provide ApiClient globally via Nuxt plugin system for consistent access across all composables                                                                                                                     |
-| 2026-01-15 | Migrate composables to ApiClient             | Replace all direct $fetch calls with ApiClient abstraction (0 remaining $fetch calls in composables)                                                                                                               |
-| 2026-01-22 | Replace direct fetch with ApiClient          | Refactored useAnalyticsPage and useSearchAnalytics to use ApiClient abstraction; ensures Dependency Inversion Principle compliance and maintains architectural consistency across all composables                  |
-| 2026-01-22 | Composable Dependency Injection Pattern      | Implemented dependency injection in useSearchAnalytics to enable testability and reduce coupling to Nuxt's useNuxtApp() context; 17 composables identified for future refactoring                                  |
-| 2026-01-22 | Standardize AnalyticsEvent Timestamp Types   | Converted AnalyticsEvent timestamps from Int (Unix milliseconds) to DateTime (ISO 8601) for consistency across all models; migration included reversible up/down scripts, zero data loss                           |
-| 2026-01-22 | Dependency Injection: useApiKeysManager      | Applied DI pattern to useApiKeysManager (P1 security-critical) for testability; 3 methods (fetchApiKeys, createApiKey, revokeApiKey) now use injectable ApiClient; 16 remaining composables                        |
-| 2026-01-23 | Dependency Injection: useWebhooksManager     | Applied DI pattern to useWebhooksManager (P1 webhook orchestration) for testability; 4 methods (fetchWebhooks, createWebhook, toggleWebhook, deleteWebhook) now use injectable ApiClient; 14 remaining composables |
-| 2026-01-23 | Dependency Injection: useModerationDashboard | Applied DI pattern to useModerationDashboard (P1 content moderation) for testability; loadStatistics method now uses injectable ApiClient; 14 remaining composables                                                |
+| Date       | Decision                                        | Rationale                                                                                                                                                                                                          |
+| ---------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-01-10 | Create ApiClient interface                      | Define contract for HTTP operations, improve testability, support multiple implementations                                                                                                                         |
+| 2026-01-10 | Implement FetchApiClient                        | Default implementation using Nuxt's built-in $fetch for production use                                                                                                                                             |
+| 2026-01-15 | Create ApiClient plugin                         | Provide ApiClient globally via Nuxt plugin system for consistent access across all composables                                                                                                                     |
+| 2026-01-15 | Migrate composables to ApiClient                | Replace all direct $fetch calls with ApiClient abstraction (0 remaining $fetch calls in composables)                                                                                                               |
+| 2026-01-22 | Replace direct fetch with ApiClient             | Refactored useAnalyticsPage and useSearchAnalytics to use ApiClient abstraction; ensures Dependency Inversion Principle compliance and maintains architectural consistency across all composables                  |
+| 2026-01-22 | Composable Dependency Injection Pattern         | Implemented dependency injection in useSearchAnalytics to enable testability and reduce coupling to Nuxt's useNuxtApp() context; 17 composables identified for future refactoring                                  |
+| 2026-01-22 | Standardize AnalyticsEvent Timestamp Types      | Converted AnalyticsEvent timestamps from Int (Unix milliseconds) to DateTime (ISO 8601) for consistency across all models; migration included reversible up/down scripts, zero data loss                           |
+| 2026-01-22 | Dependency Injection: useApiKeysManager         | Applied DI pattern to useApiKeysManager (P1 security-critical) for testability; 3 methods (fetchApiKeys, createApiKey, revokeApiKey) now use injectable ApiClient; 16 remaining composables                        |
+| 2026-01-23 | Dependency Injection: useWebhooksManager        | Applied DI pattern to useWebhooksManager (P1 webhook orchestration) for testability; 4 methods (fetchWebhooks, createWebhook, toggleWebhook, deleteWebhook) now use injectable ApiClient; 14 remaining composables |
+| 2026-01-23 | Dependency Injection: useModerationDashboard    | Applied DI pattern to useModerationDashboard (P1 content moderation) for testability; loadStatistics method now uses injectable ApiClient; 14 remaining composables                                                |
+| 2026-01-23 | Dependency Injection: P2 Composables (ARCH-005) | Applied DI pattern to useResourceStatusManager (1 method), useSubmitPage (1 method), and useSubmissionReview (3 methods) for testability; all methods now use injectable ApiClient; 11 remaining composables       |
 
 ### Dependency Injection Pattern for Composables
 
@@ -259,9 +260,9 @@ it('renders data correctly', () => {
 | useApiKeysManager        | ✅ Completed | P1                  |
 | useWebhooksManager       | ✅ Completed | P1                  |
 | useModerationDashboard   | ✅ Completed | P1                  |
-| useSubmitPage            | 🔄 Pending   | P2                  |
-| useSubmissionReview      | 🔄 Pending   | P2                  |
-| useResourceStatusManager | 🔄 Pending   | P2                  |
+| useSubmitPage            | ✅ Completed | P2                  |
+| useSubmissionReview      | ✅ Completed | P2                  |
+| useResourceStatusManager | ✅ Completed | P2                  |
 | useComparisonPage        | 🔄 Pending   | P2                  |
 | useApiKeysPage           | 🔄 Pending   | P2                  |
 | useResourceDetailPage    | 🔄 Pending   | P2                  |
