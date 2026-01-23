@@ -53,9 +53,11 @@ export default defineEventHandler(async event => {
           summary: 'Get all resources',
           description:
             'Retrieve a paginated list of resources with optional filtering. ' +
-            'Supports filtering by category, pricing model, difficulty level, and search terms.',
+            'Supports filtering by category, pricing model, difficulty level, and search terms. ' +
+            'Protected by rate limiting (token bucket algorithm).',
           operationId: 'getResources',
           tags: ['Resources'],
+          'x-rateLimit': { config: 'api', limit: 50, window: '5 min' },
           parameters: [
             {
               name: 'limit',
@@ -181,10 +183,36 @@ export default defineEventHandler(async event => {
                   description: 'Seconds until retry is allowed',
                   schema: { type: 'integer' },
                 },
+                'X-RateLimit-Limit': {
+                  $ref: '#/components/headers/XRateLimitLimit',
+                },
+                'X-RateLimit-Remaining': {
+                  $ref: '#/components/headers/XRateLimitRemaining',
+                },
+                'X-RateLimit-Reset': {
+                  $ref: '#/components/headers/XRateLimitReset',
+                },
+                'X-RateLimit-Window': {
+                  $ref: '#/components/headers/XRateLimitWindow',
+                },
               },
             },
             '500': {
               description: 'Internal server error',
+              headers: {
+                'X-RateLimit-Limit': {
+                  $ref: '#/components/headers/XRateLimitLimit',
+                },
+                'X-RateLimit-Remaining': {
+                  $ref: '#/components/headers/XRateLimitRemaining',
+                },
+                'X-RateLimit-Reset': {
+                  $ref: '#/components/headers/XRateLimitReset',
+                },
+                'X-RateLimit-Window': {
+                  $ref: '#/components/headers/XRateLimitWindow',
+                },
+              },
               content: {
                 'application/json': {
                   schema: {
@@ -690,9 +718,17 @@ export default defineEventHandler(async event => {
           summary: 'Validate URL',
           description:
             'Validate a URL by checking its HTTP status. ' +
-            'Uses circuit breaker and retry with exponential backoff for resilience.',
+            'Uses circuit breaker (hostname-based) and retry with exponential backoff (1s-30s, max 3 retries) for resilience. ' +
+            'Circuit breaker prevents cascading failures from unreachable hosts.',
           operationId: 'validateUrl',
           tags: ['Validation'],
+          'x-circuitBreaker': { enabled: true, scope: 'per-hostname' },
+          'x-retry': {
+            strategy: 'exponential-backoff',
+            maxRetries: 3,
+            maxDelay: '30s',
+          },
+          'x-rateLimit': { config: 'standard', limit: 50, window: '5 min' },
           requestBody: {
             required: true,
             content: {
@@ -813,6 +849,7 @@ export default defineEventHandler(async event => {
             'Retrieve all registered webhooks for the authenticated user.',
           operationId: 'listWebhooks',
           tags: ['Webhooks'],
+          'x-rateLimit': { config: 'api', limit: 50, window: '5 min' },
           responses: {
             '200': {
               description: 'Successful response',
@@ -848,10 +885,22 @@ export default defineEventHandler(async event => {
         post: {
           summary: 'Create webhook',
           description:
-            'Create a new webhook for event notifications. Webhooks support circuit breaker ' +
-            'and retry with exponential backoff for reliable delivery.',
+            'Create a new webhook for event notifications. Webhook delivery uses circuit breaker ' +
+            '(hostname-based) and retry with exponential backoff (1s-30s, max 3 retries). ' +
+            'Failed webhooks are moved to dead letter queue for manual inspection and retry. ' +
+            'Supports idempotency keys to prevent duplicate deliveries.',
           operationId: 'createWebhook',
           tags: ['Webhooks'],
+          'x-circuitBreaker': { enabled: true, scope: 'per-hostname' },
+          'x-retry': {
+            strategy: 'exponential-backoff',
+            maxRetries: 3,
+            maxDelay: '30s',
+            jitter: true,
+          },
+          'x-idempotency': { supported: true, header: 'X-Idempotency-Key' },
+          'x-queue': { asyncDelivery: true, deadLetterQueue: true },
+          'x-rateLimit': { config: 'api', limit: 50, window: '5 min' },
           requestBody: {
             required: true,
             content: {
@@ -1039,9 +1088,20 @@ export default defineEventHandler(async event => {
       '/api/v1/webhooks/trigger': {
         post: {
           summary: 'Trigger webhook test',
-          description: 'Send a test event to a webhook for testing purposes.',
+          description:
+            'Send a test event to a webhook for testing purposes. ' +
+            'Uses circuit breaker and retry with exponential backoff for delivery. ' +
+            'Delivery is queued asynchronously and non-blocking.',
           operationId: 'triggerWebhook',
           tags: ['Webhooks'],
+          'x-circuitBreaker': { enabled: true, scope: 'per-hostname' },
+          'x-retry': {
+            strategy: 'exponential-backoff',
+            maxRetries: 3,
+            maxDelay: '30s',
+          },
+          'x-queue': { asyncDelivery: true },
+          'x-rateLimit': { config: 'api', limit: 50, window: '5 min' },
           requestBody: {
             required: true,
             content: {
@@ -1112,9 +1172,12 @@ export default defineEventHandler(async event => {
         get: {
           summary: 'Get webhook queue',
           description:
-            'Retrieve webhook queue statistics and contents including dead letter queue.',
+            'Retrieve webhook queue statistics and contents including dead letter queue. ' +
+            'Monitors pending webhooks, delivery history, and failed webhooks in dead letter queue. ' +
+            'Provides visibility into webhook delivery health and retry status.',
           operationId: 'getWebhookQueue',
           tags: ['Webhooks'],
+          'x-rateLimit': { config: 'api', limit: 50, window: '5 min' },
           responses: {
             '200': {
               description: 'Webhook queue data',
@@ -3392,11 +3455,16 @@ export default defineEventHandler(async event => {
       },
       '/api/integration-health': {
         get: {
-          summary: 'Get integration health status',
+          summary: 'Get integration health',
           description:
-            'Retrieve comprehensive health status for all external integrations including circuit breakers, webhooks, and queue systems. Provides aggregate health status and detailed metrics for monitoring and alerting.',
+            'Retrieve comprehensive health status for all external integrations including circuit breakers, webhooks, and queue systems. ' +
+            'Provides aggregate health status (healthy/degraded/unhealthy) and detailed metrics for monitoring and alerting. ' +
+            'Circuit breaker states (closed/open/half-open) indicate service availability. ' +
+            'Webhook queue metrics show pending and dead letter webhooks. ' +
+            'Use this endpoint for proactive monitoring and incident response.',
           operationId: 'getIntegrationHealth',
           tags: ['Integration'],
+          'x-rateLimit': { config: 'standard', limit: 100, window: '15 min' },
           responses: {
             '200': {
               description: 'Integration health report',
@@ -4226,6 +4294,31 @@ export default defineEventHandler(async event => {
           in: 'header',
           name: 'X-API-Key',
           description: 'API key for authentication',
+        },
+      },
+      headers: {
+        XRateLimitLimit: {
+          description:
+            'Maximum number of requests allowed per rate limit window',
+          schema: { type: 'integer' },
+        },
+        XRateLimitRemaining: {
+          description:
+            'Number of requests remaining in current rate limit window',
+          schema: { type: 'integer' },
+        },
+        XRateLimitReset: {
+          description: 'Unix timestamp when rate limit window resets',
+          schema: { type: 'integer' },
+        },
+        XRateLimitWindow: {
+          description: 'Rate limit window duration in seconds',
+          schema: { type: 'integer' },
+        },
+        XRateLimitBypassed: {
+          description:
+            'Present if admin bypass key was used (internal use only)',
+          schema: { type: 'string' },
         },
       },
     },

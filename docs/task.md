@@ -1,3 +1,217 @@
+## [INTEGRATION-002] Enhance OpenAPI Spec with Resilience Pattern Documentation ✅ COMPLETED (2026-01-22)
+
+**Feature**: INTEGRATION-002
+**Status**: Complete
+**Agent**: 02 Integration Engineer
+**Created**: 2026-01-22
+**Completed**: 2026-01-22
+**Priority**: P1 (HIGH)
+
+### Description
+
+Enhanced OpenAPI specification with comprehensive documentation of resilience patterns including rate limiting, circuit breakers, retry behavior, and queue/idempotency support. This makes resilience patterns self-documenting and discoverable to API consumers.
+
+### Issue
+
+**Location**: `server/api/api-docs/spec.get.ts`
+
+**Problem**: The OpenAPI specification documented API endpoints but didn't clearly communicate resilience patterns to API consumers:
+
+- Rate limiting was implemented but headers weren't documented
+- Circuit breaker usage wasn't documented in spec
+- Retry behavior details weren't exposed
+- Queue and idempotency features weren't documented
+- No structured way to discover which endpoints use which resilience patterns
+
+**Impact**: MEDIUM - API consumers had to inspect implementation code to understand resilience behavior
+
+### Solution Implemented
+
+#### 1. Added Common Response Headers Section
+
+Created reusable header definitions for rate limiting in components/headers:
+
+```typescript
+headers: {
+  XRateLimitLimit: {
+    description: 'Maximum number of requests allowed per rate limit window',
+    schema: { type: 'integer' },
+  },
+  XRateLimitRemaining: {
+    description: 'Number of requests remaining in current rate limit window',
+    schema: { type: 'integer' },
+  },
+  XRateLimitReset: {
+    description: 'Unix timestamp when rate limit window resets',
+    schema: { type: 'integer' },
+  },
+  XRateLimitWindow: {
+    description: 'Rate limit window duration in seconds',
+    schema: { type: 'integer' },
+  },
+  XRateLimitBypassed: {
+    description: 'Present if admin bypass key was used (internal use only)',
+    schema: { type: 'string' },
+  },
+}
+```
+
+**Benefits**:
+
+- ✅ **Self-Documenting**: Rate limit headers are now defined once and referenced everywhere
+- ✅ **Type Safety**: Schema validation ensures consistency
+- ✅ **Client Integration**: API consumers know what headers to expect
+
+#### 2. Added Rate Limit Headers to 429 Responses
+
+Updated all 429 responses to include rate limit headers using reusable components:
+
+```typescript
+'429': {
+  description: 'Rate limit exceeded',
+  headers: {
+    'Retry-After': { description: 'Seconds until retry is allowed', schema: { type: 'integer' } },
+    'X-RateLimit-Limit': { $ref: '#/components/headers/XRateLimitLimit' },
+    'X-RateLimit-Remaining': { $ref: '#/components/headers/XRateLimitRemaining' },
+    'X-RateLimit-Reset': { $ref: '#/components/headers/XRateLimitReset' },
+    'X-RateLimit-Window': { $ref: '#/components/headers/XRateLimitWindow' },
+  },
+}
+```
+
+#### 3. Added Custom OpenAPI Extensions
+
+Added standardized custom extensions for resilience patterns:
+
+**x-rateLimit Extension**:
+
+```typescript
+'x-rateLimit': { config: 'api', limit: 50, window: '5 min' }
+```
+
+**x-circuitBreaker Extension**:
+
+```typescript
+'x-circuitBreaker': { enabled: true, scope: 'per-hostname' }
+```
+
+**x-retry Extension**:
+
+```typescript
+'x-retry': { strategy: 'exponential-backoff', maxRetries: 3, maxDelay: '30s', jitter: true }
+```
+
+**x-queue Extension**:
+
+```typescript
+'x-queue': { asyncDelivery: true, deadLetterQueue: true }
+```
+
+**x-idempotency Extension**:
+
+```typescript
+'x-idempotency': { supported: true, header: 'X-Idempotency-Key' }
+```
+
+#### 4. Updated Endpoint Descriptions
+
+Enhanced endpoint descriptions to include resilience pattern information:
+
+**GET /api/v1/resources**:
+
+- Added: "Protected by rate limiting (token bucket algorithm)."
+- Added: x-rateLimit extension documenting API config
+
+**POST /api/validate-url**:
+
+- Updated: "Uses circuit breaker (hostname-based) and retry with exponential backoff (1s-30s, max 3 retries). Circuit breaker prevents cascading failures from unreachable hosts."
+- Added: x-circuitBreaker, x-retry, x-rateLimit extensions
+
+**POST /api/v1/webhooks**:
+
+- Updated: "Webhook delivery uses circuit breaker (hostname-based) and retry with exponential backoff (1s-30s, max 3 retries). Failed webhooks are moved to dead letter queue for manual inspection and retry. Supports idempotency keys to prevent duplicate deliveries."
+- Added: x-circuitBreaker, x-retry, x-idempotency, x-queue, x-rateLimit extensions
+
+**POST /api/v1/webhooks/trigger**:
+
+- Updated: "Uses circuit breaker and retry with exponential backoff for delivery. Delivery is queued asynchronously and non-blocking."
+- Added: x-circuitBreaker, x-retry, x-queue, x-rateLimit extensions
+
+**GET /api/v1/webhooks/queue**:
+
+- Updated: "Monitors pending webhooks, delivery history, and failed webhooks in dead letter queue. Provides visibility into webhook delivery health and retry status."
+- Added: x-rateLimit extension
+
+**GET /api/integration-health**:
+
+- Updated: "Provides aggregate health status (healthy/degraded/unhealthy) and detailed metrics for monitoring and alerting. Circuit breaker states (closed/open/half-open) indicate service availability. Webhook queue metrics show pending and dead letter webhooks. Use this endpoint for proactive monitoring and incident response."
+- Added: x-rateLimit extension
+
+#### 5. Updated integration-patterns.md Documentation
+
+Added comprehensive OpenAPI resilience documentation section:
+
+- Rate limiting headers documentation
+- Circuit breaker extension documentation
+- Retry extension documentation
+- Queue extension documentation
+- Idempotency extension documentation
+- Code examples for each extension
+- Link to OpenAPI spec for reference
+
+### Success Criteria
+
+- [x] Common response headers section added to components/headers
+- [x] Rate limit headers documented in 429 responses
+- [x] Custom OpenAPI extensions defined (x-rateLimit, x-circuitBreaker, x-retry, x-queue, x-idempotency)
+- [x] Endpoint descriptions updated with resilience information
+- [x] integration-patterns.md updated with OpenAPI reference
+- [x] docs/task.md updated with task documentation
+- [x] All changes documented and explained
+
+### Files Modified
+
+1. `server/api/api-docs/spec.get.ts` - Added headers section, updated endpoint descriptions and responses
+2. `docs/integration-patterns.md` - Added OpenAPI resilience documentation section
+
+### Impact
+
+**API Consumer Experience**:
+
+- **Self-Documenting**: API spec now communicates resilience patterns directly
+- **Discoverable**: OpenAPI tools can parse custom extensions for resilience information
+- **Integration Ready**: Clients know exactly what headers to expect and how to handle rate limits
+- **Resilience Aware**: Developers can design clients that respect circuit breakers and backoff strategies
+
+**Documentation Quality**:
+
+- **Single Source of Truth**: OpenAPI spec now complete reference for all resilience patterns
+- **Type Safe**: Schema-defined headers ensure consistency
+- **Well-Documented**: Custom extensions clearly explained in integration-patterns.md
+
+**Architectural Benefits**:
+
+- ✅ **Contract First**: Resilience patterns now documented as part of API contract
+- ✅ **Self-Documenting**: No need to read implementation code to understand behavior
+- ✅ **Standard Patterns**: Consistent custom extensions across all endpoints
+- ✅ **OpenAPI Compatible**: Uses standard OpenAPI extension mechanism (x- prefix)
+
+### Dependencies
+
+None - This is standalone API documentation enhancement
+
+### Related Integration Work
+
+This enhancement complements existing integration patterns:
+
+- Rate limiting: 100% coverage (45+ endpoints)
+- Circuit breaker: Implemented for webhook delivery and URL validation
+- Retry with backoff: Implemented for all external service calls
+- Webhook reliability: Full queue/dead letter system
+- Error standardization: All endpoints use error helpers
+
+---
+
 ## [TASK-PERF-001] Consolidate Fuse.js Caching Implementation ✅ COMPLETED (2026-01-22)
 
 **Feature**: PERF-001
@@ -630,6 +844,7 @@ Added composite indexes to optimize frequently queried webhook storage patterns,
    - Missing: Composite index `[active, deletedAt]`
 
 2. **getApiKeyByValue**:
+
    ```typescript
    await prisma.apiKey.findFirst({
      where: {

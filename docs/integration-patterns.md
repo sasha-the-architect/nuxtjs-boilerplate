@@ -747,7 +747,76 @@ function monitorCircuitBreakers() {
 - [Exponential Backoff](https://en.wikipedia.org/wiki/Exponential_backoff)
 - [API Documentation](./api/README.md)
 - [Architecture Blueprint](./blueprint.md#integration-architecture)
+- [OpenAPI Specification](../server/api/api-docs/spec.get.ts) - See resilience patterns documented in OpenAPI spec
+
+## OpenAPI Resilience Documentation
+
+The OpenAPI specification includes comprehensive documentation of resilience patterns:
+
+### Rate Limiting Headers
+
+All rate-limited endpoints return standard headers:
+
+- `X-RateLimit-Limit`: Maximum requests per window
+- `X-RateLimit-Remaining`: Remaining requests in current window
+- `X-RateLimit-Reset`: Unix timestamp when window resets
+- `X-RateLimit-Window`: Window duration in seconds
+- `X-RateLimit-Bypassed`: Admin bypass indicator (internal use only)
+
+### Circuit Breaker Documentation
+
+Endpoints using circuit breakers are documented with `x-circuitBreaker` extension:
+
+```json
+{
+  "x-circuitBreaker": {
+    "enabled": true,
+    "scope": "per-hostname"
+  }
+}
+```
+
+### Retry Documentation
+
+Endpoints using retry with exponential backoff are documented with `x-retry` extension:
+
+```json
+{
+  "x-retry": {
+    "strategy": "exponential-backoff",
+    "maxRetries": 3,
+    "maxDelay": "30s",
+    "jitter": true
+  }
+}
+```
+
+### Queue Documentation
+
+Endpoints using async queueing are documented with `x-queue` extension:
+
+```json
+{
+  "x-queue": {
+    "asyncDelivery": true,
+    "deadLetterQueue": true
+  }
+}
+```
+
+### Idempotency Documentation
+
+Endpoints supporting idempotency keys are documented with `x-idempotency` extension:
+
+```json
+{
+  "x-idempotency": {
+    "supported": true,
+    "header": "X-Idempotency-Key"
+  }
+}
+```
 
 ---
 
-_Last Updated: 2025-01-07_
+_Last Updated: 2026-01-22_
