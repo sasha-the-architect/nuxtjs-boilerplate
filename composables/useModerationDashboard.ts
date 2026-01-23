@@ -1,6 +1,7 @@
 import { readonly, ref, onMounted } from 'vue'
 import { useNuxtApp } from '#app'
 import { logError } from '~/utils/errorLogger'
+import type { ApiClient } from '~/utils/api-client'
 
 export interface ActivityItem {
   id: string
@@ -9,7 +10,23 @@ export interface ActivityItem {
   timestamp: string
 }
 
-export const useModerationDashboard = () => {
+export interface UseModerationDashboardOptions {
+  apiClient?: ApiClient
+}
+
+export const useModerationDashboard = (
+  options: UseModerationDashboardOptions = {}
+) => {
+  const { apiClient: providedClient } = options
+
+  const getClient = () => {
+    if (providedClient) {
+      return providedClient
+    }
+    const { $apiClient } = useNuxtApp()
+    return $apiClient
+  }
+
   const pendingCount = ref(0)
   const approvedCount = ref(0)
   const rejectedCount = ref(0)
@@ -18,8 +35,8 @@ export const useModerationDashboard = () => {
 
   const loadStatistics = async () => {
     try {
-      const { $apiClient } = useNuxtApp()
-      const queueResponse = await $apiClient.get<{ total?: number }>(
+      const client = getClient()
+      const queueResponse = await client.get<{ total?: number }>(
         '/api/moderation/queue',
         {
           params: { status: 'pending' },

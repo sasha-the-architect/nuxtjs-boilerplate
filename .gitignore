@@ -111,6 +111,11 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
+# Prisma SQLite database (development)
+data/*.db
+data/*.db-journal
+!data/.gitkeep
+
 # Log and report files
 *.log
 *.json
