@@ -67,22 +67,14 @@ The development server will start at `http://localhost:3000`.
 
 ```bash
 # Development
-npm run dev           # Start development server
+npm run dev           # Start development server (http://localhost:3000)
 npm run build         # Build for production
-npm run preview       # Preview production build
-
-# Code Quality
-npm run lint          # Run linting
-npm run lint:fix      # Fix linting issues
-npm run format        # Format code with Prettier
+npm run generate      # Generate static site
+npm run preview       # Preview production build locally
 
 # Testing
-npm run test          # Run tests
-npm run test:watch    # Run tests in watch mode
-npm run test:coverage # Run tests with coverage
-
-# Analysis
-npm run analyze      # Analyze bundle size
+# Note: Test scripts are configured in vitest.config.ts
+# Run tests directly with: npx vitest
 ```
 
 ## 📁 Project Structure
@@ -315,4 +307,4 @@ We welcome contributions! Please read our [Development Guidelines](./development
 
 ---
 
-_Last Updated: 2026-01-20_
+_Last Updated: 2026-01-23_

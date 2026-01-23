@@ -38,12 +38,25 @@ ESLint v9 introduced a new flat configuration system that is now the default. Th
 
 ## Verification
 
-To verify the configuration is working:
+To verify configuration is working:
 
 ```bash
-npm run lint
-# or
 npx eslint .
 ```
 
 This should run without configuration errors and properly lint all project files.
+
+## Running Linting
+
+ESLint can be run directly without an npm script:
+
+```bash
+# Lint all files
+npx eslint .
+
+# Lint specific file
+npx eslint path/to/file.vue
+
+# Lint with auto-fix
+npx eslint . --fix
+```

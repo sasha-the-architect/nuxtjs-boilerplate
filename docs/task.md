@@ -2431,6 +2431,84 @@ The remaining test failures in webhookStorage.test.ts (36 tests) are due to test
 
 # Active Tasks
 
+## [TASK-DOCS-002] Fix Misleading Available Scripts Documentation ✅ COMPLETED (2026-01-23)
+
+**Feature**: DOCS-002
+**Status**: Complete
+**Agent**: 10 Technical Writer
+**Created**: 2026-01-23
+**Completed**: 2026-01-23
+**Priority**: P0 (CRITICAL)
+
+### Description
+
+Fixed actively misleading documentation in `docs/getting-started.md` that listed npm scripts which don't exist in package.json.
+
+### Issue
+
+**Location**: `docs/getting-started.md` - Lines 68-86
+
+**Problem**: The "Available Scripts" section listed 7 npm scripts that don't exist:
+
+- `npm run lint` - Script not found
+- `npm run lint:fix` - Script not found
+- `npm run format` - Script not found
+- `npm run test` - Script not found
+- `npm run test:watch` - Script not found
+- `npm run test:coverage` - Script not found
+- `npm run analyze` - Script not found
+
+**Root Cause**: Documentation copied from another template without verifying against actual package.json
+
+**Impact**: HIGH - New developers following this guide would encounter "script not found" errors, blocking setup and creating negative first impression
+
+### Solution Implemented
+
+Updated "Available Scripts" section to reflect actual package.json scripts:
+
+**Corrected Scripts**:
+
+- `npm run dev` - Start development server (http://localhost:3000)
+- `npm run build` - Build for production
+- `npm run generate` - Generate static site
+- `npm run preview` - Preview production build locally
+
+**Testing Note Added**:
+
+- Explained that test scripts are configured in vitest.config.ts
+- Provided direct command: `npx vitest`
+
+### Success Criteria
+
+- [x] Removed non-existent scripts from documentation
+- [x] Listed only actual scripts from package.json
+- [x] Added helpful note about testing setup
+- [x] Updated Last Updated date to 2026-01-23
+- [x] Documentation now matches implementation
+
+### Files Modified
+
+1. `docs/getting-started.md` - Fixed Available Scripts section
+
+### Impact
+
+**Documentation Quality**:
+
+- **Accuracy**: Scripts now match actual package.json
+- **Onboarding**: New developers won't encounter script errors
+- **Trust**: Documentation now reliable for setup
+
+**User Experience**:
+
+- **Setup Success**: All documented commands will work
+- **Clear Pathing**: Direct command provided for tests (npx vitest)
+
+### Related Issues
+
+None - Discovered during routine documentation review
+
+---
+
 ## [TASK-TEST-001] useSubmissionReview Critical Path Testing ✅ COMPLETED (2026-01-22)
 
 **Feature**: TEST-001
@@ -2699,6 +2777,353 @@ This optimization aligns with:
 - LRU Search Result Caching (blueprint.md pattern #20): Cache expensive computations
 - Performance Architecture: Measure First, Optimize What Users Experience
 - Clean Architecture: Dependencies flow correctly, no circular dependencies
+
+---
+
+## [REFACTOR] Dependency Injection Pattern for P1 Composables
+
+**Feature**: ARCH-004
+**Status**: Backlog
+**Agent**: 01 Architect
+**Created**: 2026-01-23
+**Priority**: P1 (HIGH)
+
+### Issue
+
+**Location**: Multiple composables
+
+**Problem**: Composables that are security-critical or frequently tested still use direct `useNuxtApp()` calls without Dependency Injection pattern. This violates Dependency Inversion Principle and makes composables difficult to test.
+
+**Affected P1 Composables** (from blueprint.md Impact Assessment):
+
+1. `useWebhooksManager.ts` (182 lines) - Webhook orchestration - 4 useNuxtApp() calls
+2. `useModerationDashboard.ts` (110 lines) - Content moderation - 1 useNuxtApp() call
+
+**Impact**: HIGH - Security-critical webhook management and moderation dashboard cannot be properly tested in isolation
+
+### Suggestion
+
+Apply Dependency Injection pattern to both P1 composables:
+
+```typescript
+// Pattern: Add optional apiClient parameter
+interface UseComposableOptions {
+  apiClient?: ApiClient
+}
+
+export function useComposable(options: UseComposableOptions = {}) {
+  const { apiClient: providedClient } = options
+
+  const getClient = () => {
+    if (providedClient) {
+      return providedClient
+    }
+    const { $apiClient } = useNuxtApp()
+    return $apiClient
+  }
+
+  // Use getClient() instead of direct $apiClient
+}
+```
+
+**Benefits**:
+
+- Testability: Composables can be tested by injecting mock ApiClient
+- Dependency Inversion: Business logic depends on abstraction, not framework
+- Backward Compatible: Existing code continues to work
+- Clean Architecture: Dependencies flow correctly (inward)
+
+### Success Criteria
+
+- [ ] useWebhooksManager DI pattern implemented - All 4 methods use getClient()
+- [ ] useModerationDashboard DI pattern implemented - All methods use getClient()
+- [ ] Blueprint updated - Impact Assessment table shows progress (3/17 → 5/17 completed)
+- [ ] Backward compatibility maintained - Existing code works without changes
+- [ ] Zero regressions - All existing tests pass
+
+### Priority
+
+P1 (HIGH) - Both composables are security-critical and benefit most from testability
+
+### Effort
+
+Small (1-2 hours) - Pattern is well-established from ARCH-002 and ARCH-003
+
+---
+
+## [REFACTOR] Extract setTimeout Utility
+
+**Feature**: ARCH-005
+**Status**: Backlog
+**Agent**: 01 Architect
+**Created**: 2026-01-23
+**Priority**: P3 (LOW)
+
+### Issue
+
+**Location**: Multiple composables
+
+**Problem**: Multiple composables use `setTimeout()` with hardcoded timeout values and inline callback logic, making it difficult to manage consistency and test timing-dependent behavior.
+
+**Occurrences Found**:
+
+- `composables/useWebhooksManager.ts`: 3 setTimeout calls (lines 91, 123, 152) - 3000ms timeout
+- `composables/useResourceDetailPage.ts`: 1 setTimeout call (line 217) - 100ms retry
+- `composables/useSubmitPage.ts`: 2 setTimeout calls (lines 84, 129) - 3000ms timeout
+- `composables/useSearchPage.ts`: 1 setTimeout call (line 200)
+- `composables/useLoading.ts`: 1 setTimeout call (line 54)
+
+**Impact**: MEDIUM - Inconsistent timeout patterns across codebase, harder to test timing-dependent behavior
+
+### Suggestion
+
+Create centralized `utils/timeout.ts` utility with named timeout constants and reusable timeout function:
+
+```typescript
+// utils/timeout.ts
+
+export const TIMEOUTS = {
+  ANNOUNCEMENT_CLEAR: 3000, // 3 seconds for UI announcements
+  RESOURCE_CHECK_RETRY: 100, // 100ms for resource check retry
+  DEFAULT_DEBOUNCE: 300, // 300ms for debounce operations
+} as const
+
+export async function timeout<T>(
+  callback: () => T | Promise<T>,
+  ms: number = TIMEOUTS.DEFAULT_DEBOUNCE
+): Promise<T> {
+  return new Promise(resolve => {
+    setTimeout(async () => {
+      resolve(await callback())
+    }, ms)
+  })
+}
+
+export function clearAfter(
+  ref: Ref<string>,
+  ms: number = TIMEOUTS.ANNOUNCEMENT_CLEAR
+): void {
+  setTimeout(() => {
+    ref.value = ''
+  }, ms)
+}
+```
+
+**Usage Example**:
+
+```typescript
+// Before
+setTimeout(() => {
+  announcement.value = ''
+}, 3000)
+
+// After
+import { clearAfter, TIMEOUTS } from '~/utils/timeout'
+clearAfter(announcement, TIMEOUTS.ANNOUNCEMENT_CLEAR)
+```
+
+### Success Criteria
+
+- [ ] utils/timeout.ts created - Timeout utility with named constants
+- [ ] All composables migrated - Replace 8+ setTimeout calls with utility
+- [ ] Consistent timeouts - All timeouts use named constants
+- [ ] Lint passes - No lint errors
+- [ ] All tests pass - Zero regressions
+
+### Priority
+
+P3 (LOW) - Code quality improvement, no functional impact
+
+### Effort
+
+Small (2-3 hours) - Straightforward utility extraction
+
+---
+
+## [REFACTOR] Large Composable Refactoring
+
+**Feature**: ARCH-006
+**Status**: Backlog
+**Agent**: 01 Architect
+**Created**: 2026-01-23
+**Priority**: P2 (MEDIUM)
+
+### Issue
+
+**Location**: Multiple composables
+
+**Problem**: Several composables are very large (>200 lines) suggesting they may have multiple responsibilities and could benefit from being split into smaller, focused composables.
+
+**Large Composables Identified**:
+
+1. `useResourceDetailPage.ts` - 240 lines
+   - Orchestrates: resource loading, analytics, SEO, URL sharing, recommendations
+   - Multiple concerns: data fetching, analytics tracking, SEO generation, clipboard operations
+
+2. `useSearchPage.ts` - 238 lines
+   - Orchestrates: search, filtering, sorting, advanced search, facet counting
+   - Multiple concerns: search logic, filter management, sort options, UI state
+
+3. `useCommunityFeatures.ts` - 231 lines
+   - Orchestrates: comments, user profiles, voting, moderation
+   - Multiple concerns: comment management, profile management, voting logic, moderation
+
+4. `useAdvancedResourceSearch.ts` - 207 lines
+   - Orchestrates: advanced search with multiple filter types
+   - Multiple concerns: filter builders, search execution, result processing
+
+**Impact**: MEDIUM - Large composables are harder to maintain, test, and understand
+
+### Suggestion
+
+Apply Extract Method / Split Composable pattern to break down large composables:
+
+**Approach**: Extract focused sub-composables for distinct responsibilities
+
+**Example - useResourceDetailPage.ts**:
+
+Extract into smaller composables:
+
+- `useResourceSeo.ts` - SEO metadata generation
+- `useResourceSharing.ts` - URL sharing and clipboard operations
+- `useResourceAnalytics.ts` - Analytics tracking (already exists)
+
+**Example - useSearchPage.ts**:
+
+Extract into smaller composables:
+
+- `useSearchFilters.ts` - Filter state management (already exists as useResourceFilters)
+- `useSearchSorting.ts` - Sort options management
+- `useSearchFacets.ts` - Facet counting and display
+
+**Example - useCommunityFeatures.ts**:
+
+Extract into smaller composables (already exist):
+
+- `useComments.ts` - Comment management
+- `useUserProfiles.ts` - Profile management
+- `useVoting.ts` - Voting logic
+- `useModeration.ts` - Moderation actions
+
+**Benefits**:
+
+- Single Responsibility: Each composable has one clear purpose
+- Reusability: Smaller composables can be reused elsewhere
+- Testability: Smaller units are easier to test
+- Maintainability: Changes isolated to specific concerns
+
+### Success Criteria
+
+- [ ] useResourceDetailPage refactored - Extract SEO and sharing into separate composables
+- [ ] useSearchPage refactored - Extract sorting and facets into separate composables
+- [ ] Blueprint updated - Document new composable structure
+- [ ] All tests pass - Zero regressions
+- [ ] Lint passes - No lint errors
+
+### Priority
+
+P2 (MEDIUM) - Code quality improvement, improves maintainability
+
+### Effort
+
+Medium (4-6 hours) - Requires careful extraction and testing
+
+---
+
+## [REFACTOR] Remove Type Cast in memoize.ts
+
+**Feature**: ARCH-007
+**Status**: Backlog
+**Agent**: 01 Architect
+**Created**: 2026-01-23
+**Priority**: P3 (LOW)
+
+### Issue
+
+**Location**: `utils/memoize.ts`
+
+**Problem**: The memoize utility contains an `as any` type cast to bypass TypeScript type checking, which reduces type safety and makes the code harder to reason about.
+
+**Location**: Line 53
+
+```typescript
+// Current implementation
+export function memoize<T extends (...args: unknown[]) => unknown>(
+  fn: T,
+  keyGenerator?: (...args: Parameters<T>) => string
+): T {
+  const cache = new Map<string, ReturnType<T>>()
+
+  return ((...args: Parameters<T>) => {
+    const key = keyGenerator
+      ? (keyGenerator as any)(...args)
+      : generateArgsKey(args)
+    // ...
+  }) as T
+}
+```
+
+**Impact**: LOW - Type safety reduced in a core utility function used across codebase
+
+### Suggestion
+
+Replace `as any` cast with proper TypeScript type guards or conditional logic:
+
+```typescript
+// Improved implementation - type-safe version
+export function memoize<T extends (...args: unknown[]) => unknown>(
+  fn: T,
+  keyGenerator?: (...args: Parameters<T>) => string
+): T {
+  const cache = new Map<string, ReturnType<T>>()
+
+  return ((...args: Parameters<T>) => {
+    let key: string
+
+    if (keyGenerator) {
+      // Type-safe: we know keyGenerator returns string
+      key = keyGenerator(...args)
+    } else {
+      key = generateArgsKey(args)
+    }
+
+    if (cache.has(key)) {
+      return cache.get(key)!
+    }
+
+    const result = fn(...args)
+    cache.set(key, result)
+    return result
+  }) as T
+}
+```
+
+**Alternative**: Use function overloads if type inference is needed for different keyGenerator signatures:
+
+```typescript
+export function memoize<T extends (...args: unknown[]) => unknown>(
+  fn: T,
+  keyGenerator: (...args: Parameters<T>) => string
+): T
+
+export function memoize<T extends (...args: unknown[]) => unknown>(fn: T): T
+```
+
+### Success Criteria
+
+- [ ] `as any` cast removed - Type-safe implementation used
+- [ ] memoize.ts type safety improved - No type casts
+- [ ] All memoize consumers work - Zero breaking changes
+- [ ] All tests pass - 5/5 memoize tests passing
+- [ ] Lint passes - No TypeScript errors
+
+### Priority
+
+P3 (LOW) - Type safety improvement in utility function
+
+### Effort
+
+Small (30 minutes - 1 hour) - Straightforward type cast removal
 
 ---
 

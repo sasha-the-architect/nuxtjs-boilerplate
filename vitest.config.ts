@@ -9,6 +9,8 @@ export default defineConfig({
     environment: 'jsdom',
     testTimeout: 10000,
     setupFiles: ['./test-setup.ts'],
+    fileParallelism: false,
+    pool: 'forks',
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
