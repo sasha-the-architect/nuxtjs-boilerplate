@@ -182,39 +182,9 @@ Configuration files:
 - `.prettierrc` - Prettier configuration
 - `.stylelintrc` - Stylelint configuration
 
-## 🚀 Current Features and Capabilities (2025-11-29)
+## 🚀 Current Features and Capabilities
 
-### Implemented Features
-
-**✅ Robust Infrastructure:**
-
-- **Modern Build System**: Fully configured Nuxt 3 with TypeScript and ESLint
-- **Testing Framework**: Comprehensive test coverage with Vitest
-- **Security**: XSS protection, CSP headers, and authentication security
-
-#### 1. User Management
-
-- **Authentication System**: Complete registration, login, and profile management
-- **Role-based Access**: User, moderator, and admin permissions
-- **Profile Dashboard**: User management interface with activity tracking
-
-#### 2. Resource Management
-
-- **Submission System**: User resource submissions with moderation queue
-- **Advanced Search**: Full-text search with filtering, sorting, and faceted search
-- **Comparison Tools**: Side-by-side resource comparison functionality
-
-#### 3. Community Features
-
-- **User Engagement**: Comments, voting, and rating systems
-- **Moderation Tools**: Content flagging and approval workflows
-- **Feedback System**: Customer feedback collection and tracking
-
-#### 4. Analytics and Monitoring
-
-- **Search Analytics**: Comprehensive search tracking and performance metrics
-- **Usage Analytics**: User behavior and engagement tracking
-- **Resource Health**: Monitoring and status tracking
+This repository focuses on providing a Nuxt 3 + TypeScript foundation, plus client-side user preferences and other “directory app” building blocks. (Server-side user authentication, registration/login, and role-based access control are not implemented yet.)
 
 ## 🐛 Troubleshooting
 
@@ -277,34 +247,3 @@ npm install --save-dev vitest@latest
 ## 🤝 Contributing
 
 We welcome contributions! Please read our [Development Guidelines](./development.md) for details on our code of conduct and the process for submitting pull requests.
-
----
-
-## 📋 Current Development Status
-
-### ✅ Major Features Completed
-
-- **User Authentication System**: Complete with profiles and roles
-- **Advanced Search**: Full-text search with faceted filtering
-- **Resource Management**: Submission, moderation, and comparison tools
-- **Community Features**: Comments, voting, and feedback systems
-- **Analytics**: Comprehensive tracking and performance monitoring
-
-### 🔄 Active Development Areas
-
-- Continuous security improvements and XSS protection
-- Performance optimization and caching strategies
-- Enhanced accessibility compliance
-- API documentation and developer experience
-- Mobile responsiveness improvements
-
-### 📞 Getting Help
-
-- Check the [Troubleshooting Guide](./maintenance/troubleshooting.md)
-- Review [GitHub Issues](https://github.com/cpa02cmz/nuxtjs-boilerplate/issues)
-- Consult [Nuxt Documentation](https://nuxt.com/docs)
-- Check [Project Management](./project-management.md) for current priorities
-
----
-
-_Last Updated: 2026-01-23_

@@ -30,7 +30,7 @@ A production-ready Nuxt.js 3 template with authentication, search, analytics, an
 
 - **Resource Management** - Create, edit, and manage resources with submission system
 - **Advanced Search** - Full-text search with filtering, sorting, and faceted search
-- **User Authentication** - Complete user system with profiles, roles, and permissions
+- **User Preferences** - Client-side preference management and profiles (LocalStorage based)
 - **Community Features** - Comments, voting, and user engagement tools
 - **Analytics & Monitoring** - Comprehensive tracking and performance metrics
 - **API Integration** - RESTful API with webhook support and rate limiting
