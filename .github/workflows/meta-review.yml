@@ -5,20 +5,34 @@ on:
     - cron: '0 0 * * 0' # Weekly on Sundays
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: meta-review
+  cancel-in-progress: true
+
 jobs:
   meta_review:
     runs-on: ubuntu-24.04-arm
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
-      
+        with:
+          fetch-depth: 0
+
       - name: Install OpenCode CLI
         run: curl -fsSL https://opencode.ai/install.sh | sh
 
-      - name: Evolve & Optimize
+      - name: Meta review workflows
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
-          # The agent reads its own workflows and suggests improvements
-          opencode run --model opencode/big-pickle --prompt "Read all .github/workflows/*.yml files. Analyze them for redundancy, deprecated actions, or performance bottlenecks. If you find optimizations, create a PR with the improvements. Focus on caching and parallelism."
+          set -Eeuo pipefail
+          opencode run \
+            --model opencode/big-pickle \
+            --prompt "Read all .github/workflows/*.yml. Identify redundant workflows, deprecated actions, missing permissions, missing concurrency, and missing caching. Propose a minimal set of workflows. Implement improvements on a new branch and open a PR (do not push directly to main)." \
+            --share false

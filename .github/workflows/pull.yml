@@ -13,74 +13,128 @@ permissions:
   issues: write
   checks: write
 
+concurrency:
+  group: guardian-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   guardian:
     runs-on: ubuntu-24.04-arm
+
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install OpenCode CLI
         run: curl -fsSL https://opencode.ai/install.sh | sh
 
-      - name: Context Sync & Merge Check
+      - name: Context sync & merge check
         id: merge_check
+        if: github.event_name == 'pull_request_target'
+        shell: bash
         run: |
+          set -Eeuo pipefail
           git config user.name "OpenCode Bot"
           git config user.email "bot@opencode.ai"
-          git fetch origin main
-          # Attempt merge without commit to check for conflicts
-          if ! git merge origin/main --no-commit --no-ff; then
-            echo "::error::Merge conflict detected"
-            echo "conflict=true" >> $GITHUB_OUTPUT
-            git merge --abort
+
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+          git fetch origin "$BASE_REF"
+
+          if ! git merge "origin/$BASE_REF" --no-commit --no-ff; then
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+            git merge --abort || true
           else
-            git merge --abort # Clean up if successful, we just wanted to check
+            echo "conflict=false" >> "$GITHUB_OUTPUT"
+            git merge --abort || true
           fi
 
-      - name: Resolve Conflicts (Self-Healing)
-        if: steps.merge_check.outputs.conflict == 'true'
+      - name: Resolve conflicts (auto)
+        if: steps.merge_check.outputs.conflict == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
-          # Use big-pickle for heavy logic
-          opencode run --model opencode/big-pickle --prompt "Analyze conflict markers in this repo and force-push a resolution commit. Use git commands."
+          set -Eeuo pipefail
+          opencode run \
+            --model opencode/big-pickle \
+            --prompt "Resolve git merge conflicts between this PR branch and the base branch. Edit files to remove conflict markers, run tests if available, commit with message 'chore: resolve conflicts', and push to the PR head branch." \
+            --share false
 
-      - name: Handle Reviews
+      - name: Handle change requests
         if: github.event_name == 'pull_request_target'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        shell: bash
         run: |
-          PENDING_REVIEWS=$(gh pr view ${{ github.event.pull_request.number }} --json reviews --jq '.reviews | map(select(.state=="CHANGES_REQUESTED")) | length')
-          if [ "$PENDING_REVIEWS" -gt 0 ]; then
-             opencode run --model opencode/big-pickle --prompt "Read PR comments for PR #${{ github.event.pull_request.number }}, modify code to address them, and resolve the conversation."
+          set -Eeuo pipefail
+          PR="${{ github.event.pull_request.number }}"
+          CHANGES_REQUESTED=$(gh pr view "$PR" --json reviews --jq '.reviews | map(select(.state=="CHANGES_REQUESTED")) | length')
+
+          if [ "$CHANGES_REQUESTED" -gt 0 ]; then
+            opencode run \
+              --model opencode/big-pickle \
+              --prompt "Read PR review comments for PR #$PR, implement requested changes, and update code accordingly. If changes are made, commit and push to the PR branch." \
+              --share false
           fi
 
-      - name: Quality Gates
+      - name: Install dependencies
+        id: deps
+        shell: bash
         run: |
-          npm install
-          # Trap errors for self-healing
+          set -Eeuo pipefail
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Quality gates (build/lint/test)
+        id: quality
+        continue-on-error: true
+        shell: bash
+        run: |
           set +e
-          npm run build 2> build_error.log
-          BUILD_EXIT=$?
-          npm run lint 2> lint_error.log
-          LINT_EXIT=$?
-          npm test 2> test_error.log
-          TEST_EXIT=$?
-          set -e
-          
-          if [ $BUILD_EXIT -ne 0 ] || [ $LINT_EXIT -ne 0 ] || [ $TEST_EXIT -ne 0 ]; then
-            echo "failure=true" >> $GITHUB_OUTPUT
-            cat build_error.log lint_error.log test_error.log > failure.log
-            exit 1
+          : > failure.log
+
+          npm run build > build.log 2>&1
+          BUILD=$?
+          npm run lint > lint.log 2>&1
+          LINT=$?
+          npm test > test.log 2>&1
+          TEST=$?
+
+          echo "build=$BUILD" >> "$GITHUB_OUTPUT"
+          echo "lint=$LINT" >> "$GITHUB_OUTPUT"
+          echo "test=$TEST" >> "$GITHUB_OUTPUT"
+
+          if [ $BUILD -ne 0 ] || [ $LINT -ne 0 ] || [ $TEST -ne 0 ]; then
+            cat build.log lint.log test.log > failure.log
           fi
 
-      - name: Self-Healing on Failure
-        if: failure()
+          exit 0
+
+      - name: Self-heal on gate failure
+        if: (steps.quality.outputs.build != '0' || steps.quality.outputs.lint != '0' || steps.quality.outputs.test != '0') && github.event.pull_request.head.repo.full_name == github.repository
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
-          opencode run --model opencode/big-pickle --prompt "Fix the errors found in failure.log and push the patch." --file failure.log
+          set -Eeuo pipefail
+          opencode run \
+            --model opencode/big-pickle \
+            --prompt "Fix the CI failures described in failure.log. Apply code changes, re-run the relevant commands, commit, and push to the PR branch." \
+            --file failure.log \
+            --share false

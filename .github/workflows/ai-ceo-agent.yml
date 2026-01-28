@@ -12,9 +12,8 @@ permissions:
   issues: write
   actions: write
 
-# global lock: only 1 instance of this workflow running across events
 concurrency:
-  group: global-workflow-lock
+  group: ai-ceo-agent
   cancel-in-progress: false
 
 jobs:
@@ -32,26 +31,28 @@ jobs:
       packages: write
       pages: write
       security-events: write
-      
+
     env:
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       IFLOW_API_KEY: ${{ secrets.IFLOW_API_KEY }}
-      
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ env.GH_TOKEN }}
           ref: main
-          
+
       - name: Install OpenCode CLI (cached if already installed)
+        shell: bash
         run: |
+          set -Eeuo pipefail
           if ! command -v opencode >/dev/null 2>&1; then
-            curl -fsSL https://opencode.ai/install | bash
+            curl -fsSL https://opencode.ai/install.sh | sh
           fi
           echo "$HOME/.opencode/bin" >> "$GITHUB_PATH"
-          
+
       - name: Run CEO Agent
         id: run_ceo_agent
         timeout-minutes: 50
@@ -298,5 +299,5 @@ jobs:
             6. Verifikasi PR berhasil dibuat/diupdate.
           PROMPT
           )" \
-            --model opencode/glm-4.7-free \
+            --model opencode/big-pickle \
             --share false
