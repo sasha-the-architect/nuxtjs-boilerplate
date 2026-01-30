@@ -9,6 +9,7 @@ import {
   validateUrls,
   UrlValidationResult,
 } from '~/utils/urlValidation'
+import { logger } from '~/utils/logger'
 
 interface ResourceHealthStatus {
   id: string
@@ -31,49 +32,8 @@ const resourceHealthMap = new Map<string, ResourceHealthStatus>()
 export async function updateResourceHealth(
   resource: Resource
 ): Promise<ResourceHealthStatus> {
-  const validationResult = await validateUrl(resource.url)
-
-  // Get existing health status or create new one
-  const existingHealth = resourceHealthMap.get(resource.id)
-  const validationHistory = existingHealth?.validationHistory || []
-
-  // Add the new validation result to history (keep last 10 results)
-  validationHistory.push(validationResult)
-  if (validationHistory.length > 10) {
-    validationHistory.shift() // Remove oldest result
-  }
-
-  const healthStatus: ResourceHealthStatus = {
-    id: resource.id,
-    url: resource.url,
-    isHealthy: validationResult.isAccessible,
-    lastChecked: validationResult.timestamp,
-    lastStatus: validationResult.status,
-    lastStatusText: validationResult.statusText,
-    responseTime: validationResult.responseTime,
-    error: validationResult.error,
-    validationHistory,
-  }
-
-  resourceHealthMap.set(resource.id, healthStatus)
-
-  return healthStatus
-}
-
-/**
- * Updates health status for all resources
- */
-export async function updateAllResourceHealth(
-  resources: Resource[]
-): Promise<ResourceHealthStatus[]> {
-  const results = await validateUrls(
-    resources.map(r => r.url),
-    {},
-    5
-  )
-
-  const healthStatuses = resources.map((resource, index) => {
-    const validationResult = results[index]
+  try {
+    const validationResult = await validateUrl(resource.url)
 
     // Get existing health status or create new one
     const existingHealth = resourceHealthMap.get(resource.id)
@@ -98,10 +58,83 @@ export async function updateAllResourceHealth(
     }
 
     resourceHealthMap.set(resource.id, healthStatus)
-    return healthStatus
-  })
 
-  return healthStatuses
+    return healthStatus
+  } catch (error) {
+    logger.error(`Failed to update resource health for ${resource.id}:`, error)
+    // Return a default unhealthy status
+    return {
+      id: resource.id,
+      url: resource.url,
+      isHealthy: false,
+      lastChecked: new Date().toISOString(),
+      lastStatus: null,
+      lastStatusText: null,
+      responseTime: null,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      validationHistory: [],
+    }
+  }
+}
+
+/**
+ * Updates health status for all resources
+ */
+export async function updateAllResourceHealth(
+  resources: Resource[]
+): Promise<ResourceHealthStatus[]> {
+  try {
+    const results = await validateUrls(
+      resources.map(r => r.url),
+      {},
+      5
+    )
+
+    const healthStatuses = resources.map((resource, index) => {
+      const validationResult = results[index]
+
+      // Get existing health status or create new one
+      const existingHealth = resourceHealthMap.get(resource.id)
+      const validationHistory = existingHealth?.validationHistory || []
+
+      // Add the new validation result to history (keep last 10 results)
+      validationHistory.push(validationResult)
+      if (validationHistory.length > 10) {
+        validationHistory.shift() // Remove oldest result
+      }
+
+      const healthStatus: ResourceHealthStatus = {
+        id: resource.id,
+        url: resource.url,
+        isHealthy: validationResult.isAccessible,
+        lastChecked: validationResult.timestamp,
+        lastStatus: validationResult.status,
+        lastStatusText: validationResult.statusText,
+        responseTime: validationResult.responseTime,
+        error: validationResult.error,
+        validationHistory,
+      }
+
+      resourceHealthMap.set(resource.id, healthStatus)
+      return healthStatus
+    })
+
+    return healthStatuses
+  } catch (error) {
+    logger.error('Failed to update all resource health statuses:', error)
+    // Return default unhealthy statuses for all resources
+    return resources.map(resource => ({
+      id: resource.id,
+      url: resource.url,
+      isHealthy: false,
+      lastChecked: new Date().toISOString(),
+      lastStatus: null,
+      lastStatusText: null,
+      responseTime: null,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      validationHistory: [],
+    }))
+  }
 }
 
 /**

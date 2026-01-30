@@ -1,5 +1,6 @@
 import type { WebhookQueueItem } from '~/types/webhook'
 import { webhookStorage } from './webhookStorage'
+import { logger } from '~/utils/logger'
 
 export class WebhookQueueManager {
   private isProcessing = false
@@ -62,7 +63,7 @@ export class WebhookQueueManager {
         try {
           await this.processCallback(item)
         } catch (error) {
-          console.error(`Error processing queue item ${item.id}:`, error)
+          logger.error(`Error processing queue item ${item.id}:`, error)
         }
       }
     }
