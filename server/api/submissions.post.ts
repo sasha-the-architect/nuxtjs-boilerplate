@@ -1,5 +1,6 @@
 // For Nuxt 3, we'll use built-in storage system instead of file system directly
 import { defineEventHandler, readBody } from 'h3'
+import { randomUUID } from 'crypto'
 import { logger } from '~/utils/logger'
 import type { Submission } from '~/types/submission'
 import {
@@ -30,8 +31,9 @@ export default defineEventHandler(async event => {
     const validatedData = validationResult.data
 
     // Create a submission object with metadata
+    // Use cryptographically secure UUID for ID generation (fixes CVE)
     const submission: Submission = {
-      id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `sub_${Date.now()}_${randomUUID()}`,
       resourceData: {
         title: validatedData.title.trim(),
         description: validatedData.description.trim(),
